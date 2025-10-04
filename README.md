@@ -1,281 +1,249 @@
 # Study and Search Agent 🤖
 
-An intelligent agent that dynamically decides between different tools to answer your questions:
-- 🐍 **Python REPL** for math and code execution
-- 🔍 **Web Search** for real-time facts and recent events
-- 💡 **Direct answers** for general knowledge
+An intelligent agent that dynamically chooses the right tool to answer your questions.
 
-## 🌟 Key Features
+**Available as CLI or REST API** • **Powered by LangChain & Gemini**
 
-The **dynamic decision-making** is the core of this project. The LLM intelligently chooses:
+---
 
-1. **Python_REPL Tool** → For mathematical calculations or code execution
-2. **Web_Search Tool** → For real-time facts, current events, or recent information
-3. **Direct Answer** → For trivial or general knowledge questions (no tool needed)
+## ✨ Features
 
-## 🏗️ Architecture
+The agent automatically decides which tool to use:
 
-```
-User Question → LLM Agent → Decision Making
-                              ↓
-                    ┌─────────┴─────────┐
-                    ↓         ↓         ↓
-              Python_REPL  Web_Search  Direct Answer
-```
+- 📚 **Document Q&A** - Answers from your uploaded PDF/DOCX files (RAG with vector search)
+- 🐍 **Python REPL** - Mathematical calculations and code execution  
+- 🔍 **Web Search** - Real-time facts and current events (via Tavily)
+- 💡 **Direct Answer** - General knowledge questions
 
-The agent uses a **ReAct (Reasoning + Acting)** framework to:
-1. Reason about which tool to use
-2. Execute the appropriate action
-3. Observe the result
-4. Provide a final answer
+## 🚀 Quick Start
 
-## 📦 Installation
-
-### 1. Clone or navigate to the repository
+### 1. Install
 
 ```bash
+# Clone and setup
 cd study-search-agent
-```
-
-### 2. Create a virtual environment (recommended)
-
-```bash
 python3 -m venv study_agent
-source study_agent/bin/activate  # On Windows: study_agent\Scripts\activate
-```
+source study_agent/bin/activate
 
-### 3. Install dependencies
-
-```bash
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-### 4. Set up environment variables
-
-Copy the example environment file and add your API keys:
+### 2. Configure API Keys
 
 ```bash
 cp env_example.txt .env
 ```
 
-Edit `.env` and add your API keys:
+Edit `.env` and add your keys:
 
 ```env
-# Choose your LLM provider
-LLM_PROVIDER=gemini  # Options: "huggingface", "gemini", "openai", "anthropic"
-
-# Add your API keys (only need the ones you're using)
-HUGGINGFACE_API_KEY=your_huggingface_api_key_here
-GOOGLE_API_KEY=your_google_api_key_here
-OPENAI_API_KEY=your_openai_api_key_here
-ANTHROPIC_API_KEY=your_anthropic_api_key_here
-TAVILY_API_KEY=your_tavily_api_key_here
+LLM_PROVIDER=gemini
+GOOGLE_API_KEY=your_key_here
+TAVILY_API_KEY=your_key_here
 ```
 
-**Where to get API keys:**
-- HuggingFace: https://huggingface.co/settings/tokens
-- Google Gemini: https://aistudio.google.com/app/apikey
-- OpenAI: https://platform.openai.com/api-keys
-- Anthropic: https://console.anthropic.com/
-- Tavily: https://tavily.com/
+**Get API keys:**
+- [Google Gemini](https://aistudio.google.com/app/apikey) (Free tier available)
+- [Tavily Search](https://tavily.com/) (Free tier available)
+- [HuggingFace](https://huggingface.co/settings/tokens) (Optional)
+- [OpenAI](https://platform.openai.com/api-keys) (Optional)
 
-## 🚀 Usage
+### 3. Run
 
-### Interactive Mode
-
-Run the agent in interactive chat mode:
-
+**CLI Mode:**
 ```bash
 python main.py
 ```
 
-This starts a conversation where you can ask any question:
-
-```
-🤔 Your question: What is 25 * 37 + 128?
-# Agent will use Python_REPL
-
-🤔 Your question: Who is the current president of the United States?
-# Agent will use Web_Search
-
-🤔 Your question: What is the capital of France?
-# Agent will answer directly
+**API Mode:**
+```bash
+python api.py
+# Visit http://localhost:8000/docs
 ```
 
-### Single Question Mode
+---
 
-Ask a single question from the command line:
+## 💻 Usage
+
+### Interactive Chat
 
 ```bash
-python main.py "What is the square root of 2?"
+$ python main.py
+
+🤔 Your question: What is 25 * 37?
+✅ Answer: 925  # Uses Python_REPL
+
+🤔 Your question: Who won the 2024 Nobel Prize?
+✅ Answer: ...  # Uses Web_Search
+
+🤔 Your question: What is supervised learning?
+✅ Answer: ...  # Uses Document_QA (if docs uploaded)
 ```
 
-### Examples
+### REST API
 
-Run the examples to see the agent in action:
+Start the server:
+```bash
+python api.py
+```
+
+Query the agent:
+```bash
+curl -X POST http://localhost:8000/query \
+  -H "Content-Type: application/json" \
+  -d '{"question": "What is the capital of France?"}'
+```
+
+Upload documents:
+```bash
+curl -X POST http://localhost:8000/documents/upload \
+  -F "file=@notes.pdf"
+
+# Reload to index
+curl -X POST http://localhost:8000/reload
+```
+
+**API Docs:** http://localhost:8000/docs
+
+---
+
+## 📚 Document Q&A (RAG)
+
+Answer questions from your study materials using Retrieval Augmented Generation.
+
+### Upload Documents
 
 ```bash
-python examples.py
+# Add files to documents/ folder
+cp lecture_notes.pdf documents/
+cp textbook.docx documents/
+
+# Or use API
+curl -X POST http://localhost:8000/documents/upload -F "file=@notes.pdf"
 ```
 
-## 📝 Example Questions
+### How It Works
 
-### Math/Code (Uses Python_REPL)
-- "What is the square root of 12345?"
-- "Calculate the factorial of 20"
-- "Generate the first 10 Fibonacci numbers"
-- "What is 15% of 850?"
+1. **Load** - Reads PDF/DOCX files  
+2. **Split** - Chunks into 1000 char segments (200 overlap)  
+3. **Embed** - Converts to vectors (Gemini `text-embedding-004`)  
+4. **Store** - Saves to ChromaDB vector database  
+5. **Retrieve** - Searches for top 3 relevant chunks  
+6. **Generate** - Gemini 2.5 Flash creates answer with citations
 
-### Real-Time Info (Uses Web_Search)
-- "What is the current weather in Tokyo?"
-- "Who won the latest Nobel Prize?"
-- "What are the latest developments in AI?"
-- "What is Tesla's current stock price?"
+**LCEL Chain:**
+```
+question → retriever | format | prompt | llm | parse → answer
+```
 
-### General Knowledge (Direct Answer)
-- "What is the capital of France?"
-- "Who wrote Romeo and Juliet?"
-- "What is photosynthesis?"
-- "How many planets are in our solar system?"
+### Example Questions
 
-## 🧠 How It Works
+```
+"What are the types of machine learning in my notes?"
+"Explain neural networks from chapter 3"
+"Compare supervised vs unsupervised learning"
+```
 
-### Decision Logic
+---
 
-The agent uses a carefully crafted prompt that instructs the LLM to:
+## 🏗️ Architecture
 
-1. **Analyze the question** - Understand what type of information is needed
-2. **Choose the right tool** - Based on these criteria:
-   - Mathematical or computational? → `Python_REPL`
-   - Current/recent information? → `Web_Search`
-   - Established general knowledge? → Direct answer
-3. **Execute and respond** - Use the chosen tool or answer directly
+```
+User Question
+    ↓
+LLM Agent (Gemini 2.5 Flash)
+    ↓
+Decision: Which tool?
+    ↓
+┌───────────┬─────────────┬────────────┐
+Document_QA  Python_REPL  Web_Search
+(RAG+Vector)   (Math)      (Tavily)
+```
 
-### Tools
+**ReAct Framework:** Reasoning → Action → Observation → Answer
 
-#### Python_REPL
-- Executes Python code in a safe REPL environment
-- Perfect for calculations, data processing, and code examples
-- Returns the output of the executed code
+---
 
-#### Web_Search (Tavily)
-- Performs real-time web searches
-- Returns up-to-date information from the internet
-- Useful for current events, statistics, and recent data
+## 📁 Project Structure
+
+```
+study-search-agent/
+├── agent/
+│   └── study_agent.py      # Main agent logic
+├── tools/
+│   ├── base.py             # Tool registry
+│   ├── document_qa.py      # RAG implementation
+│   ├── python_repl.py      # Code execution
+│   └── web_search.py       # Tavily search
+├── utils/
+│   ├── llm.py              # LLM initialization
+│   └── prompts.py          # Agent prompts
+├── main.py                 # CLI entry point
+├── api.py                  # FastAPI server
+├── requirements.txt        # Dependencies
+└── .env                    # API keys (create this)
+```
+
+---
 
 ## 🛠️ Customization
 
-### Using Different LLM Providers
-
-The agent supports multiple LLM providers. Set your preference in `.env`:
+### Use Different LLM Provider
 
 ```env
-LLM_PROVIDER=gemini  # Options: "huggingface", "gemini", "openai", "anthropic"
+LLM_PROVIDER=gemini  # or huggingface, openai, anthropic
 ```
 
-**Provider-specific notes:**
-
-- **HuggingFace**: Uses the Inference API. Default model: `mistralai/Mistral-7B-Instruct-v0.2`
-  - You can specify any HuggingFace model that supports text generation
-  - Free tier available with rate limits
-  
-- **Gemini**: Google's Gemini models. Default: `gemini-1.5-flash`
-  - Fast and efficient
-  - Good free tier quota
-  
-- **OpenAI**: GPT models. Default: `gpt-4-turbo-preview`
-  - Requires paid API access
-  
-- **Anthropic**: Claude models. Default: `claude-3-sonnet-20240229`
-  - Requires paid API access
-
 ### Programmatic Usage
-
-You can also use the agent in your own Python code:
 
 ```python
 from agent import StudySearchAgent
 
-# Initialize the agent with your preferred provider
-agent = StudySearchAgent(llm_provider="gemini")  # or "huggingface", "openai", "anthropic"
-
-# Optionally specify a custom model
-agent = StudySearchAgent(llm_provider="huggingface", model_name="meta-llama/Llama-2-7b-chat-hf")
-agent = StudySearchAgent(llm_provider="gemini", model_name="gemini-1.5-pro")
-
-# Ask questions
+agent = StudySearchAgent(llm_provider="gemini")
 answer = agent.query("What is 2 + 2?")
 print(answer)
-
-# Start interactive chat
-agent.chat()
 ```
 
-### Modular Architecture
+### Add New Tools
 
-The project is organized into modules for easy extension:
-
-- **`agent/`** - Core agent logic
-- **`tools/`** - Individual tool implementations (easy to add new tools)
-- **`utils/`** - Shared utilities (LLM initialization, prompts)
-
-To add a new tool:
-1. Create a new file in `tools/` (e.g., `calculator.py`)
-2. Implement a `get_your_tool()` function
-3. Add it to `tools/base.py`'s `get_all_tools()` function
-
-## 📊 Project Structure
-
-```
-study-search-agent/
-├── agent/                    # Agent module
-│   ├── __init__.py          # Agent exports
-│   └── study_agent.py       # Main agent implementation
-├── tools/                    # Tools module
-│   ├── __init__.py          # Tool exports
-│   ├── base.py              # Tool collection
-│   ├── python_repl.py       # Python REPL tool
-│   └── web_search.py        # Web search tool
-├── utils/                    # Utilities module
-│   ├── __init__.py          # Utility exports
-│   ├── llm.py               # LLM initialization
-│   └── prompts.py           # Prompt templates
-├── main.py                  # Entry point
-├── examples.py              # Example usage demonstrations
-├── requirements.txt         # Python dependencies
-├── env_example.txt          # Example environment variables
-├── .gitignore               # Git ignore rules
-└── README.md                # This file
-```
-
-## 🔒 Security Notes
-
-- Never commit your `.env` file with real API keys
-- The Python REPL tool executes code - use with caution
-- Consider rate limits and costs of API calls
-
-## 🤝 Contributing
-
-Feel free to enhance this agent by:
-- Adding more tools (e.g., calculator, image generation)
-- Improving the decision-making prompt
-- Adding error handling and edge cases
-- Creating more examples
-
-## 📄 License
-
-See LICENSE file for details.
-
-## 🙏 Acknowledgments
-
-Built with:
-- [LangChain](https://www.langchain.com/) - Agent framework
-- [HuggingFace](https://huggingface.co/) - Open-source models
-- [Google Gemini](https://ai.google.dev/) - Gemini models
-- [OpenAI](https://openai.com/) - GPT models (optional)
-- [Anthropic](https://www.anthropic.com/) - Claude models (optional)
-- [Tavily](https://tavily.com/) - Web search API
+1. Create `tools/your_tool.py`
+2. Add to `tools/base.py`
+3. Update prompt in `utils/prompts.py`
 
 ---
 
-**Happy studying and searching! 🎓🔍**
+## 📝 Example Questions
+
+| Type | Question | Tool Used |
+|------|----------|-----------|
+| **Document** | "What is backpropagation in my notes?" | Document_QA |
+| **Math** | "Calculate 15% of 850" | Python_REPL |
+| **Current** | "Latest AI news" | Web_Search |
+| **General** | "Capital of France?" | Direct Answer |
+
+---
+
+## 🔒 Security
+
+- Never commit `.env` with real API keys
+- Python REPL executes code - use with caution
+- Consider API rate limits and costs
+
+---
+
+## 📄 License
+
+MIT License - See LICENSE file
+
+## 🙏 Built With
+
+- [LangChain](https://langchain.com/) - Agent framework
+- [Google Gemini](https://ai.google.dev/) - LLM & embeddings  
+- [Tavily](https://tavily.com/) - Web search
+- [ChromaDB](https://trychroma.com/) - Vector database
+- [FastAPI](https://fastapi.tiangolo.com/) - REST API
+
+---
+
+**Happy studying! 🎓**
