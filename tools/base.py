@@ -15,6 +15,7 @@ def get_all_tools() -> List[Tool]:
     """
     from .python_repl import get_python_repl_tool
     from .web_search import get_web_search_tool
+    from .document_qa import get_document_qa_tool
     
     tools = []
     
@@ -25,6 +26,11 @@ def get_all_tools() -> List[Tool]:
     web_search_tool = get_web_search_tool()
     if web_search_tool:
         tools.append(web_search_tool)
+    
+    # Add Document Q&A tool (if available)
+    doc_qa_tool = get_document_qa_tool()
+    if doc_qa_tool:
+        tools.append(doc_qa_tool)
     
     return tools
 
