@@ -7,6 +7,7 @@ import sys
 from dotenv import load_dotenv
 
 from agent import StudySearchAgent
+from tools.document_qa import initialize_document_qa
 
 # Load environment variables
 load_dotenv()
@@ -19,6 +20,13 @@ def main():
     llm_provider = os.getenv("LLM_PROVIDER", "gemini")
     
     print(f"\n🚀 Initializing Study and Search Agent with {llm_provider.upper()}...\n")
+    
+    # Try to load documents if any exist
+    documents_dir = os.getenv("DOCUMENTS_DIR", "documents")
+    if os.path.exists(documents_dir) and os.listdir(documents_dir):
+        print("📚 Loading documents for Q&A...")
+        initialize_document_qa(documents_dir)
+        print()
     
     try:
         agent = StudySearchAgent(llm_provider=llm_provider)
