@@ -19,15 +19,15 @@ def get_all_tools() -> List[Tool]:
     
     tools = []
     
-    # Add Python REPL tool (always available)
+    # Add Python REPL tool 
     tools.append(get_python_repl_tool())
     
-    # Add Web Search tool (if available)
+    # Add Web Search tool 
     web_search_tool = get_web_search_tool()
     if web_search_tool:
         tools.append(web_search_tool)
     
-    # Add Document Q&A tool (if available)
+    # Add Document Q&A tool 
     doc_qa_tool = get_document_qa_tool()
     if doc_qa_tool:
         tools.append(doc_qa_tool)
