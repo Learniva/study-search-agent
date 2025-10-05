@@ -1,6 +1,6 @@
 """
 Study and Search Agent
-A dynamic agent that chooses between web search, Python REPL, or direct answers.
+A dynamic agent that chooses between web search, Python REPL, or document Q&A.
 """
 
 import os
@@ -54,7 +54,8 @@ class StudySearchAgent:
             tools=self.tools,
             verbose=True,
             handle_parsing_errors=True,
-            max_iterations=5
+            max_iterations=10,  # Increased for complex requests
+            early_stopping_method="generate"  # Generate answer when limit reached
         )
     
     def query(self, question: str) -> str:
@@ -82,6 +83,14 @@ class StudySearchAgent:
         print("  📊 Math and code execution (using Python)")
         print("  🔍 Real-time web searches")
         print("  💡 General knowledge questions")
+        
+        # Check if Document_QA is available
+        doc_qa_available = any(tool.name == "Document_QA" for tool in self.tools)
+        if doc_qa_available:
+            print("  📚 Questions about uploaded documents (PDF/DOCX)")
+            print("  ✨ Generate MCQs, summaries, study guides, and flashcards")
+            print("  ✨ Handle complex requests (e.g., 'Generate 10 MCQs and summarize chapter 1')")
+        
         print("\nType 'quit', 'exit', or 'q' to end the conversation.\n")
         
         while True:
