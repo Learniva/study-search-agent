@@ -346,14 +346,22 @@ Search Query Used: {search_query}
 Search Results:
 {raw_results}
 
-Instructions:
-- Synthesize ALL relevant information from the search results into a coherent answer
-- Include ALL important names, dates, facts, and details mentioned in the sources
-- Answer the ORIGINAL question comprehensively using the search results
-- If multiple people, items, or facts are mentioned, list them all
-- Structure the answer clearly (use bullet points for lists if needed)
-- At the end, add a "Sources:" section listing the URLs referenced
-- Be thorough and complete - don't omit important information"""
+INSTRUCTIONS:
+1. Synthesize ALL relevant information from the search results into a coherent answer
+2. Include ALL important names, dates, facts, and details mentioned in the sources
+3. Answer the ORIGINAL question comprehensively using the search results
+4. If multiple people, items, or facts are mentioned, list them all
+5. Structure the answer clearly (use bullet points or sections if needed)
+6. Be thorough and complete - don't omit important information
+7. MUST end with a "Sources:" section listing ALL URLs referenced
+
+FORMAT YOUR RESPONSE AS:
+[Your comprehensive answer here]
+
+Sources:
+- [URL 1]
+- [URL 2]
+- [URL 3]"""
             
             messages = [SystemMessage(content=synthesis_prompt)]
             
