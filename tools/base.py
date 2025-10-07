@@ -16,6 +16,7 @@ def get_all_tools() -> List[Tool]:
     from .python_repl import get_python_repl_tool
     from .web_search import get_web_search_tool
     from .document_qa import get_document_qa_tool
+    from .manim_animation import get_manim_tool
     
     tools = []
     
@@ -31,6 +32,11 @@ def get_all_tools() -> List[Tool]:
     doc_qa_tool = get_document_qa_tool()
     if doc_qa_tool:
         tools.append(doc_qa_tool)
+    
+    # Add Manim Animation tool
+    manim_tool = get_manim_tool()
+    if manim_tool:
+        tools.append(manim_tool)
     
     return tools
 
