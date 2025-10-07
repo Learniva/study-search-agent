@@ -75,9 +75,6 @@ answer = agent.query("Generate 10 MCQs about physics")
 
 ## Documentation
 
-- **[COMPLEX_REQUESTS_GUIDE.md](COMPLEX_REQUESTS_GUIDE.md)** - Detailed usage
-- **[DIRECT_WEB_SEARCH.md](DIRECT_WEB_SEARCH.md)** - Tool selection logic
-- **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - Command reference
 - **[API_README.md](API_README.md)** - API documentation
 
 ## Stack
