@@ -3,7 +3,10 @@ langchain-google-genai==2.0.0
 langchain-huggingface==0.1.0
 langchain-community==0.3.0
 langchain-experimental==0.3.0
+langgraph==0.2.28
 tavily-python==0.5.0
+google-api-python-client==2.100.0
+duckduckgo-search==4.1.1
 python-dotenv==1.0.1
 huggingface-hub==0.26.0
 transformers>=4.30.0
