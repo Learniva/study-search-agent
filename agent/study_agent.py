@@ -77,8 +77,8 @@ class StudySearchAgent:
         Build the LangGraph with nodes and edges.
         
         Graph structure:
-        START → route_question → [document_qa | web_search | python_repl]
-                                       ↓              ↓            ↓
+        START → route_question → [document_qa | web_search | python_repl | manim_animation]
+                                       ↓              ↓            ↓            ↓
                                   check_result → [retry_web_search | format_answer]
                                                          ↓              ↓
                                                    format_answer → END
@@ -91,6 +91,7 @@ class StudySearchAgent:
         workflow.add_node("document_qa", self._execute_document_qa)
         workflow.add_node("web_search", self._execute_web_search)
         workflow.add_node("python_repl", self._execute_python_repl)
+        workflow.add_node("manim_animation", self._execute_manim_animation)
         workflow.add_node("check_result", self._check_result)
         workflow.add_node("format_answer", self._format_answer)
         
@@ -104,7 +105,8 @@ class StudySearchAgent:
             {
                 "document_qa": "document_qa",
                 "web_search": "web_search",
-                "python_repl": "python_repl"
+                "python_repl": "python_repl",
+                "manim_animation": "manim_animation"
             }
         )
         
@@ -112,6 +114,7 @@ class StudySearchAgent:
         workflow.add_edge("document_qa", "check_result")
         workflow.add_edge("web_search", "check_result")
         workflow.add_edge("python_repl", "check_result")
+        workflow.add_edge("manim_animation", "check_result")
         
         # Conditional edge from result checker
         workflow.add_conditional_edges(
@@ -142,9 +145,10 @@ class StudySearchAgent:
 Available tools:
 1. Document_QA - Use ONLY if user mentions "my notes", "my documents", "uploaded files", "the PDF", "the document"
 2. Python_REPL - Use for math calculations, code execution, computational problems
-3. Web_Search - Use for general knowledge, current events, academic topics without document reference
+3. render_manim_video - Use if user asks to "animate", "visualize", "create animation", or wants visual explanation of concepts
+4. Web_Search - Use for general knowledge, current events, academic topics without document reference
 
-Respond with ONLY the tool name: Document_QA, Python_REPL, or Web_Search"""
+Respond with ONLY the tool name: Document_QA, Python_REPL, render_manim_video, or Web_Search"""
         
         # Include conversation history for context
         messages = [SystemMessage(content=routing_prompt)]
@@ -164,6 +168,8 @@ Respond with ONLY the tool name: Document_QA, Python_REPL, or Web_Search"""
             tool_choice = "Document_QA"
         elif "Python_REPL" in tool_choice or "python" in tool_choice.lower() or "repl" in tool_choice.lower():
             tool_choice = "Python_REPL"
+        elif "render_manim_video" in tool_choice or "manim" in tool_choice.lower() or "animation" in tool_choice.lower() or "render" in tool_choice.lower():
+            tool_choice = "render_manim_video"
         else:
             tool_choice = "Web_Search"
         
@@ -178,7 +184,7 @@ Respond with ONLY the tool name: Document_QA, Python_REPL, or Web_Search"""
             "messages": updated_messages
         }
     
-    def _route_to_tool(self, state: AgentState) -> Literal["document_qa", "web_search", "python_repl"]:
+    def _route_to_tool(self, state: AgentState) -> Literal["document_qa", "web_search", "python_repl", "manim_animation"]:
         """Conditional edge function to route to the appropriate tool."""
         tool = state["tool_used"]
         
@@ -186,6 +192,8 @@ Respond with ONLY the tool name: Document_QA, Python_REPL, or Web_Search"""
             return "document_qa"
         elif tool == "Python_REPL":
             return "python_repl"
+        elif tool == "render_manim_video":
+            return "manim_animation"
         else:
             return "web_search"
     
@@ -405,6 +413,56 @@ Instructions:
                 "document_qa_failed": False
             }
     
+    def _execute_manim_animation(self, state: AgentState) -> AgentState:
+        """Execute render_manim_video tool."""
+        print("🎬 Executing render_manim_video...")
+        
+        tool = self.tool_map.get("render_manim_video")
+        if not tool:
+            return {
+                **state,
+                "tool_result": "Manim Animation tool not available. Please ensure Manim is installed.",
+                "document_qa_failed": False
+            }
+        
+        try:
+            question = state["question"]
+            result = tool.func(question)
+            
+            # Parse the Tool Artifact JSON response
+            try:
+                import json
+                artifact_response = json.loads(result)
+                content = artifact_response.get("content", result)
+                artifact = artifact_response.get("artifact")
+                
+                # If we have an artifact (video file), display it
+                if artifact:
+                    print(f"🎥 Video artifact available: {artifact}")
+                    formatted_result = f"{content}\n\n📹 Video file: {artifact}"
+                else:
+                    formatted_result = content
+                
+                return {
+                    **state,
+                    "tool_result": formatted_result,
+                    "document_qa_failed": False
+                }
+            except json.JSONDecodeError:
+                # Fallback if result is not JSON
+                return {
+                    **state,
+                    "tool_result": result,
+                    "document_qa_failed": False
+                }
+                
+        except Exception as e:
+            return {
+                **state,
+                "tool_result": f"Error in render_manim_video: {str(e)}",
+                "document_qa_failed": False
+            }
+    
     def _check_result(self, state: AgentState) -> AgentState:
         """Check if the result is satisfactory or needs fallback."""
         iteration = state.get("iteration", 0) + 1
@@ -518,10 +576,10 @@ Instructions:
             Simple graph representation
         """
         return """
-LangGraph Flow: START → route_question → [document_qa|web_search|python_repl] 
+LangGraph Flow: START → route_question → [document_qa|web_search|python_repl|manim_animation] 
                   → check_result → [retry: web_search | finish: format_answer] → END
                   
-Features: Intelligent routing, fallback logic, conversation memory, reduced overhead
+Features: Intelligent routing, fallback logic, conversation memory, Manim animations, reduced overhead
 See LANGGRAPH_MIGRATION.md for detailed architecture diagram.
         """
     
@@ -545,6 +603,12 @@ See LANGGRAPH_MIGRATION.md for detailed architecture diagram.
             print("  📚 Questions about uploaded documents (PDF/DOCX)")
             print("  ✨ Generate MCQs, summaries, study guides, and flashcards")
             print("  ✨ Handle complex requests (e.g., 'Generate 10 MCQs and summarize chapter 1')")
+        
+        # Check if Manim is available
+        manim_available = any(tool.name == "render_manim_video" for tool in self.tools)
+        if manim_available:
+            print("  🎬 Create educational animations (e.g., 'animate the Pythagorean theorem')")
+            print("  🎨 Visualize mathematical and conceptual topics with Manim")
         
         print("\nSpecial commands:")
         print("  'graph' - Show LangGraph architecture visualization")
