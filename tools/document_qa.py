@@ -25,8 +25,19 @@ RAG_PROMPT_TEMPLATE = ChatPromptTemplate.from_messages([
     ("system", """You are a helpful assistant answering questions based on provided document context.
 
 Use the following pieces of context retrieved from documents to answer the user's question.
-If you don't know the answer based on the context, say so - don't make up information.
-Always cite which document or page the information comes from when possible.
+
+INSTRUCTIONS:
+1. Provide a comprehensive answer based on the context
+2. Use clear structure with bullet points or sections if appropriate
+3. If you don't know the answer based on the context, say so - don't make up information
+4. MUST include a "Sources:" section at the end listing ALL documents/pages referenced
+
+FORMAT YOUR RESPONSE AS:
+[Your comprehensive answer here]
+
+Sources:
+- [Document name] - Page [number]
+- [Document name] - Page [number]
 
 Context from documents:
 {context}"""),
@@ -55,6 +66,12 @@ D) [option D]
 Correct Answer: [A/B/C/D]
 Explanation: [brief explanation]
 
+After all questions, MUST include a "Sources:" section listing the documents/pages used.
+
+Sources:
+- [Document name] - Page [number]
+- [Document name] - Page [number]
+
 Context from documents:
 {context}"""),
     ("human", "Generate {num_questions} multiple choice questions about {topic}")
@@ -71,7 +88,12 @@ Your summary should:
 - Be well-structured with clear sections
 - Include important details and examples
 - Be suitable for exam preparation
-- Cite page numbers when possible
+
+MUST end with a "Sources:" section listing ALL documents/pages used.
+
+Sources:
+- [Document name] - Page [number]
+- [Document name] - Page [number]
 
 Context from documents:
 {context}"""),
@@ -92,6 +114,12 @@ Your study guide should include:
 5. **Study Tips**: How to approach this material for exams
 
 Use markdown formatting for clear structure.
+
+MUST end with a "Sources:" section listing ALL documents/pages used.
+
+Sources:
+- [Document name] - Page [number]
+- [Document name] - Page [number]
 
 Context from documents:
 {context}"""),
@@ -114,6 +142,12 @@ Format each flashcard as:
 Card N:
 FRONT: [question or prompt]
 BACK: [answer or explanation]
+
+After all flashcards, MUST include a "Sources:" section listing the documents/pages used.
+
+Sources:
+- [Document name] - Page [number]
+- [Document name] - Page [number]
 
 Context from documents:
 {context}"""),
