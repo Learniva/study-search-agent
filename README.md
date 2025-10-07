@@ -1,69 +1,60 @@
 # Study & Search Agent 🤖
 
-Intelligent study assistant that generates MCQs, summaries, study guides, and flashcards from **your documents** or **web sources**.
+Intelligent study assistant with autonomous routing, memory, and fallback logic. Generate MCQs, summaries, flashcards, and animations from documents or web.
 
-**CLI + REST API** • **LangGraph + LangChain + Gemini**
+**CLI + REST API** • **LangChain & LangGraph** • **Gemini LLM**
 
 ## Features
 
-**Automatic tool selection:**
-- 📚 **Your Documents** - Generate study materials from uploaded PDF/DOCX
-- 🔍 **Web Search** - Generate from authoritative web sources (no upload needed)
-- 🐍 **Python** - Math calculations and code execution
+- 🔄 **Smart Routing** - Auto-selects best tool, fallback to web if document fails
+- 💾 **Memory** - Thread-based conversation history, context-aware follow-ups
+- 📚 **Document Q&A** - RAG with ChromaDB (MCQs, summaries, flashcards)
+- 🔍 **Web Search** - Hybrid: Tavily → Google → DuckDuckGo
+- 🐍 **Python REPL** - Code execution and math
+- 🎬 **Manim** - Educational animations with voice-over
 
 ## Quick Start
 
 ```bash
-# Setup
 pip install -r requirements.txt
-cp env_example.txt .env
-# Add GOOGLE_API_KEY to .env (required for LLM)
-# Add TAVILY_API_KEY (optional - for web search)
+cp env_example.txt .env  # Add GOOGLE_API_KEY (required)
 
-# Run CLI
-python main.py
-
-# Or API server
-python api.py  # http://localhost:8000/docs
+python main.py           # CLI
+python api/main.py       # API: http://localhost:8000/docs
 ```
 
-**Get keys:** [Gemini](https://aistudio.google.com/app/apikey) (required) • [Tavily](https://tavily.com/) (optional - uses DuckDuckGo fallback)
+**Keys:** [Gemini](https://aistudio.google.com/app/apikey) (required) • [Tavily](https://tavily.com/), [ElevenLabs](https://elevenlabs.io/) (optional)
 
 ## Usage
 
-**Example queries:**
-```
-"Generate 10 MCQs about neural networks"              → Web Search
-"Summarize my notes about machine learning"            → Your Documents
-"Create 5 questions and a study guide for physics"    → Multi-part
-"Calculate 25 * 37"                                    → Python
-```
-
-**What you can generate:**
-- Multiple choice questions with answers
-- Summaries and study guides  
-- Flashcards for memorization
-- Multi-part combinations
-
-**Tool selection:**
-- Mention "my notes/documents" → uses your uploaded files
-- General topic without reference → searches web
-- Math/code → Python REPL
-
-**Upload documents:**
 ```bash
-cp notes.pdf documents/
-# Or via API: curl -X POST http://localhost:8000/documents/upload -F "file=@notes.pdf"
+# Documents - Auto-generates MCQs, summaries, study guides, flashcards
+"Generate 10 MCQs about neural networks from my notes"
+"Create a study guide for machine learning"
+
+# Web - Context-aware follow-ups
+"Who founded Code Savanna?"
+"What else did he create?"  # Remembers context
+
+# Python
+"Calculate 25 * 37"
+
+# Animations
+"Animate the Pythagorean theorem"
+"Animate bubble sort with voice explanation"
+
+# Upload docs
+cp notes.pdf documents/  # CLI
+curl -X POST localhost:8000/documents/upload -F "file=@notes.pdf"  # API
 ```
 
 ## API
 
 ```bash
-curl -X POST http://localhost:8000/query \
-  -d '{"question": "Generate 5 MCQs about quantum physics"}'
+curl -X POST localhost:8000/query -d '{"question": "Generate 5 MCQs about quantum physics"}'
 ```
 
-Docs: http://localhost:8000/docs
+**Endpoints:** `/query`, `/documents/upload`, `/documents`, `/reload`, `/health` • **Docs:** http://localhost:8000/docs
 
 ## Programmatic
 
@@ -71,40 +62,32 @@ Docs: http://localhost:8000/docs
 from agent import StudySearchAgent
 
 agent = StudySearchAgent()
-answer = agent.query("Generate 10 MCQs about physics")
+answer = agent.query("Generate 10 MCQs", thread_id="session1")  # With memory
+history = agent.get_conversation_history(thread_id="session1")
 ```
 
-## Documentation
+## Docs
 
-- **[API_README.md](API_README.md)** - API documentation
-- **[ARCHITECTURE_INDEX.md](ARCHITECTURE_INDEX.md)** - 📚 Start here for architecture docs
-- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Comprehensive architecture guide
-- **[ARCHITECTURE_QUICK_REF.md](ARCHITECTURE_QUICK_REF.md)** - Quick reference
+[MANIM_GUIDE.md](docs/MANIM_GUIDE.md) • [ARCHITECTURE.md](docs/ARCHITECTURE.md) • [API_README.md](docs/API_README.md)
 
 ## Architecture
 
 ```
-User → CLI/API → LangGraph Agent → Tools (Document Q&A | Web Search | Python REPL) → LLM → Answer
+User → CLI/API → LangGraph Agent → Tools → Gemini → Answer
+                    ↓
+          [Route → Execute → Check]
+               ↓       ↓       ↓
+          Document  Web   Python  Manim
+            QA    Search   REPL  Animation
 ```
 
-**Built with LangGraph** for intelligent routing, automatic fallback logic, and conversation memory.
-
-**Key Features:**
-- 🔄 Automatic fallback: Document Q&A → Web Search
-- 💾 Conversation memory with thread-based history
-- 🔍 Hybrid web search: Tavily → Google → DuckDuckGo
-- 🧠 Context-aware follow-up questions
-- ⚡ 70% reduced token usage vs traditional ReAct
-
-**Special Commands (CLI):**
-- `graph` - View LangGraph architecture
-- `history` - Show conversation history
-
-See [LANGGRAPH_MIGRATION.md](LANGGRAPH_MIGRATION.md) for migration details and [ARCHITECTURE.md](ARCHITECTURE.md) for comprehensive documentation
+**Agent:** LangGraph (routing + memory) + LangChain (RAG + tools)  
+**LLM:** Gemini 2.5 Flash  
+**CLI:** `graph` (visualize) • `history` (show memory) • `quit` (exit)
 
 ## Stack
 
-[LangGraph](https://langchain-ai.github.io/langgraph/) • [LangChain](https://langchain.com/) • [Gemini](https://ai.google.dev/) • [Tavily](https://tavily.com/) • [ChromaDB](https://trychroma.com/) • [FastAPI](https://fastapi.tiangolo.com/)
+[LangGraph](https://langchain-ai.github.io/langgraph/) • [LangChain](https://langchain.com/) • [Gemini](https://ai.google.dev/) • [ChromaDB](https://trychroma.com/) • [Manim](https://www.manim.community/) • [FastAPI](https://fastapi.tiangolo.com/)
 
 ## License
 
