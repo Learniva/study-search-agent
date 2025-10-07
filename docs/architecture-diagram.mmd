@@ -1,0 +1,73 @@
+%% Study & Search Agent - Architecture Diagram
+%% LangGraph-powered with autonomous routing and memory
+%% Render at: https://mermaid.live/
+
+graph TB
+    %% User Interface
+    User[👤 User]
+    CLI[CLI<br/>main.py]
+    API[REST API<br/>api/main.py]
+    
+    User --> CLI
+    User --> API
+    
+    %% LangGraph Agent
+    Agent[🤖 LangGraph Agent<br/>agent/study_agent.py]
+    
+    CLI --> Agent
+    API --> Agent
+    
+    %% Agent Flow
+    subgraph Flow["Agent Flow"]
+        Route[Route<br/>Intent detection]
+        Execute[Execute<br/>Tool selection]
+        Check[Check<br/>Fallback logic]
+        Memory[Memory<br/>Save context]
+        
+        Route --> Execute
+        Execute --> Check
+        Check -->|Doc fails| Execute
+        Check --> Memory
+    end
+    
+    Agent --> Flow
+    
+    %% Tools
+    subgraph Tools["🛠️ Tools"]
+        DocQA[📚 Document Q&A<br/>RAG + ChromaDB]
+        Web[🔍 Web Search<br/>Tavily/Google/DDG]
+        Python[🐍 Python REPL<br/>Code execution]
+        Manim[🎬 Manim<br/>Animations]
+    end
+    
+    Execute --> DocQA
+    Execute --> Web
+    Execute --> Python
+    Execute --> Manim
+    
+    %% LLM
+    LLM[🧠 Gemini 2.5 Flash<br/>LLM + Embeddings]
+    
+    Agent --> LLM
+    DocQA --> LLM
+    Web --> LLM
+    
+    %% Data
+    Docs[(📁 Documents<br/>PDF/DOCX)]
+    VectorDB[(🗄️ ChromaDB<br/>Vectors)]
+    
+    Docs --> DocQA
+    DocQA --> VectorDB
+    
+    %% Styling
+    classDef user fill:#e1f5ff,stroke:#01579b,stroke-width:2px
+    classDef agent fill:#fff9c4,stroke:#f57f17,stroke-width:2px
+    classDef tool fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef llm fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px
+    classDef data fill:#fce4ec,stroke:#880e4f,stroke-width:2px
+    
+    class User,CLI,API user
+    class Agent,Flow,Route,Execute,Check,Memory agent
+    class Tools,DocQA,Web,Python,Manim tool
+    class LLM llm
+    class Docs,VectorDB data
