@@ -251,7 +251,7 @@ class DocumentQAManager:
                 raise ValueError("GOOGLE_API_KEY not found in environment variables")
             
             self.embeddings = GoogleGenerativeAIEmbeddings(
-                model="models/text-embedding-004",
+                model="text-embedding-004",
                 google_api_key=google_api_key
             )
             
@@ -273,7 +273,7 @@ class DocumentQAManager:
             # Initialize LLM for answer generation
             print("Initializing LLM for answer generation...")
             self.llm = ChatGoogleGenerativeAI(
-                model="models/gemini-2.5-flash",
+                model="gemini-2.5-flash",
                 google_api_key=google_api_key,
                 temperature=0,  # Deterministic answers
                 convert_system_message_to_human=True
