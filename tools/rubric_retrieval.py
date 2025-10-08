@@ -102,7 +102,7 @@ Full Details: {json.dumps(rubric_data, indent=2)}
         
         print("🔄 Creating embeddings for rubrics...")
         _rubric_embeddings = GoogleGenerativeAIEmbeddings(
-            model="models/text-embedding-004",
+            model="text-embedding-004",
             google_api_key=google_api_key
         )
         
