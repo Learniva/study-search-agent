@@ -778,7 +778,7 @@ class ManimAnimationManager:
             raise ValueError("GOOGLE_API_KEY not found in environment variables")
         
         self.llm = ChatGoogleGenerativeAI(
-            model="models/gemini-2.5-flash",
+            model="gemini-2.5-flash",
             google_api_key=google_api_key,
             temperature=0.7,  # Slightly creative for diverse animations
             convert_system_message_to_human=True
