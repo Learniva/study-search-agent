@@ -1,0 +1,82 @@
+{
+  "id": "cs_theory_computation",
+  "name": "Computer Science - Theory of Computation",
+  "type": "theory",
+  "description": "Comprehensive rubric for theory of computation including automata theory, formal languages, computability theory, and computational complexity",
+  "max_score": 100,
+  "criteria": [
+    {
+      "name": "Automata Design & Correctness",
+      "weight": 0.25,
+      "description": "Ability to design and analyze finite automata (DFA/NFA), pushdown automata, and Turing machines",
+      "levels": {
+        "Excellent (90-100)": "Excellent automata design. DFAs and NFAs are correctly constructed for specified languages with minimal states. State diagrams are clear with proper labeling of states, transitions, start state, and accept states. Pushdown automata correctly designed with appropriate stack operations. Turing machines properly constructed with correct transition functions, tape operations, and halting conditions. Can convert between DFA/NFA/regular expressions correctly. Shows mastery of automata construction and equivalences.",
+        "Good (80-89)": "Good automata design. Machines work correctly for the specified language. May have extra states but fundamentals are sound. State diagrams are clear and properly labeled. Shows solid understanding of automata construction. Conversions between models mostly correct.",
+        "Satisfactory (70-79)": "Adequate automata design but may be inefficient or have minor errors. Machines mostly work but may fail on some inputs. State diagrams may lack clarity or have labeling issues. Shows basic understanding but execution could be improved. Some difficulty with conversions.",
+        "Needs Improvement (60-69)": "Weak automata design. Machines have significant errors or don't recognize the correct language. Missing states or transitions. Poor diagram quality or labeling. Shows limited understanding of automata construction. Frequent errors in conversions.",
+        "Unsatisfactory (<60)": "Cannot design correct automata. Fundamental errors in construction. Machines don't work for specified languages. Shows lack of understanding of automata theory basics."
+      }
+    },
+    {
+      "name": "Formal Language Recognition & Proofs",
+      "weight": 0.25,
+      "description": "Understanding of regular, context-free, and recursively enumerable languages; ability to prove language properties",
+      "levels": {
+        "Excellent (90-100)": "Excellent understanding of formal languages and the Chomsky hierarchy. Can correctly identify language classes (regular, context-free, context-sensitive, recursively enumerable). Rigorously proves languages are regular using closure properties or constructions. Successfully applies pumping lemma for regular languages to prove non-regularity. Correctly uses pumping lemma for context-free languages. Proves context-free using CFG or PDA construction. Understands decidability and recognizability. Shows sophisticated understanding of language theory and formal proofs.",
+        "Good (80-89)": "Good understanding of formal languages. Correctly identifies language classes. Can prove regularity or apply pumping lemma with minor issues. Shows solid grasp of closure properties and language hierarchies. Proofs are generally sound.",
+        "Satisfactory (70-79)": "Basic understanding of language classes. Can identify simple languages. Struggles with pumping lemma proofs or makes errors in proof structure. Shows awareness of concepts but execution is weak. Limited ability with formal proofs.",
+        "Needs Improvement (60-69)": "Limited understanding of formal languages. Difficulty classifying languages or applying pumping lemmas. Weak or incorrect proofs. Shows significant gaps in language theory. Cannot properly use proof techniques.",
+        "Unsatisfactory (<60)": "Poor or no understanding of formal language theory. Cannot classify languages or construct valid proofs. Shows fundamental misunderstanding of language hierarchies and properties."
+      }
+    },
+    {
+      "name": "Grammar Construction & Parsing",
+      "weight": 0.15,
+      "description": "Ability to construct context-free grammars and understand parsing techniques",
+      "levels": {
+        "Excellent (90-100)": "Excellent CFG construction. Grammars correctly generate specified languages with well-chosen production rules. Can convert between different normal forms (CNF, GNF). Understands ambiguity and can determine if grammar is ambiguous or construct unambiguous versions. Shows understanding of parse trees and derivations (leftmost, rightmost). Grasps parsing algorithms (CYK, LL, LR). Can analyze grammar properties effectively.",
+        "Good (80-89)": "Good CFG construction. Grammars work correctly for most cases. Understands production rules and can generate parse trees. Shows solid understanding of grammar concepts and basic parsing. Minor issues acceptable.",
+        "Satisfactory (70-79)": "Adequate CFG construction but may be inefficient or have issues. Can create basic grammars but struggles with complex languages. Limited understanding of parsing or normal forms. Shows basic grammar construction ability.",
+        "Needs Improvement (60-69)": "Weak CFG construction. Grammars often incorrect or don't generate the right language. Poor understanding of production rules or parse trees. Shows limited grammar construction skills.",
+        "Unsatisfactory (<60)": "Cannot construct correct context-free grammars. Shows fundamental misunderstanding of grammar rules and language generation. No meaningful grammar construction ability."
+      }
+    },
+    {
+      "name": "Computability & Decidability",
+      "weight": 0.15,
+      "description": "Understanding of computability theory, Turing machine variants, Church-Turing thesis, and decidability",
+      "levels": {
+        "Excellent (90-100)": "Excellent understanding of computability. Grasps Church-Turing thesis and its implications. Understands decidable vs recognizable vs undecidable languages. Can prove undecidability using reductions or diagonalization. Knows classic undecidable problems (Halting Problem, Post Correspondence Problem, Rice's Theorem). Understands Turing machine variants and their equivalence. Can construct reduction arguments correctly. Shows sophisticated theoretical understanding.",
+        "Good (80-89)": "Good understanding of computability concepts. Knows difference between decidable and undecidable. Can work with reductions. Understands Halting Problem and its significance. Shows solid grasp of computability theory fundamentals.",
+        "Satisfactory (70-79)": "Basic understanding of decidability. Aware of Halting Problem but may not fully grasp reduction techniques. Limited ability with undecidability proofs. Shows basic awareness but needs development.",
+        "Needs Improvement (60-69)": "Limited understanding of computability. Confusion about decidability vs recognizability. Cannot construct reductions. Shows significant gaps in computability theory understanding.",
+        "Unsatisfactory (<60)": "Poor or no understanding of computability. Cannot explain decidability. Shows fundamental misunderstanding of computability concepts."
+      }
+    },
+    {
+      "name": "Complexity Theory",
+      "weight": 0.12,
+      "description": "Understanding of complexity classes (P, NP, NP-complete, NP-hard), reductions, and time/space complexity",
+      "levels": {
+        "Excellent (90-100)": "Excellent understanding of complexity theory. Clearly understands P, NP, NP-complete, NP-hard, PSPACE classes and their relationships. Can prove NP-completeness using polynomial-time reductions (e.g., SAT, 3-SAT, Vertex Cover, Hamiltonian Path). Understands time and space complexity for Turing machines. Grasps P vs NP problem significance. Can analyze algorithm complexity in theoretical terms. Shows sophisticated complexity theory knowledge.",
+        "Good (80-89)": "Good understanding of complexity classes. Knows P vs NP and NP-completeness. Can work with reductions between problems. Shows solid grasp of complexity fundamentals and their significance.",
+        "Satisfactory (70-79)": "Basic understanding of complexity classes. Aware of P and NP but may be unclear on details. Limited ability with reductions or NP-completeness proofs. Shows basic awareness of complexity concepts.",
+        "Needs Improvement (60-69)": "Limited understanding of complexity theory. Confusion about complexity classes or their relationships. Cannot perform reductions. Shows significant gaps in complexity understanding.",
+        "Unsatisfactory (<60)": "Poor or no understanding of complexity theory. Cannot explain P vs NP or complexity classes. Shows fundamental misunderstanding of computational complexity."
+      }
+    },
+    {
+      "name": "Mathematical Rigor & Notation",
+      "weight": 0.08,
+      "description": "Proper use of formal notation for languages, automata, and theoretical concepts",
+      "levels": {
+        "Excellent (90-100)": "Excellent use of formal notation. Proper language notation (Σ, Σ*, L, ∈, ⊆, ∪, ∩, concatenation, Kleene star). Correct automata notation (Q, Σ, δ, q₀, F). Set builder notation for languages {w | condition}. Proper formal definitions. Big-O, Ω, Θ for complexity. Reduction notation (≤ₚ, ≤ₘ). Uses ∀, ∃ correctly in formal statements. All notation is standard and precise.",
+        "Good (80-89)": "Good use of formal notation with minor errors. Generally correct language and automata notation. Shows solid understanding of theoretical CS notation. Communication is clear and mostly formal.",
+        "Satisfactory (70-79)": "Adequate notation but with noticeable errors. May mix formal and informal notation. Basic symbols used correctly but precision could improve. Shows basic understanding of notation.",
+        "Needs Improvement (60-69)": "Poor use of formal notation. Frequent errors in language or automata notation. Often uses informal descriptions where formal notation required. Shows limited understanding of theoretical notation.",
+        "Unsatisfactory (<60)": "Incorrect or absent formal notation. Does not use standard theoretical CS notation. Shows lack of understanding of formal mathematical communication."
+      }
+    }
+  ]
+}
+

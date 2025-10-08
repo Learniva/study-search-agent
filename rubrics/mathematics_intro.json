@@ -1,0 +1,70 @@
+{
+  "id": "mathematics_intro",
+  "name": "Mathematics - Introductory Level (Algebra, Precalculus)",
+  "type": "math",
+  "description": "Beginner-friendly rubric for introductory mathematics courses including algebra, trigonometry, and precalculus",
+  "max_score": 100,
+  "criteria": [
+    {
+      "name": "Problem-Solving Accuracy",
+      "weight": 0.35,
+      "description": "Correctness of final answers and mathematical computations",
+      "levels": {
+        "Excellent (90-100)": "All or nearly all problems solved correctly with accurate final answers. Demonstrates mastery of computational skills. Shows careful attention to detail in calculations. All numerical answers are correct and properly simplified. Units included where appropriate.",
+        "Good (80-89)": "Most problems solved correctly with minor computational errors. Final answers are mostly accurate. Shows solid understanding of procedures with occasional arithmetic mistakes. Generally correct approach and execution.",
+        "Satisfactory (70-79)": "Many problems solved correctly but with noticeable computational errors affecting final answers. Shows basic understanding of methods but makes multiple calculation mistakes. Some answers are correct, others have errors.",
+        "Needs Improvement (60-69)": "Significant number of incorrect answers due to computational errors or misapplication of methods. Many calculation mistakes. Limited accuracy in final results. Shows gaps in computational skills.",
+        "Unsatisfactory (<60)": "Most or all answers are incorrect. Pervasive computational errors. Shows lack of basic calculation skills or fundamental misunderstanding of required operations."
+      }
+    },
+    {
+      "name": "Work Shown & Mathematical Process",
+      "weight": 0.25,
+      "description": "Clear demonstration of steps, procedures, and mathematical reasoning",
+      "levels": {
+        "Excellent (90-100)": "Excellent presentation of work with all steps clearly shown and logically organized. Easy to follow the problem-solving process from start to finish. Each step is justified and properly executed. Shows algebraic manipulations, substitutions, and calculations explicitly. Work is neat and organized.",
+        "Good (80-89)": "Good presentation of work with most steps shown. Generally easy to follow the process. Most key steps are included with proper organization. Minor gaps in showing work but overall solid demonstration of method.",
+        "Satisfactory (70-79)": "Adequate work shown but may skip some important steps or be disorganized. Basic process is visible but could be clearer or more complete. Some logical jumps without explanation. Work is somewhat difficult to follow.",
+        "Needs Improvement (60-69)": "Minimal work shown with many steps missing. Difficult to follow the problem-solving process. Significant gaps between steps. Poor organization. Shows final answer with little explanation of how it was obtained.",
+        "Unsatisfactory (<60)": "Little to no work shown. Only final answers provided without supporting calculations. Impossible to verify process or identify where errors occurred. No demonstration of mathematical reasoning."
+      }
+    },
+    {
+      "name": "Use of Correct Methods & Procedures",
+      "weight": 0.20,
+      "description": "Application of appropriate mathematical techniques, formulas, and procedures for each problem type",
+      "levels": {
+        "Excellent (90-100)": "Consistently applies correct methods, formulas, and procedures for each problem type. Shows excellent understanding of when to use specific techniques (factoring, completing the square, quadratic formula, etc.). Selects most efficient approaches. Demonstrates flexibility in problem-solving strategies.",
+        "Good (80-89)": "Generally applies correct methods and procedures. Uses appropriate formulas and techniques for most problems. Shows good understanding of mathematical tools. May occasionally choose less efficient but still valid approaches.",
+        "Satisfactory (70-79)": "Uses correct methods for basic problems but may struggle with choosing appropriate techniques for more complex problems. Shows basic understanding of procedures but application is inconsistent. May use inefficient or roundabout methods.",
+        "Needs Improvement (60-69)": "Frequently applies incorrect methods or uses inappropriate procedures. Shows limited understanding of when to use specific techniques. May misapply formulas or use wrong approaches. Struggles to select appropriate problem-solving strategies.",
+        "Unsatisfactory (<60)": "Consistently uses incorrect methods or shows no understanding of appropriate procedures. Misapplies formulas fundamentally. Unable to select or execute basic mathematical techniques."
+      }
+    },
+    {
+      "name": "Mathematical Notation & Terminology",
+      "weight": 0.10,
+      "description": "Proper use of mathematical symbols, notation, and vocabulary",
+      "levels": {
+        "Excellent (90-100)": "Excellent use of mathematical notation and terminology. Properly uses symbols (=, ≠, ≤, ≥, ±, √, ∞, etc.), function notation f(x), set notation, interval notation. Variables and expressions are clearly defined. Uses correct mathematical vocabulary (coefficient, exponent, polynomial, radical, asymptote, etc.). Professional presentation.",
+        "Good (80-89)": "Good use of notation and terminology with minor errors. Generally correct use of symbols and mathematical language. Occasional notation mistakes but overall clear and appropriate. Shows solid understanding of mathematical communication.",
+        "Satisfactory (70-79)": "Adequate notation and terminology but with noticeable errors or inconsistencies. May confuse symbols or use informal language where formal terminology is expected. Basic notation is present but could be more precise or consistent.",
+        "Needs Improvement (60-69)": "Poor use of notation and terminology. Frequent symbol errors or misuse. Uses informal or incorrect mathematical language. Notation is unclear or inconsistent. Shows limited understanding of proper mathematical communication.",
+        "Unsatisfactory (<60)": "Incorrect or absent mathematical notation. Does not use proper symbols or terminology. Shows lack of understanding of basic mathematical language and conventions. Communication is unclear or incorrect."
+      }
+    },
+    {
+      "name": "Conceptual Understanding",
+      "weight": 0.10,
+      "description": "Demonstrates understanding of underlying mathematical concepts beyond rote procedures",
+      "levels": {
+        "Excellent (90-100)": "Excellent conceptual understanding evident in explanations, problem selection strategies, and connections between concepts. Can explain why methods work, not just how to execute them. Shows understanding of relationships between different topics (e.g., connection between graphs and equations). Demonstrates mathematical reasoning.",
+        "Good (80-89)": "Good conceptual understanding. Shows awareness of underlying principles. Can generally explain mathematical relationships and reasoning. Makes appropriate connections between related concepts. Understanding goes beyond memorized procedures.",
+        "Satisfactory (70-79)": "Basic conceptual understanding but relies primarily on memorized procedures. Limited ability to explain why methods work. Some awareness of concepts but application is mechanical. Makes few connections between topics.",
+        "Needs Improvement (60-69)": "Limited conceptual understanding. Heavily relies on memorization without understanding. Cannot explain reasoning or make connections. Shows little awareness of underlying mathematical principles. Purely procedural approach.",
+        "Unsatisfactory (<60)": "No evidence of conceptual understanding. Completely procedural approach fails when standard methods don't directly apply. Cannot explain any mathematical reasoning. Shows fundamental gaps in understanding basic concepts."
+      }
+    }
+  ]
+}
+

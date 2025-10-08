@@ -1,0 +1,82 @@
+{
+  "id": "mathematics_calculus",
+  "name": "Mathematics - Calculus (All Levels: I, II, III, Multivariable)",
+  "type": "math",
+  "description": "Comprehensive rubric for all calculus courses including differential and integral calculus, sequences/series, multivariable calculus, and vector calculus",
+  "max_score": 100,
+  "criteria": [
+    {
+      "name": "Problem-Solving Accuracy & Computation",
+      "weight": 0.30,
+      "description": "Correctness of final answers, derivatives, integrals, and all mathematical computations",
+      "levels": {
+        "Excellent (90-100)": "All or nearly all problems solved correctly with accurate final answers. Derivatives and integrals are computed correctly. Complex calculations involving chain rule, product rule, integration by parts, u-substitution, etc. are executed flawlessly. Limits, series convergence, and multivariable calculations are accurate. Shows mastery of computational techniques. Proper simplification and exact answers where required.",
+        "Good (80-89)": "Most problems solved correctly with minor computational errors. Derivatives and integrals are mostly accurate. Shows solid understanding of calculus techniques with occasional algebraic or arithmetic mistakes. Core calculus concepts are correctly applied. Generally accurate results.",
+        "Satisfactory (70-79)": "Many problems solved correctly but with noticeable computational errors. Some derivatives or integrals incorrect due to mistakes in applying rules or algebraic manipulation. Shows basic understanding but makes multiple calculation errors. Results are partially correct.",
+        "Needs Improvement (60-69)": "Significant number of incorrect answers. Frequent errors in computing derivatives or integrals. Misapplies calculus rules or makes major algebraic errors. Shows gaps in computational proficiency. Many answers are incorrect or incomplete.",
+        "Unsatisfactory (<60)": "Most or all answers incorrect. Pervasive computational errors in derivatives, integrals, or other calculus operations. Shows lack of basic calculus computation skills or fundamental misunderstanding of required techniques."
+      }
+    },
+    {
+      "name": "Application of Calculus Techniques",
+      "weight": 0.25,
+      "description": "Appropriate selection and application of calculus methods (differentiation rules, integration techniques, theorems)",
+      "levels": {
+        "Excellent (90-100)": "Excellent selection and application of appropriate calculus techniques. For derivatives: correctly applies power rule, chain rule, product rule, quotient rule, implicit differentiation, logarithmic differentiation as needed. For integrals: appropriately uses u-substitution, integration by parts, partial fractions, trigonometric substitution, etc. Correctly applies Fundamental Theorem of Calculus, Mean Value Theorem, convergence tests, etc. Shows sophisticated understanding of when to use each technique. Demonstrates flexibility and efficiency in method selection.",
+        "Good (80-89)": "Good application of calculus techniques. Generally selects appropriate methods for most problems. Correctly applies major differentiation and integration rules. Shows solid understanding of calculus tools. May occasionally choose less efficient but still valid approaches. Generally sound technique selection.",
+        "Satisfactory (70-79)": "Adequate application of basic techniques but may struggle with more complex problems. Can apply fundamental rules but has difficulty selecting appropriate methods for advanced problems. Shows basic understanding but execution is inconsistent. May use inefficient or roundabout approaches.",
+        "Needs Improvement (60-69)": "Frequently applies incorrect techniques or uses inappropriate methods. Misapplies differentiation or integration rules. Shows limited understanding of when to use specific calculus tools. Struggles to select and execute appropriate techniques for various problem types.",
+        "Unsatisfactory (<60)": "Consistently uses incorrect methods or shows no understanding of appropriate calculus techniques. Cannot correctly apply basic differentiation or integration rules. Shows fundamental misunderstanding of calculus procedures."
+      }
+    },
+    {
+      "name": "Work Shown & Mathematical Reasoning",
+      "weight": 0.20,
+      "description": "Clear demonstration of steps, justification of techniques used, and logical progression",
+      "levels": {
+        "Excellent (90-100)": "Excellent presentation with all steps clearly shown and logically organized. Explicitly shows which rules or techniques are being applied (labels chain rule, u-substitution, etc.). Includes intermediate steps in calculations. Shows limits of integration, domains, justification for convergence/divergence. Work is neat, organized, and easy to follow. Demonstrates clear mathematical reasoning throughout.",
+        "Good (80-89)": "Good presentation of work with most important steps shown. Generally clear which techniques are being used. Shows key intermediate calculations. Mostly easy to follow the problem-solving process. Organization is good with minor gaps acceptable.",
+        "Satisfactory (70-79)": "Adequate work shown but may skip some steps or be disorganized. Basic process is visible but could be clearer. Some steps missing or not well-explained. Technique selection not always explicitly stated. Work is somewhat difficult to follow in places.",
+        "Needs Improvement (60-69)": "Minimal work shown with many important steps missing. Difficult to follow the calculus procedures used. Significant gaps in showing differentiation/integration steps. Poor organization. Limited demonstration of reasoning. Technique selection unclear.",
+        "Unsatisfactory (<60)": "Little to no work shown. Only final answers with no supporting calculus work. Cannot verify which techniques were used or where errors occurred. No demonstration of mathematical reasoning or process."
+      }
+    },
+    {
+      "name": "Graphical & Conceptual Understanding",
+      "weight": 0.12,
+      "description": "Understanding of graphical interpretations, geometric meaning, and conceptual foundations of calculus",
+      "levels": {
+        "Excellent (90-100)": "Excellent conceptual understanding of calculus. Can interpret derivatives as rates of change and slopes. Understands integrals as areas and accumulation. Shows understanding of limits, continuity, and convergence. Correctly interprets graphs and can sketch derivatives or integrals from graphs. Understands geometric meaning of partial derivatives, gradients, divergence, curl (for multivariable). Makes connections between algebraic and geometric representations. Shows deep conceptual grasp.",
+        "Good (80-89)": "Good conceptual understanding. Can interpret graphical information and connect it to calculus concepts. Shows understanding of derivative as rate of change and integral as area. Generally makes appropriate connections between algebraic and geometric representations. Solid conceptual foundation.",
+        "Satisfactory (70-79)": "Basic conceptual understanding but primarily procedural. Limited ability to interpret graphical information or explain geometric meaning. Can execute procedures but shows weak understanding of underlying concepts. Makes few connections between representations.",
+        "Needs Improvement (60-69)": "Limited conceptual understanding. Cannot interpret graphs or explain geometric meaning of calculus operations. Purely procedural approach with little awareness of concepts. Shows significant conceptual gaps.",
+        "Unsatisfactory (<60)": "No evidence of conceptual understanding. Cannot interpret graphical information or explain meaning of calculus concepts. Shows complete lack of understanding beyond rote procedures (if any)."
+      }
+    },
+    {
+      "name": "Application Problems & Modeling",
+      "weight": 0.08,
+      "description": "Ability to set up and solve applied calculus problems (optimization, related rates, area/volume, physics applications)",
+      "levels": {
+        "Excellent (90-100)": "Excellent ability to set up and solve application problems. Correctly identifies relevant variables and relationships. Properly sets up optimization problems with appropriate constraints. Solves related rates problems with correct derivative relationships. Accurately computes areas, volumes, arc length, surface area. Correctly applies calculus to physics problems (work, center of mass, etc.). Shows strong problem-solving and modeling skills. Clearly defines variables and states what is being found.",
+        "Good (80-89)": "Good ability to solve application problems. Generally sets up problems correctly. Can identify relevant calculus techniques for applications. Shows solid understanding of how to translate word problems into mathematical models. Execution is generally correct.",
+        "Satisfactory (70-79)": "Can solve basic application problems but struggles with more complex scenarios. Shows basic ability to set up problems but may make errors in identifying relationships or constraints. Limited modeling skills. Can execute once problem is set up but setup itself may be weak.",
+        "Needs Improvement (60-69)": "Struggles with application problems. Difficulty translating verbal descriptions into mathematical models. Often sets up problems incorrectly. Shows limited ability to apply calculus to real-world scenarios. Poor problem-solving skills for applications.",
+        "Unsatisfactory (<60)": "Cannot set up or solve application problems. Shows no ability to translate word problems into calculus. Fundamental difficulty with applied problem-solving. Cannot connect calculus techniques to applications."
+      }
+    },
+    {
+      "name": "Mathematical Notation & Communication",
+      "weight": 0.05,
+      "description": "Proper use of calculus notation, symbols, and clear mathematical communication",
+      "levels": {
+        "Excellent (90-100)": "Excellent use of calculus notation. Properly uses derivative notation (dy/dx, f'(x), ∂f/∂x), integral notation with correct limits, limit notation, summation notation, vector notation. Correctly uses infinity symbol, proper inequality notation. Clearly labels graphs, axes, critical points, inflection points. Uses proper notation for sequences and series. Professional mathematical communication throughout.",
+        "Good (80-89)": "Good use of notation with minor errors. Generally correct use of derivative and integral notation. Clear communication with occasional notation mistakes. Shows solid understanding of mathematical symbols and conventions.",
+        "Satisfactory (70-79)": "Adequate notation but with noticeable errors or inconsistencies. May confuse different forms of derivative notation or miss limits of integration. Basic notation present but could be more precise. Some clarity issues in mathematical communication.",
+        "Needs Improvement (60-69)": "Poor use of notation. Frequent errors in derivative or integral notation. Missing or incorrect limits. Unclear or inconsistent use of symbols. Shows limited understanding of proper calculus notation conventions.",
+        "Unsatisfactory (<60)": "Incorrect or absent proper notation. Does not use standard calculus symbols correctly. Shows lack of understanding of mathematical communication in calculus. Notation is severely deficient or missing."
+      }
+    }
+  ]
+}
+

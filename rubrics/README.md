@@ -43,6 +43,8 @@ The system includes comprehensive discipline-specific rubrics:
 
 ### Computer Science
 - **`computer_science_algorithms.json`** - Advanced algorithms & data structures (time/space complexity, optimization)
+- **`computer_science_discrete_math.json`** - Discrete mathematics (logic, set theory, proofs, combinatorics, graph theory, number theory)
+- **`computer_science_theory_computation.json`** - Theory of computation (automata, formal languages, computability, complexity theory, P vs NP)
 - **`computer_science_intro.json`** - Introductory programming (beginner-friendly, focuses on fundamentals)
 - **`computer_science_software_project.json`** - Full software engineering projects (design, testing, documentation, security)
 - **`code_review_general.json`** - General code review (correctness, quality, efficiency)
@@ -55,6 +57,11 @@ The system includes comprehensive discipline-specific rubrics:
 - **`humanities_advanced.json`** - Advanced essays with MLA/Chicago style (Literature, History, Philosophy, close reading)
 - **`humanities_intro.json`** - Introductory essays with basic MLA citations (analysis vs. summary focus)
 - **`history_research_paper.json`** - History research papers with Chicago Notes-Bibliography (primary sources, historiography)
+
+### Mathematics
+- **`mathematics_calculus.json`** - All calculus levels (Calc I, II, III, Multivariable) - derivatives, integrals, applications, graphical interpretation
+- **`mathematics_proofs.json`** - Introduction to Higher Math, proof-based courses (logic, set theory, proof techniques, abstract algebra, real analysis)
+- **`mathematics_intro.json`** - Introductory mathematics (Algebra, Trigonometry, Precalculus) - computational skills and problem-solving
 
 ### General
 - **`essay_general.json`** - General essay grading (thesis, evidence, organization, style)
@@ -85,18 +92,24 @@ The system includes comprehensive discipline-specific rubrics:
 - `computer_science_intro.json` - Intro programming
 - `social_sciences_intro.json` - Intro social science courses
 - `humanities_intro.json` - Intro literature/humanities courses
+- `mathematics_intro.json` - Intro mathematics (Algebra, Precalculus)
 
-### For Advanced Courses (300-400 level)
-- `computer_science_algorithms.json` - Advanced algorithms
-- `computer_science_software_project.json` - Capstone projects
+### For Intermediate & Advanced Courses (200-400 level)
+- `computer_science_discrete_math.json` - Discrete mathematics (200-300 level)
+- `computer_science_algorithms.json` - Advanced algorithms (300-400 level)
+- `computer_science_theory_computation.json` - Theory of computation (300-400 level)
+- `computer_science_software_project.json` - Capstone projects (400 level)
 - `social_sciences_research_paper.json` - Research methods courses
 - `humanities_advanced.json` - Upper-level literature/philosophy
 - `history_research_paper.json` - Advanced history seminars
+- `mathematics_calculus.json` - All calculus courses (100-300 level)
+- `mathematics_proofs.json` - Proof-based mathematics (300-400 level)
 
 ### By Discipline
-**Computer Science:** Algorithms → Software Projects → General Code Review
-**Social Sciences:** Intro Essay → Research Paper (with empirical analysis)
-**Humanities:** Intro Essay → Advanced Essay → History Research (primary sources)
+**Computer Science:** Intro Programming → Discrete Math → Algorithms → Theory of Computation → Software Projects  
+**Social Sciences:** Intro Essay → Research Paper (with empirical analysis)  
+**Humanities:** Intro Essay → Advanced Essay → History Research (primary sources)  
+**Mathematics:** Intro Math (computational) → Calculus (applications) → Proofs (theoretical)
 
 ## ✏️ Creating Custom Rubrics
 

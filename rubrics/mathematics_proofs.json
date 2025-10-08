@@ -1,0 +1,82 @@
+{
+  "id": "mathematics_proofs",
+  "name": "Mathematics - Introduction to Higher Math & Proof Writing",
+  "type": "math",
+  "description": "Comprehensive rubric for proof-based mathematics courses including logic, set theory, proof techniques, abstract algebra, real analysis, and discrete mathematics",
+  "max_score": 100,
+  "criteria": [
+    {
+      "name": "Proof Correctness & Logical Validity",
+      "weight": 0.30,
+      "description": "Mathematical correctness and logical validity of proofs with sound reasoning throughout",
+      "levels": {
+        "Excellent (90-100)": "Proof is completely correct with rigorous logical reasoning throughout. All steps are valid and follow logically from axioms, definitions, theorems, or previous statements. No logical gaps or errors. Uses correct logical connectives (implies, if and only if, for all, there exists). Properly handles quantifiers. Proof establishes what was claimed with mathematical rigor. Shows mastery of logical reasoning and proof construction.",
+        "Good (80-89)": "Proof is substantially correct with sound logic. Minor gaps or small errors that don't fundamentally undermine the argument. Core reasoning is valid. Uses appropriate logical structure. Shows good understanding of proof techniques and logical reasoning. Would be acceptable with minor clarifications.",
+        "Satisfactory (70-79)": "Proof has correct overall approach but contains noticeable logical gaps or errors. Some steps may not be fully justified or may contain minor logical flaws. Core idea is present but execution needs improvement. Shows basic understanding of proof structure but reasoning could be more rigorous.",
+        "Needs Improvement (60-69)": "Proof contains significant logical errors or major gaps in reasoning. Multiple steps are unjustified or incorrect. May confuse necessary and sufficient conditions. Logical structure is weak. Shows limited understanding of rigorous proof construction. Argument does not fully establish the claim.",
+        "Unsatisfactory (<60)": "Proof is fundamentally flawed with pervasive logical errors. Reasoning is invalid or circular. Does not prove the stated claim. Shows lack of understanding of logical proof construction. May be no actual proof attempt, just examples or assertions."
+      }
+    },
+    {
+      "name": "Proof Technique & Strategy",
+      "weight": 0.25,
+      "description": "Appropriate selection and execution of proof methods (direct, contradiction, contrapositive, induction, cases, etc.)",
+      "levels": {
+        "Excellent (90-100)": "Excellent choice and execution of proof technique. For direct proofs: clear logical progression from hypotheses to conclusion. For contradiction: properly assumes negation and derives contradiction. For contrapositive: correctly proves equivalent statement. For induction: rigorous base case and inductive step with clear inductive hypothesis. For proof by cases: exhaustive and complete case analysis. For existence proofs: proper construction or demonstration. Shows sophisticated understanding of when each technique is most appropriate. Demonstrates flexibility in proof strategies.",
+        "Good (80-89)": "Good choice and execution of proof technique. Selects appropriate method for the problem. Follows standard proof structure correctly. Shows solid understanding of various proof strategies. Minor issues in execution but overall sound application of technique.",
+        "Satisfactory (70-79)": "Adequate proof technique but may not be optimal choice. Basic execution of method present but may have gaps or inefficiencies. Shows understanding of some proof strategies but application is inconsistent. May struggle with choosing most appropriate method.",
+        "Needs Improvement (60-69)": "Poor choice of proof technique or incorrect execution. May attempt inappropriate method for the problem. Shows limited understanding of proof strategies. Frequent errors in applying proof techniques. Struggles with structure of various proof types.",
+        "Unsatisfactory (<60)": "Cannot select or execute appropriate proof techniques. Shows no understanding of proof methods. Attempts invalid or confused approaches. Fundamental misunderstanding of proof construction strategies."
+      }
+    },
+    {
+      "name": "Mathematical Rigor & Precision",
+      "weight": 0.20,
+      "description": "Precise use of definitions, theorems, and mathematical language with appropriate level of rigor",
+      "levels": {
+        "Excellent (90-100)": "Exceptional mathematical rigor and precision. Uses definitions exactly as stated (e.g., properly uses epsilon-delta for limits, formal definition of continuity, bijection, etc.). Correctly cites and applies theorems. Explicitly states when using axioms or previously proven results. Carefully handles quantifiers and logical symbols. All mathematical terms used precisely. Shows understanding that definitions must be applied exactly. Demonstrates mature mathematical thinking.",
+        "Good (80-89)": "Good rigor and precision. Generally uses definitions and theorems correctly. Most mathematical language is precise. Properly applies key definitions. Shows solid understanding of the need for rigor. Minor imprecisions but overall maintains appropriate level of rigor for the course.",
+        "Satisfactory (70-79)": "Adequate rigor but may be imprecise at times. Uses definitions somewhat correctly but may not be completely precise. Some informal language where formal definitions should be used. Shows basic awareness of rigor requirements but execution is inconsistent. Could be more precise in key areas.",
+        "Needs Improvement (60-69)": "Lacks sufficient rigor. Uses informal arguments where formal proofs required. Imprecise or incorrect use of definitions. May rely on intuition rather than precise mathematical statements. Shows limited understanding of the need for mathematical rigor. Arguments are vague or hand-wavy.",
+        "Unsatisfactory (<60)": "No mathematical rigor. Does not use definitions properly or at all. Arguments are entirely informal or based on examples only. Shows complete lack of understanding of mathematical precision requirements. Cannot write rigorous mathematics."
+      }
+    },
+    {
+      "name": "Mathematical Communication & Style",
+      "weight": 0.12,
+      "description": "Clear, well-organized proof with proper mathematical writing style and readability",
+      "levels": {
+        "Excellent (90-100)": "Exceptional mathematical writing. Proof is clearly organized with logical flow. Uses complete sentences with proper grammar. States what is to be proven. Clearly indicates beginning ('Proof:') and end (∎ or Q.E.D.). Uses proper mathematical connectives ('Therefore,' 'Thus,' 'Hence,' 'It follows that'). Defines new notation or variables before using them. Each step flows naturally to the next. Explains reasoning where non-obvious. Balance between formal rigor and readability. Professional mathematical writing style.",
+        "Good (80-89)": "Clear mathematical writing with good organization. Proof is readable and well-structured. Uses mostly complete sentences. Proper mathematical language and connectives. Generally smooth flow between steps. Shows solid mathematical communication skills.",
+        "Satisfactory (70-79)": "Adequate writing but could be clearer or better organized. Some complete sentences but may use fragments or lists of equations. Basic proof structure present. Some explanation but could be more clear or detailed. Readable but needs improvement in style or organization.",
+        "Needs Improvement (60-69)": "Unclear writing or poor organization. Difficult to follow the argument. Lacks proper mathematical language or connectives. May be just equations without explanation. Poor structure. Shows limited mathematical communication skills.",
+        "Unsatisfactory (<60)": "Very poor mathematical writing. Incoherent or impossible to follow. No proper structure. No explanation of reasoning. Shows inability to communicate mathematics clearly. Severely deficient writing."
+      }
+    },
+    {
+      "name": "Use of Notation & Symbols",
+      "weight": 0.08,
+      "description": "Proper use of mathematical notation including logical symbols, set notation, quantifiers, and special symbols",
+      "levels": {
+        "Excellent (90-100)": "Excellent use of mathematical notation. Properly uses logical symbols (∀ for all, ∃ there exists, ⇒ implies, ⇔ if and only if, ∧ and, ∨ or, ¬ not). Correct set notation (∈, ⊆, ∪, ∩, ∅, ℕ, ℤ, ℚ, ℝ, ℂ). Uses function notation correctly (f: A → B, domain, codomain, range). Proper notation for relations, equivalence classes, etc. All notation is standard and used correctly. Defines any non-standard notation.",
+        "Good (80-89)": "Good use of notation with minor errors. Generally correct use of logical and set symbols. Mostly standard notation. Shows solid understanding of mathematical symbols. Occasional notation mistakes but overall clear and correct.",
+        "Satisfactory (70-79)": "Adequate notation but with noticeable errors or inconsistencies. May misuse some logical symbols or set notation. Basic symbols used correctly but may have errors in more complex notation. Shows basic understanding but needs improvement.",
+        "Needs Improvement (60-69)": "Poor use of notation. Frequent errors in logical symbols or set notation. May use non-standard or incorrect notation. Shows limited understanding of proper mathematical symbols. Notation errors may obscure meaning.",
+        "Unsatisfactory (<60)": "Incorrect or absent proper notation. Does not use standard mathematical symbols. Shows lack of understanding of basic mathematical notation. Severely deficient in notation usage."
+      }
+    },
+    {
+      "name": "Conceptual Understanding",
+      "weight": 0.05,
+      "description": "Deep understanding of underlying concepts, connections between ideas, and mathematical insight",
+      "levels": {
+        "Excellent (90-100)": "Exceptional conceptual understanding. Shows deep insight into why results are true, not just how to prove them. Makes connections between different concepts (e.g., relating function properties to set operations). Understands structure and patterns in mathematics. Chooses proof approaches that reveal why results hold. Shows mathematical maturity and insight. Can explain concepts clearly beyond just proving theorems.",
+        "Good (80-89)": "Strong conceptual understanding. Shows good grasp of underlying ideas. Can explain why results make sense. Makes some connections between concepts. Understanding goes beyond mechanical proof execution. Shows developing mathematical maturity.",
+        "Satisfactory (70-79)": "Basic conceptual understanding but may be primarily procedural. Can execute proof techniques but limited insight into deeper meaning. Shows awareness of concepts but application is somewhat mechanical. Makes few connections between ideas.",
+        "Needs Improvement (60-69)": "Limited conceptual understanding. Relies heavily on memorized proof templates. Cannot explain why results are true. Shows little awareness of connections or deeper meaning. Purely procedural approach with minimal insight.",
+        "Unsatisfactory (<60)": "No evidence of conceptual understanding. Cannot explain concepts or see connections. Shows complete lack of mathematical insight. No understanding beyond surface level (if any)."
+      }
+    }
+  ]
+}
+

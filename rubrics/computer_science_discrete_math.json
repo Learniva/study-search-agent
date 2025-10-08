@@ -1,0 +1,82 @@
+{
+  "id": "cs_discrete_mathematics",
+  "name": "Computer Science - Discrete Mathematics",
+  "type": "math",
+  "description": "Comprehensive rubric for discrete mathematics including logic, set theory, proofs, combinatorics, graph theory, number theory, and discrete structures",
+  "max_score": 100,
+  "criteria": [
+    {
+      "name": "Problem-Solving Correctness",
+      "weight": 0.25,
+      "description": "Correctness of solutions to discrete mathematics problems including combinatorics, graph theory, and number theory problems",
+      "levels": {
+        "Excellent (90-100)": "All or nearly all problems solved correctly. Combinatorial counting is accurate (permutations, combinations, inclusion-exclusion). Graph theory problems correctly solved (paths, cycles, trees, connectivity, coloring, planarity). Number theory problems accurate (GCD, modular arithmetic, prime factorization, RSA). Recurrence relations solved correctly. Boolean algebra and circuit design problems correct. Shows mastery of discrete math techniques.",
+        "Good (80-89)": "Most problems solved correctly with minor errors. Strong understanding of discrete math concepts with occasional computational mistakes. Core techniques correctly applied. Generally accurate results across different problem types.",
+        "Satisfactory (70-79)": "Many problems solved correctly but with noticeable errors. Shows basic understanding but makes multiple mistakes in application. Some problems correct, others have computational or conceptual errors. Partial credit work evident.",
+        "Needs Improvement (60-69)": "Significant number of incorrect solutions. Frequent errors in combinatorial counting, graph algorithms, or modular arithmetic. Shows limited understanding of discrete structures. Many answers incorrect or incomplete.",
+        "Unsatisfactory (<60)": "Most or all answers incorrect. Pervasive errors showing lack of understanding of discrete mathematics fundamentals. Cannot solve basic discrete math problems."
+      }
+    },
+    {
+      "name": "Proof Construction & Logic",
+      "weight": 0.25,
+      "description": "Quality of mathematical proofs using direct proof, contradiction, contrapositive, induction, and logical reasoning",
+      "levels": {
+        "Excellent (90-100)": "Excellent proof construction with rigorous logic. Strong mathematical induction proofs with clear base case and inductive step. Correct use of direct proof, contradiction, and contrapositive. Proper handling of logical connectives (∧, ∨, ¬, →, ↔). Quantifiers (∀, ∃) used correctly. Proofs are complete, valid, and well-structured. Shows sophisticated understanding of proof techniques relevant to CS (loop invariants, correctness proofs, algorithm analysis).",
+        "Good (80-89)": "Good proof construction with sound logic. Mathematical induction correctly executed. Uses appropriate proof techniques. Minor gaps acceptable but overall reasoning is valid. Shows solid understanding of logical argumentation and proof methods.",
+        "Satisfactory (70-79)": "Adequate proofs but with noticeable gaps or errors. Basic proof structure present but may lack rigor. Induction proofs may have weak inductive hypothesis or incomplete steps. Shows basic understanding but execution needs improvement. Some logical steps unjustified.",
+        "Needs Improvement (60-69)": "Weak proofs with significant logical gaps or errors. Induction proofs incorrect or incomplete. Poor use of logical reasoning. Many steps unjustified or invalid. Shows limited understanding of proof construction.",
+        "Unsatisfactory (<60)": "Proofs are fundamentally flawed or absent. Cannot construct valid logical arguments. Shows lack of understanding of proof techniques. No meaningful proof attempts."
+      }
+    },
+    {
+      "name": "Graph Theory & Algorithms",
+      "weight": 0.15,
+      "description": "Understanding and application of graph theory concepts, properties, and algorithms",
+      "levels": {
+        "Excellent (90-100)": "Excellent understanding of graph theory. Correctly analyzes graph properties (degree, connectivity, bipartiteness, planarity). Accurately applies graph algorithms (DFS, BFS, shortest path, minimum spanning tree, topological sort). Solves graph coloring, matching, and flow problems correctly. Proves properties about graphs (Euler paths, Hamilton paths, tree properties). Uses correct graph terminology and notation. Shows sophisticated understanding of graph structures relevant to CS.",
+        "Good (80-89)": "Good understanding of graph theory. Correctly applies major graph concepts and algorithms. Can analyze graph properties and solve standard problems. Shows solid grasp of graph structures and their applications.",
+        "Satisfactory (70-79)": "Basic understanding of graphs. Can solve simple graph problems but struggles with more complex algorithms or proofs. Shows awareness of graph concepts but application is inconsistent. May confuse similar concepts (e.g., path vs. cycle).",
+        "Needs Improvement (60-69)": "Limited understanding of graph theory. Difficulty with graph properties or algorithms. Frequent errors in graph analysis. Shows significant gaps in understanding discrete structures.",
+        "Unsatisfactory (<60)": "Poor or no understanding of graph theory. Cannot solve basic graph problems. Shows fundamental misunderstanding of graph concepts."
+      }
+    },
+    {
+      "name": "Combinatorics & Counting",
+      "weight": 0.15,
+      "description": "Ability to solve counting problems using permutations, combinations, inclusion-exclusion, pigeonhole principle, and generating functions",
+      "levels": {
+        "Excellent (90-100)": "Excellent combinatorial reasoning. Correctly distinguishes when to use permutations vs combinations vs arrangements. Accurately applies multiplication and addition principles. Successfully uses inclusion-exclusion principle for complex counting. Applies pigeonhole principle appropriately. Can solve problems with generating functions or recurrence relations. Shows sophisticated counting strategies and can justify approaches.",
+        "Good (80-89)": "Good combinatorial skills. Correctly solves most counting problems. Appropriately selects counting techniques. Shows solid understanding of fundamental counting principles. Minor errors in complex scenarios but overall strong performance.",
+        "Satisfactory (70-79)": "Basic counting skills. Can solve simple permutation/combination problems but struggles with complex scenarios. May confuse when to use different techniques. Shows basic understanding but needs development in sophisticated counting strategies.",
+        "Needs Improvement (60-69)": "Weak combinatorial reasoning. Frequently confuses permutations and combinations. Cannot handle complex counting scenarios. Shows limited understanding of counting principles. Many incorrect counts.",
+        "Unsatisfactory (<60)": "Cannot solve basic counting problems. Shows fundamental misunderstanding of combinatorial principles. Pervasive errors in counting."
+      }
+    },
+    {
+      "name": "Mathematical Rigor & Notation",
+      "weight": 0.10,
+      "description": "Proper use of discrete math notation including set notation, logic symbols, summation, and formal mathematical language",
+      "levels": {
+        "Excellent (90-100)": "Excellent use of discrete mathematics notation. Proper set notation (∈, ⊆, ⊂, ∪, ∩, ∅, 𝒫, ×). Correct logical symbols (∀, ∃, ∧, ∨, ¬, →, ↔). Accurate graph notation (G=(V,E), paths, cycles). Proper summation (Σ) and product (Π) notation. Uses Big-O, Ω, Θ notation correctly. Boolean algebra notation accurate. All notation standard and precise. Professional mathematical communication.",
+        "Good (80-89)": "Good use of notation with minor errors. Generally correct set, logic, and graph notation. Shows solid understanding of mathematical symbols. Occasional notation mistakes but overall clear and appropriate.",
+        "Satisfactory (70-79)": "Adequate notation but with noticeable errors or inconsistencies. Basic symbols used correctly but may have errors in complex notation. Shows basic understanding but precision needs improvement.",
+        "Needs Improvement (60-69)": "Poor use of notation. Frequent errors in set, logic, or graph symbols. May use informal notation where formal is required. Shows limited understanding of proper discrete math notation.",
+        "Unsatisfactory (<60)": "Incorrect or absent proper notation. Does not use standard discrete math symbols. Shows lack of understanding of mathematical communication in discrete mathematics."
+      }
+    },
+    {
+      "name": "CS Applications & Connections",
+      "weight": 0.10,
+      "description": "Understanding connections between discrete math and computer science (algorithms, complexity, data structures, cryptography)",
+      "levels": {
+        "Excellent (90-100)": "Excellent understanding of discrete math applications to CS. Makes clear connections to algorithms (graph algorithms relate to DFS/BFS). Understands combinatorics in algorithm analysis and complexity. Applies number theory to cryptography (RSA, modular arithmetic). Uses logic for circuit design and Boolean algebra. Understands recurrence relations for algorithm analysis. Shows how trees relate to data structures. Demonstrates sophisticated CS perspective on discrete mathematics.",
+        "Good (80-89)": "Good awareness of CS applications. Makes appropriate connections between discrete math and programming concepts. Shows understanding of relevance to algorithms and data structures. Generally sees CS perspective.",
+        "Satisfactory (70-79)": "Basic awareness of CS connections but primarily mathematical approach. Makes some connections to CS but could be stronger. Shows limited integration of CS and discrete math perspectives.",
+        "Needs Improvement (60-69)": "Limited awareness of CS applications. Treats discrete math in isolation from CS. Few or no connections made to programming or algorithms. Misses CS relevance.",
+        "Unsatisfactory (<60)": "No awareness of discrete math connections to CS. Cannot see applications or relevance to computing. Shows complete separation of concepts."
+      }
+    }
+  ]
+}
+
