@@ -19,7 +19,14 @@ AI Fundamentals Applied:
 import json
 from typing import Dict, Any, Optional
 from langchain.tools import tool
-from utils.llm import initialize_llm
+from utils.llm import initialize_grading_llm
+from utils.prompts import (
+    get_essay_grading_prompt,
+    get_code_review_prompt,
+    get_rubric_evaluation_prompt,
+    get_feedback_prompt,
+    format_rubric_for_prompt
+)
 
 # Import new RAG and file processing tools
 try:
@@ -37,8 +44,8 @@ except ImportError:
     print("⚠️  File processor not available")
 
 
-# Initialize LLM for grading (using Gemini by default)
-grading_llm = initialize_llm("gemini")
+# Initialize LLM for grading (using Gemini with grading-optimized settings: temp=0.3)
+grading_llm = initialize_grading_llm()
 
 # Initialize rubric store for RAG
 if RUBRIC_RAG_AVAILABLE:
@@ -127,48 +134,13 @@ def grade_essay(essay_and_rubric: str) -> str:
         criteria = ["content", "organization", "grammar", "clarity"]
         instructions = ""
     
-    grading_prompt = f"""You are an expert teacher grading a student essay. Provide thorough, constructive feedback.
-
-ESSAY TO GRADE:
-{essay}
-
-GRADING CRITERIA:
-{', '.join(criteria)}
-
-MAX SCORE: {max_score}
-
-{f"ADDITIONAL INSTRUCTIONS: {instructions}" if instructions else ""}
-
-GRADING RUBRIC GUIDE:
-- Excellent (90-100%): Outstanding work, exceeds expectations
-- Good (80-89%): Strong work, meets all requirements well
-- Satisfactory (70-79%): Adequate work, meets basic requirements
-- Needs Improvement (60-69%): Below expectations, significant issues
-- Unsatisfactory (<60%): Does not meet basic requirements
-
-YOUR TASK:
-1. Evaluate the essay against each criterion
-2. Assign a numerical score out of {max_score}
-3. Provide specific, constructive feedback for each criterion
-4. Offer 2-3 concrete suggestions for improvement
-5. Highlight what the student did well
-
-RESPOND IN THIS JSON FORMAT:
-{{
-    "score": <number>,
-    "max_score": {max_score},
-    "percentage": <percentage>,
-    "grade_letter": "<letter grade>",
-    "criterion_scores": {{
-        "criterion1": {{"score": <number>, "feedback": "<specific feedback>"}},
-        "criterion2": {{"score": <number>, "feedback": "<specific feedback>"}},
-        ...
-    }},
-    "strengths": ["strength 1", "strength 2", ...],
-    "improvements": ["improvement 1", "improvement 2", "improvement 3"],
-    "overall_feedback": "<2-3 sentence summary>",
-    "confidence": <0.0-1.0>
-}}"""
+    # Use centralized grading prompt from utils.prompts
+    grading_prompt = get_essay_grading_prompt(
+        essay=essay,
+        rubric_criteria=criteria,
+        max_score=max_score,
+        additional_instructions=instructions
+    )
     
     try:
         messages = [
@@ -256,58 +228,13 @@ def review_code(code_and_criteria: str) -> str:
         assignment = "Code review"
         criteria = ["correctness", "efficiency", "style"]
     
-    review_prompt = f"""You are an expert code reviewer and programming teacher. Review this student code submission.
-
-PROGRAMMING LANGUAGE: {language}
-ASSIGNMENT: {assignment}
-
-STUDENT CODE:
-```{language}
-{code}
-```
-
-REVIEW CRITERIA:
-{', '.join(criteria)}
-
-YOUR TASK:
-1. Analyze the code for correctness and functionality
-2. Check for bugs, edge cases, and potential errors
-3. Evaluate code style and readability
-4. Assess efficiency and best practices
-5. Provide specific, actionable feedback
-6. Assign scores for each criterion (0-100)
-
-RESPOND IN THIS JSON FORMAT:
-{{
-    "overall_score": <0-100>,
-    "correctness": {{
-        "score": <0-100>,
-        "feedback": "<specific issues or praise>",
-        "bugs": ["bug 1", "bug 2", ...]
-    }},
-    "efficiency": {{
-        "score": <0-100>,
-        "feedback": "<efficiency analysis>",
-        "suggestions": ["optimization 1", ...]
-    }},
-    "style": {{
-        "score": <0-100>,
-        "feedback": "<style feedback>",
-        "issues": ["style issue 1", ...]
-    }},
-    "documentation": {{
-        "score": <0-100>,
-        "feedback": "<documentation feedback>"
-    }},
-    "what_works_well": ["positive 1", "positive 2", ...],
-    "needs_improvement": ["improvement 1", "improvement 2", ...],
-    "suggested_fixes": [
-        {{"line": <line_number>, "issue": "<description>", "fix": "<suggested fix>"}},
-        ...
-    ],
-    "grade_recommendation": "<letter grade>",
-    "confidence": <0.0-1.0>
-}}"""
+    # Use centralized code review prompt from utils.prompts
+    review_prompt = get_code_review_prompt(
+        code=code,
+        language=language,
+        assignment=assignment,
+        criteria=criteria
+    )
     
     try:
         messages = [
@@ -528,39 +455,11 @@ def evaluate_with_rubric(submission_and_rubric: str) -> str:
     if not criteria:
         return "Error: Rubric must contain at least one criterion."
     
-    evaluation_prompt = f"""You are evaluating a student submission against a detailed rubric.
-
-STUDENT SUBMISSION:
-{submission}
-
-RUBRIC CRITERIA:
-{json.dumps(criteria, indent=2)}
-
-YOUR TASK:
-For each criterion:
-1. Evaluate the submission
-2. Select the appropriate performance level
-3. Provide specific evidence from the submission
-4. Calculate the score based on weights
-
-RESPOND IN THIS JSON FORMAT:
-{{
-    "criterion_evaluations": [
-        {{
-            "criterion_name": "<name>",
-            "level_achieved": "<Excellent|Good|Fair|Poor>",
-            "evidence": "<specific evidence from submission>",
-            "points_earned": <number>,
-            "points_possible": <number>
-        }},
-        ...
-    ],
-    "total_score": <sum of points>,
-    "total_possible": <sum of possible points>,
-    "percentage": <percentage>,
-    "overall_level": "<performance level>",
-    "summary": "<brief summary>"
-}}"""
+    # Use centralized rubric evaluation prompt from utils.prompts
+    evaluation_prompt = get_rubric_evaluation_prompt(
+        submission=submission,
+        criteria=criteria
+    )
     
     try:
         messages = [
@@ -637,33 +536,13 @@ def generate_feedback(content_and_context: str) -> str:
         tone = "constructive"
         focus_areas = ["strengths", "improvements"]
     
-    tone_guidelines = {
-        "constructive": "Be balanced, specific, and actionable",
-        "encouraging": "Be supportive, motivating, and positive",
-        "detailed": "Provide in-depth analysis with examples",
-        "concise": "Be brief and to the point"
-    }
-    
-    feedback_prompt = f"""You are a supportive teacher providing feedback to a student.
-
-STUDENT WORK:
-{student_work}
-
-{f"GRADE RECEIVED: {grade}" if grade else ""}
-
-FEEDBACK TONE: {tone} - {tone_guidelines.get(tone, "Be helpful")}
-
-FOCUS AREAS: {', '.join(focus_areas)}
-
-YOUR TASK:
-Generate natural, personalized feedback that:
-1. Acknowledges specific strengths in the work
-2. Provides constructive suggestions for improvement
-3. Offers concrete next steps
-4. Motivates the student to keep learning
-5. Is appropriate for the grade level
-
-Write the feedback as if speaking directly to the student. Make it personal and encouraging."""
+    # Use centralized feedback prompt from utils.prompts
+    feedback_prompt = get_feedback_prompt(
+        student_work=student_work,
+        grade=grade,
+        tone=tone,
+        focus_areas=focus_areas
+    )
     
     try:
         messages = [
