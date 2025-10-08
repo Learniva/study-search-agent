@@ -1,0 +1,94 @@
+{
+  "id": "cs_algorithms_advanced",
+  "name": "Computer Science - Algorithms & Data Structures (Advanced)",
+  "type": "code",
+  "description": "Comprehensive rubric for evaluating algorithm design, implementation, and analysis in computer science coursework",
+  "max_score": 100,
+  "criteria": [
+    {
+      "name": "Algorithm Correctness",
+      "weight": 0.25,
+      "description": "Correctness of algorithm implementation including edge cases, boundary conditions, and error handling",
+      "levels": {
+        "Excellent (90-100)": "Algorithm is completely correct for all cases including edge cases, null inputs, empty collections, boundary values, and exceptional conditions. Demonstrates thorough understanding of problem constraints and handles all scenarios elegantly.",
+        "Good (80-89)": "Algorithm is correct for all standard cases and most edge cases. May have minor issues with exceptional inputs but core logic is sound. Shows good understanding of problem requirements.",
+        "Satisfactory (70-79)": "Algorithm works for typical inputs but has notable issues with edge cases or boundary conditions. Core logic is present but needs refinement. Some test cases may fail.",
+        "Needs Improvement (60-69)": "Algorithm has significant correctness issues affecting standard cases. Multiple test cases fail. Logic errors present that require substantial debugging.",
+        "Unsatisfactory (<60)": "Algorithm does not produce correct results for most inputs. Fundamental misunderstanding of problem requirements or critical logic errors throughout."
+      }
+    },
+    {
+      "name": "Time & Space Complexity",
+      "weight": 0.20,
+      "description": "Efficiency of algorithm in terms of time and space complexity. Optimal or near-optimal solutions expected.",
+      "levels": {
+        "Excellent (90-100)": "Optimal or near-optimal time complexity (e.g., O(n log n) for sorting, O(n) for linear problems). Space complexity is minimal and well-justified. Includes complexity analysis with clear explanation. Demonstrates understanding of trade-offs.",
+        "Good (80-89)": "Efficient algorithm with reasonable time complexity. May not be optimal but is practical. Space complexity is acceptable. Shows awareness of complexity considerations.",
+        "Satisfactory (70-79)": "Algorithm works but could be more efficient. Time complexity is higher than necessary (e.g., O(n²) when O(n log n) is achievable). Space usage could be improved.",
+        "Needs Improvement (60-69)": "Algorithm is inefficient with poor time complexity (e.g., O(n³) or worse for moderate-sized problems). Excessive space usage. May cause performance issues.",
+        "Unsatisfactory (<60)": "Algorithm has exponential or factorial time complexity where polynomial solutions exist. Severe inefficiency makes solution impractical for real-world use."
+      }
+    },
+    {
+      "name": "Code Quality & Design",
+      "weight": 0.15,
+      "description": "Code organization, readability, naming conventions, modularity, and adherence to language best practices",
+      "levels": {
+        "Excellent (90-100)": "Exceptional code quality with clear structure, meaningful variable/function names following conventions (camelCase/snake_case), proper use of data structures, well-organized into functions/classes. Code is self-documenting and follows DRY principle. Uses appropriate design patterns.",
+        "Good (80-89)": "Clean, readable code with good naming and organization. Follows most best practices and language idioms. Minor style inconsistencies but overall professional quality.",
+        "Satisfactory (70-79)": "Code is functional but could be cleaner. Some unclear variable names, occasional code duplication, or inconsistent style. Basic organization present but could be improved.",
+        "Needs Improvement (60-69)": "Poor code quality with unclear naming, significant duplication, poor organization. Difficult to read and understand. Multiple style violations.",
+        "Unsatisfactory (<60)": "Very poor code quality. Cryptic variable names (e.g., a, b, x), no organization, massive code duplication, violates fundamental style guidelines."
+      }
+    },
+    {
+      "name": "Data Structure Selection",
+      "weight": 0.15,
+      "description": "Appropriate choice and implementation of data structures for the problem requirements",
+      "levels": {
+        "Excellent (90-100)": "Optimal data structure choice (e.g., hash maps for O(1) lookup, heaps for priority queues, trees for hierarchical data). Demonstrates deep understanding of data structure properties and trade-offs. Custom implementations when appropriate.",
+        "Good (80-89)": "Appropriate data structures chosen that enable efficient solution. Shows good understanding of when to use arrays, lists, sets, maps, etc. Minor improvements possible.",
+        "Satisfactory (70-79)": "Adequate data structure choices but not optimal. Solution works but better options exist (e.g., using list when set would be better). Shows basic understanding.",
+        "Needs Improvement (60-69)": "Poor data structure choices that hinder efficiency. Using inappropriate structures (e.g., list with repeated searches instead of hash set). Limited understanding of data structure properties.",
+        "Unsatisfactory (<60)": "Incorrect or highly inefficient data structure usage. Fundamental misunderstanding of data structure capabilities and performance characteristics."
+      }
+    },
+    {
+      "name": "Documentation & Comments",
+      "weight": 0.10,
+      "description": "Quality of code documentation, comments, docstrings, and explanatory text",
+      "levels": {
+        "Excellent (90-100)": "Comprehensive documentation including function/class docstrings with parameters, return values, and complexity analysis. Strategic inline comments explaining complex logic. README with algorithm explanation, examples, and usage instructions. Well-commented code that aids understanding.",
+        "Good (80-89)": "Good documentation with clear docstrings for major functions. Helpful comments for non-obvious code sections. Adequate explanation of approach and complexity.",
+        "Satisfactory (70-79)": "Basic documentation present. Some functions have docstrings. Comments are minimal but present for complex sections. Could benefit from more explanation.",
+        "Needs Improvement (60-69)": "Sparse documentation. Few or no docstrings. Minimal comments. Complex sections lack explanation. Hard to understand intent without reading all code.",
+        "Unsatisfactory (<60)": "No meaningful documentation. No docstrings, no comments, or comments that don't add value (e.g., '# increment i'). Code is difficult to understand."
+      }
+    },
+    {
+      "name": "Testing & Validation",
+      "weight": 0.10,
+      "description": "Evidence of testing including unit tests, test cases, and validation of results",
+      "levels": {
+        "Excellent (90-100)": "Comprehensive test suite with unit tests covering all functions, edge cases, boundary conditions, and error scenarios. Uses testing framework (unittest, pytest, JUnit). Tests are well-organized and documented. Test coverage > 90%.",
+        "Good (80-89)": "Good test coverage with tests for main functionality and common edge cases. Uses proper testing methodology. Tests are clear and verify expected behavior.",
+        "Satisfactory (70-79)": "Basic testing present. Tests main functionality but misses some edge cases. May be informal (print statements) rather than structured test framework.",
+        "Needs Improvement (60-69)": "Minimal testing. Few test cases, mostly focused on happy path. Missing important edge cases or error conditions. Testing methodology is weak.",
+        "Unsatisfactory (<60)": "No testing or only trivial tests. No evidence of validation or verification. Code may not have been tested at all."
+      }
+    },
+    {
+      "name": "Problem Solving Approach",
+      "weight": 0.05,
+      "description": "Demonstrates understanding of problem-solving strategies, algorithmic thinking, and solution methodology",
+      "levels": {
+        "Excellent (90-100)": "Demonstrates sophisticated problem-solving approach. Clear evidence of planning (pseudocode, diagrams). Uses appropriate algorithmic paradigms (divide-and-conquer, dynamic programming, greedy, etc.). Shows iterative refinement and optimization.",
+        "Good (80-89)": "Good problem-solving methodology. Solution shows logical progression from problem to solution. Uses appropriate techniques. Evidence of thoughtful approach.",
+        "Satisfactory (70-79)": "Adequate problem-solving. Solution works but approach could be more systematic. Limited evidence of planning or algorithmic thinking.",
+        "Needs Improvement (60-69)": "Weak problem-solving approach. Solution appears ad-hoc without clear methodology. Limited use of algorithmic techniques.",
+        "Unsatisfactory (<60)": "No clear problem-solving strategy. Solution appears random or trial-and-error without understanding of underlying concepts."
+      }
+    }
+  ]
+}
+

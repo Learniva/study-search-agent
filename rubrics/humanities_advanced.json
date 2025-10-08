@@ -1,0 +1,94 @@
+{
+  "id": "humanities_advanced",
+  "name": "Humanities - Advanced Essay/Research Paper",
+  "type": "essay",
+  "description": "Comprehensive rubric for advanced humanities essays (Literature, History, Philosophy, Art History) with emphasis on analysis, interpretation, and proper MLA or Chicago Manual of Style citations",
+  "max_score": 100,
+  "criteria": [
+    {
+      "name": "Thesis & Argument",
+      "weight": 0.20,
+      "description": "Sophisticated, original thesis with clear argumentative claim about the text, period, or phenomenon",
+      "levels": {
+        "Excellent (90-100)": "Sophisticated, original thesis that makes a nuanced, arguable claim about the text, historical period, philosophical concept, or cultural phenomenon. Thesis is specific, insightful, and demonstrates deep engagement with the subject. Shows intellectual independence and originality. Goes beyond obvious interpretations to offer fresh perspective. Thesis is debatable and significant.",
+        "Good (80-89)": "Clear, strong thesis that makes a solid argumentative claim. Shows good critical thinking and engagement with the subject. Thesis is specific and arguable, though may not be highly original. Provides clear direction for the essay.",
+        "Satisfactory (70-79)": "Acceptable thesis that makes an argument but may lack sophistication or nuance. May be somewhat obvious or predictable. Shows engagement with the subject but could be more specific or insightful. Arguable but not particularly complex.",
+        "Needs Improvement (60-69)": "Weak thesis that is too vague, too broad, or merely descriptive rather than argumentative. May state an obvious fact rather than making a debatable claim. Lacks specificity or shows limited engagement with the subject.",
+        "Unsatisfactory (<60)": "No clear thesis or thesis is completely off-topic. May simply summarize without making any argument. Shows fundamental misunderstanding of the assignment or text."
+      }
+    },
+    {
+      "name": "Textual Analysis & Close Reading",
+      "weight": 0.25,
+      "description": "Deep engagement with primary texts through close reading, careful analysis of language, style, and meaning",
+      "levels": {
+        "Excellent (90-100)": "Exceptional close reading and textual analysis. Examines specific passages, word choices, imagery, metaphors, rhetorical strategies, or stylistic features in detail. Makes insightful connections between textual details and larger arguments. For literature: analyzes literary devices, symbolism, narrative structure. For history: analyzes primary source language, context, and perspective. For philosophy: carefully examines arguments and concepts. Shows sophisticated interpretive skills. Uses well-chosen, relevant quotations integrated smoothly into analysis.",
+        "Good (80-89)": "Strong textual analysis with attention to specific details. Uses quotations effectively to support arguments. Shows good close reading skills. Makes clear connections between textual evidence and claims. Generally sophisticated analysis.",
+        "Satisfactory (70-79)": "Adequate textual analysis but may be somewhat superficial. References texts appropriately but could engage more deeply with specific passages. Uses quotations but integration or analysis could be stronger. Shows basic close reading skills.",
+        "Needs Improvement (60-69)": "Limited textual analysis. May summarize more than analyze. Weak use of quotations or quotations without sufficient analysis. Superficial engagement with texts. Limited close reading skills.",
+        "Unsatisfactory (<60)": "Little to no textual analysis. Primarily summary with no close reading. Fails to engage meaningfully with primary texts. No or inappropriate use of quotations."
+      }
+    },
+    {
+      "name": "Use of Secondary Sources & Scholarship",
+      "weight": 0.15,
+      "description": "Engagement with relevant scholarly sources and critical interpretations",
+      "levels": {
+        "Excellent (90-100)": "Excellent engagement with relevant scholarly sources. Uses peer-reviewed academic sources (journal articles, scholarly books) effectively. Shows awareness of critical debates and different scholarly interpretations. Synthesizes multiple scholarly perspectives. Positions own argument within scholarly conversation. Uses both seminal and recent scholarship appropriately. Demonstrates strong research skills.",
+        "Good (80-89)": "Good use of scholarly sources to support arguments. Engages with relevant academic scholarship. Shows awareness of critical approaches or historical interpretations. Sources are credible and appropriate. Generally good research and integration.",
+        "Satisfactory (70-79)": "Adequate use of secondary sources but may be limited in scope or depth. Uses some scholarly sources but may also rely on less rigorous sources. Limited engagement with scholarly debates. Shows basic research skills but could go deeper.",
+        "Needs Improvement (60-69)": "Limited use of secondary sources or relies primarily on non-scholarly sources. Weak engagement with academic scholarship. Poor integration of sources. Limited research evident.",
+        "Unsatisfactory (<60)": "Little to no use of appropriate secondary sources. No engagement with scholarly work. May rely entirely on unreliable sources or personal opinion without academic support."
+      }
+    },
+    {
+      "name": "Citations & Documentation (MLA/Chicago Style)",
+      "weight": 0.15,
+      "description": "Proper use of MLA 9th edition or Chicago Manual of Style (Notes-Bibliography) with accurate, consistent formatting",
+      "levels": {
+        "Excellent (90-100)": "Flawless or near-flawless citation formatting in MLA 9th edition or Chicago Notes-Bibliography (footnotes/endnotes) style. For MLA: perfect parenthetical citations (Author page#) and Works Cited page with proper formatting, hanging indents, italics vs. quotation marks for titles. For Chicago: properly formatted footnotes/endnotes with full citation on first reference and shortened form subsequently, plus complete bibliography. All sources properly cited. No plagiarism concerns. Demonstrates mastery of humanities citation conventions. Proper formatting for different source types (books, journal articles, online sources, primary sources).",
+        "Good (80-89)": "Strong citation formatting with few minor errors. Generally correct MLA or Chicago style. Proper in-text/footnote citations and Works Cited/Bibliography. Minor formatting inconsistencies but all sources are properly documented. Shows good understanding of citation requirements.",
+        "Satisfactory (70-79)": "Adequate citations with multiple formatting errors. Basic MLA or Chicago format attempted but inconsistent. Works Cited/Bibliography present but with formatting issues. All sources are cited but format needs improvement. Shows basic understanding but needs refinement.",
+        "Needs Improvement (60-69)": "Significant citation errors. Inconsistent or incorrect format. May mix citation styles. Works Cited/Bibliography incomplete or poorly formatted. Missing citations for some sources. Shows limited understanding of proper citation.",
+        "Unsatisfactory (<60)": "Major citation problems including missing citations, no Works Cited/Bibliography, potential plagiarism concerns, or complete failure to follow any citation format. Shows lack of understanding of academic integrity requirements."
+      }
+    },
+    {
+      "name": "Historical/Cultural Context & Interpretation",
+      "weight": 0.10,
+      "description": "Understanding and application of relevant historical, cultural, or theoretical contexts",
+      "levels": {
+        "Excellent (90-100)": "Sophisticated understanding of historical, cultural, or theoretical context. For literature: situates text within literary movements, historical period, biographical context. For history: demonstrates deep understanding of period, causation, and historical significance. For philosophy: engages with philosophical traditions and debates. Shows how context illuminates interpretation. Demonstrates broad knowledge and contextual awareness.",
+        "Good (80-89)": "Good understanding of relevant context. Appropriately situates subject within historical, cultural, or theoretical framework. Makes clear connections between context and interpretation. Shows solid contextual knowledge.",
+        "Satisfactory (70-79)": "Basic understanding of context but may be superficial or incomplete. Makes some effort to situate subject contextually but could be more thorough. Shows awareness of context but limited depth.",
+        "Needs Improvement (60-69)": "Limited contextual understanding. Weak or inaccurate contextual information. Poor connection between context and interpretation. Shows gaps in historical or cultural knowledge.",
+        "Unsatisfactory (<60)": "Little to no understanding of relevant context. Ignores or misunderstands historical, cultural, or theoretical context completely. Shows lack of background knowledge."
+      }
+    },
+    {
+      "name": "Critical Thinking & Interpretation",
+      "weight": 0.10,
+      "description": "Depth of analysis, sophistication of interpretation, and engagement with complexity",
+      "levels": {
+        "Excellent (90-100)": "Exceptional critical thinking demonstrating sophisticated, nuanced interpretation. Engages with ambiguity and complexity rather than oversimplifying. Considers multiple perspectives or interpretations. Shows intellectual depth and independence. Makes insightful connections. Analysis is original and thought-provoking. Demonstrates advanced analytical skills.",
+        "Good (80-89)": "Strong critical thinking with good analytical depth. Interpretation is thoughtful and well-reasoned. Shows good engagement with complexity. Makes clear, logical arguments. Generally sophisticated analysis.",
+        "Satisfactory (70-79)": "Adequate critical thinking but may be somewhat simplistic or obvious. Basic interpretation that lacks depth or sophistication. Some analysis present but could be more nuanced. Shows effort at critical thinking but needs development.",
+        "Needs Improvement (60-69)": "Weak critical thinking. Interpretation is superficial or lacks support. May rely on plot summary or description rather than analysis. Limited engagement with complexity. Weak analytical skills.",
+        "Unsatisfactory (<60)": "No meaningful critical thinking or interpretation. Entirely descriptive or summary. No analytical depth. Shows inability to move beyond surface-level understanding."
+      }
+    },
+    {
+      "name": "Organization, Style & Mechanics",
+      "weight": 0.05,
+      "description": "Clear organization, elegant prose, and command of grammar and mechanics",
+      "levels": {
+        "Excellent (90-100)": "Exemplary organization with clear introduction, focused body paragraphs (topic sentences, development, transitions), and strong conclusion. Elegant, sophisticated prose appropriate for advanced humanities writing. Varied sentence structure. Precise word choice and strong command of academic vocabulary. Virtually error-free grammar, punctuation, and mechanics. Writing is a pleasure to read.",
+        "Good (80-89)": "Clear organization and strong writing. Good prose style with few errors. Appropriate academic tone. Well-structured paragraphs. Generally polished writing with minor issues.",
+        "Satisfactory (70-79)": "Adequate organization and writing. Some organizational or stylistic weaknesses. Multiple grammar or mechanical errors but generally readable. Prose could be more sophisticated or polished.",
+        "Needs Improvement (60-69)": "Weak organization or writing quality. Frequent errors that distract from content. Poor paragraph structure or transitions. Sentence-level problems. Needs significant revision.",
+        "Unsatisfactory (<60)": "Poor organization and writing. Pervasive errors that impede understanding. Unclear or confusing prose. Major problems with structure and mechanics."
+      }
+    }
+  ]
+}
+

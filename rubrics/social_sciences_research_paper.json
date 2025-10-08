@@ -1,0 +1,94 @@
+{
+  "id": "social_sciences_research_advanced",
+  "name": "Social Sciences - Research Paper (Advanced)",
+  "type": "essay",
+  "description": "Comprehensive rubric for evaluating social science research papers with emphasis on methodology, evidence, and proper APA or Chicago citation style",
+  "max_score": 100,
+  "criteria": [
+    {
+      "name": "Thesis & Research Question",
+      "weight": 0.15,
+      "description": "Clear, focused research question or thesis that addresses a significant social science topic",
+      "levels": {
+        "Excellent (90-100)": "Sophisticated, clearly stated research question or thesis that addresses a significant and timely social science issue. Question is specific, researchable, and demonstrates nuanced understanding of the topic. Shows originality in framing the issue. Appropriate scope for paper length.",
+        "Good (80-89)": "Clear, well-defined research question or thesis that is appropriate for social science inquiry. Demonstrates good understanding of the topic. Question is researchable and focused.",
+        "Satisfactory (70-79)": "Research question or thesis is present and generally appropriate but may be too broad, too narrow, or lack specificity. Shows basic understanding but could be more focused or sophisticated.",
+        "Needs Improvement (60-69)": "Research question or thesis is weak, unclear, or poorly formulated. May be too vague, not researchable, or inappropriate for social science analysis. Lacks focus.",
+        "Unsatisfactory (<60)": "No clear research question or thesis, or question is completely inappropriate for social science research. Shows fundamental misunderstanding of research inquiry."
+      }
+    },
+    {
+      "name": "Literature Review & Theory",
+      "weight": 0.20,
+      "description": "Comprehensive review of relevant literature and engagement with theoretical frameworks",
+      "levels": {
+        "Excellent (90-100)": "Exceptional literature review that synthesizes current scholarly work comprehensively. Engages with major theoretical frameworks in the field (e.g., structuralism, functionalism, conflict theory). Identifies gaps in existing research. Uses seminal and recent sources. Shows deep understanding of theoretical debates. Properly situates research within scholarly conversation.",
+        "Good (80-89)": "Strong literature review covering major relevant studies. Engages with appropriate theoretical frameworks. Uses mix of foundational and contemporary sources. Shows good understanding of scholarly context. Identifies relevant research trends.",
+        "Satisfactory (70-79)": "Adequate literature review covering basic relevant sources. References some theoretical frameworks. May rely too heavily on older sources or miss important recent scholarship. Shows basic understanding of the field.",
+        "Needs Improvement (60-69)": "Limited literature review. Few scholarly sources or relies primarily on non-academic sources. Weak engagement with theory. Misses major relevant research. Shows gaps in understanding of the field.",
+        "Unsatisfactory (<60)": "Inadequate or absent literature review. Little to no engagement with scholarly sources or theoretical frameworks. Shows lack of familiarity with the field."
+      }
+    },
+    {
+      "name": "Methodology & Research Design",
+      "weight": 0.15,
+      "description": "Clear explanation of research methods and appropriate methodological approach",
+      "levels": {
+        "Excellent (90-100)": "Sophisticated methodological approach clearly explained and well-justified. Appropriate choice of qualitative, quantitative, or mixed methods. Clearly describes data collection, sampling strategy, and analytical techniques. Addresses potential limitations and biases. Shows understanding of methodological strengths and weaknesses. Meets standards for empirical social science research.",
+        "Good (80-89)": "Clear, appropriate methodology. Research design is sound and well-explained. Good justification for methodological choices. Describes key methods adequately. Acknowledges some limitations.",
+        "Satisfactory (70-79)": "Basic methodology described but lacks depth or sophistication. Research design is adequate but may have weaknesses. Limited discussion of limitations or alternative approaches.",
+        "Needs Improvement (60-69)": "Weak or unclear methodology. Poor justification for methods chosen. Research design has significant flaws. Inadequate description of procedures. Little consideration of limitations.",
+        "Unsatisfactory (<60)": "No clear methodology or completely inappropriate methods. Research design is fundamentally flawed. Shows lack of understanding of social science research methods."
+      }
+    },
+    {
+      "name": "Evidence & Analysis",
+      "weight": 0.20,
+      "description": "Quality of evidence presented and depth of analytical interpretation",
+      "levels": {
+        "Excellent (90-100)": "Exceptional use of high-quality, relevant evidence from diverse sources (peer-reviewed journals, empirical data, primary sources, credible reports). Sophisticated analysis that goes beyond description to interpret patterns, causes, and implications. Makes insightful connections between evidence and theory. Uses appropriate statistical analysis or qualitative interpretation. Evidence is thoroughly integrated and well-explained.",
+        "Good (80-89)": "Strong evidence from credible sources. Good analytical depth showing interpretation beyond surface-level description. Makes clear connections between evidence and arguments. Generally strong integration of sources.",
+        "Satisfactory (70-79)": "Adequate evidence but may rely on limited sources or lack diversity of evidence types. Analysis is present but somewhat superficial. Makes basic connections but lacks depth. Some evidence may be poorly integrated.",
+        "Needs Improvement (60-69)": "Weak or insufficient evidence. Over-reliance on single sources or non-scholarly sources. Analysis is largely descriptive with little interpretation. Poor integration of evidence. Evidence may not fully support claims.",
+        "Unsatisfactory (<60)": "Little to no credible evidence. No meaningful analysis. Evidence is absent, inappropriate, or completely fails to support claims. Shows inability to engage with evidence analytically."
+      }
+    },
+    {
+      "name": "Citations & Documentation (APA/Chicago Style)",
+      "weight": 0.15,
+      "description": "Proper use of citation style (APA or Chicago Author-Date for social sciences) with accurate, consistent formatting",
+      "levels": {
+        "Excellent (90-100)": "Flawless or near-flawless citation formatting in APA 7th edition or Chicago Author-Date style. In-text citations are accurate and properly formatted (Author, Year) or (Author Year). Reference list/bibliography is complete, alphabetized, and perfectly formatted with proper capitalization, italics, DOIs. All sources cited are scholarly and appropriate. No citation errors. Demonstrates mastery of citation conventions. For APA: proper use of parenthetical citations, hanging indents, and title case for references. For Chicago: proper use of author-date format and reference list formatting.",
+        "Good (80-89)": "Strong citation formatting with few errors. Generally correct APA or Chicago Author-Date style. In-text citations properly formatted. Reference list is mostly correct with minor formatting errors (e.g., occasional capitalization or punctuation issues). All sources are properly cited.",
+        "Satisfactory (70-79)": "Adequate citations with noticeable errors in formatting. May mix citation styles or have inconsistent formatting. Reference list has multiple formatting errors but sources are identifiable. Shows basic understanding of citation requirements but needs improvement in execution.",
+        "Needs Improvement (60-69)": "Significant citation errors. Inconsistent or incorrect citation format. Reference list is incomplete or poorly formatted. Missing citations for some sources used. May show confusion about citation style requirements.",
+        "Unsatisfactory (<60)": "Major citation problems including missing citations, incorrect or absent reference list, potential plagiarism concerns, or complete failure to follow any recognizable citation format. Shows lack of understanding of academic citation requirements."
+      }
+    },
+    {
+      "name": "Argument & Critical Thinking",
+      "weight": 0.10,
+      "description": "Logical argumentation, critical analysis, and engagement with alternative perspectives",
+      "levels": {
+        "Excellent (90-100)": "Sophisticated, nuanced argument that considers multiple perspectives and alternative interpretations. Demonstrates critical thinking by analyzing assumptions, weighing evidence, and addressing counterarguments. Shows intellectual independence. Arguments are logically constructed and compelling. Acknowledges complexity and avoids oversimplification.",
+        "Good (80-89)": "Strong, logical argument with good critical analysis. Considers alternative views. Arguments are well-reasoned and supported. Shows good analytical thinking.",
+        "Satisfactory (70-79)": "Adequate argument but may be simplistic or one-sided. Limited engagement with alternative perspectives. Basic critical thinking present but could be deeper. Some logical connections may be weak.",
+        "Needs Improvement (60-69)": "Weak argumentation with logical gaps or unsupported claims. Little consideration of alternative perspectives. Limited critical analysis. May present opinions as facts.",
+        "Unsatisfactory (<60)": "No clear argument or illogical reasoning. Lacks critical thinking. No engagement with alternative views. Arguments are confused or contradictory."
+      }
+    },
+    {
+      "name": "Organization & Structure",
+      "weight": 0.05,
+      "description": "Logical organization with clear sections (introduction, literature review, methods, results/findings, discussion, conclusion)",
+      "levels": {
+        "Excellent (90-100)": "Exemplary organization following standard social science research paper format. Clear sections with appropriate headings (APA Level 1, 2 headings). Smooth transitions between sections. Logical flow from introduction through conclusion. Each section fulfills its purpose effectively. Ideas progress logically and build upon each other.",
+        "Good (80-89)": "Well-organized paper with clear structure. Standard sections present and appropriately developed. Good transitions. Logical flow of ideas. Minor organizational issues.",
+        "Satisfactory (70-79)": "Basic organization present but may lack clarity or have structural weaknesses. Sections may be uneven in development. Some awkward transitions. Flow could be smoother.",
+        "Needs Improvement (60-69)": "Poor organization. Sections may be missing, unclear, or poorly developed. Weak transitions. Difficult to follow the progression of ideas.",
+        "Unsatisfactory (<60)": "No clear organization. Missing essential sections. Chaotic structure. No logical flow. Very difficult to follow."
+      }
+    }
+  ]
+}
+

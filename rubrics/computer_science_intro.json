@@ -1,0 +1,82 @@
+{
+  "id": "cs_intro",
+  "name": "Computer Science - Introduction Level Programming",
+  "type": "code",
+  "description": "Beginner-friendly rubric for introductory computer science courses focusing on fundamental programming concepts",
+  "max_score": 100,
+  "criteria": [
+    {
+      "name": "Program Functionality",
+      "weight": 0.35,
+      "description": "Program runs and produces correct output for given inputs",
+      "levels": {
+        "Excellent (90-100)": "Program runs perfectly and produces correct output for all test cases. Handles edge cases appropriately. No runtime errors. Shows excellent understanding of problem requirements.",
+        "Good (80-89)": "Program runs and produces correct output for most test cases. May have minor issues with edge cases but core functionality is solid. Shows good understanding.",
+        "Satisfactory (70-79)": "Program runs and works for basic test cases. May have issues with some inputs or edge cases. Core logic is present but needs refinement.",
+        "Needs Improvement (60-69)": "Program has significant functionality issues. Multiple test cases fail or produce incorrect output. Runtime errors may occur.",
+        "Unsatisfactory (<60)": "Program does not run or produces incorrect output for most cases. Fundamental issues with logic or syntax."
+      }
+    },
+    {
+      "name": "Understanding of Concepts",
+      "weight": 0.20,
+      "description": "Demonstrates understanding of course concepts (variables, loops, conditionals, functions, etc.)",
+      "levels": {
+        "Excellent (90-100)": "Excellent use of programming concepts. Correctly applies variables, loops, conditionals, and functions. Shows deep understanding of when and how to use each construct. Code demonstrates mastery of fundamental concepts.",
+        "Good (80-89)": "Good understanding of concepts. Correctly uses most programming constructs. Minor conceptual errors may be present but overall demonstrates solid grasp of fundamentals.",
+        "Satisfactory (70-79)": "Basic understanding of concepts. Uses programming constructs but may not always choose the most appropriate one. Some conceptual misunderstandings evident.",
+        "Needs Improvement (60-69)": "Limited understanding of concepts. Incorrect or inefficient use of programming constructs. Significant conceptual gaps.",
+        "Unsatisfactory (<60)": "Poor understanding of fundamental concepts. Incorrect use of basic programming constructs. Code suggests lack of comprehension."
+      }
+    },
+    {
+      "name": "Code Readability",
+      "weight": 0.15,
+      "description": "Code is clean, well-organized, and easy to read with meaningful variable names",
+      "levels": {
+        "Excellent (90-100)": "Code is exceptionally clean and readable. Uses descriptive variable names (e.g., 'studentCount' not 'x'). Proper indentation and spacing. Well-organized structure. Easy for others to understand.",
+        "Good (80-89)": "Code is clean and readable. Generally good variable names and organization. Minor formatting issues but overall professional.",
+        "Satisfactory (70-79)": "Code is readable but could be cleaner. Some unclear variable names or inconsistent formatting. Basic organization present.",
+        "Needs Improvement (60-69)": "Code is difficult to read. Poor variable names, inconsistent indentation, or poor organization. Requires effort to understand.",
+        "Unsatisfactory (<60)": "Code is very difficult to read. Cryptic variable names, no organization, poor or no indentation. Very hard to follow."
+      }
+    },
+    {
+      "name": "Comments & Documentation",
+      "weight": 0.10,
+      "description": "Includes helpful comments explaining the code and approach",
+      "levels": {
+        "Excellent (90-100)": "Excellent comments that explain what the code does and why. Header comment with name, date, and program description. Comments for major sections and complex logic. Not over-commented.",
+        "Good (80-89)": "Good comments that help understand the code. Header comment present. Key sections are explained. Balance between too many and too few comments.",
+        "Satisfactory (70-79)": "Basic comments present. May have header comment and some explanatory comments. Could benefit from more detailed explanation in complex sections.",
+        "Needs Improvement (60-69)": "Few comments. Minimal explanation of code. Complex sections lack clarification. Hard to understand intent without reading all code carefully.",
+        "Unsatisfactory (<60)": "No comments or only trivial comments that don't add value. No header information. Code is not self-documenting."
+      }
+    },
+    {
+      "name": "Effort & Completeness",
+      "weight": 0.10,
+      "description": "Assignment requirements are met and code shows appropriate effort for the level",
+      "levels": {
+        "Excellent (90-100)": "All assignment requirements fully met. Code shows excellent effort and attention to detail. May include additional features or improvements beyond requirements. Work is thorough and complete.",
+        "Good (80-89)": "All major requirements met. Shows good effort. Minor requirements may be incomplete but overall submission is strong.",
+        "Satisfactory (70-79)": "Most requirements met. Shows adequate effort. Some features may be incomplete or missing. Basic assignment expectations satisfied.",
+        "Needs Improvement (60-69)": "Several requirements not met. Incomplete submission. Appears rushed or lacking sufficient effort.",
+        "Unsatisfactory (<60)": "Many requirements missing. Minimal effort evident. Submission is significantly incomplete."
+      }
+    },
+    {
+      "name": "Testing & Error Handling",
+      "weight": 0.10,
+      "description": "Evidence of testing and appropriate handling of errors or invalid inputs",
+      "levels": {
+        "Excellent (90-100)": "Program is well-tested and handles errors gracefully. Validates user input. Provides helpful error messages. Shows understanding of what could go wrong and handles it appropriately.",
+        "Good (80-89)": "Program handles most common errors. Some input validation present. Provides error messages. Shows awareness of error handling.",
+        "Satisfactory (70-79)": "Basic error handling present. Program doesn't crash on common invalid inputs. Could be more robust but shows some effort.",
+        "Needs Improvement (60-69)": "Minimal error handling. Program may crash on invalid input. Little evidence of testing or validation.",
+        "Unsatisfactory (<60)": "No error handling. Program crashes on invalid input. No evidence of testing. Appears untested."
+      }
+    }
+  ]
+}
+

@@ -1,0 +1,106 @@
+{
+  "id": "cs_software_project",
+  "name": "Computer Science - Software Engineering Project",
+  "type": "code",
+  "description": "Comprehensive rubric for evaluating full software projects including design, implementation, testing, and documentation",
+  "max_score": 100,
+  "criteria": [
+    {
+      "name": "Requirements & Functionality",
+      "weight": 0.20,
+      "description": "Project meets all specified requirements and functions as intended",
+      "levels": {
+        "Excellent (90-100)": "Project fully implements all required features and functionality. All user stories or requirements are met. Application works flawlessly with no bugs in core functionality. Includes additional features or enhancements beyond requirements. Demonstrates excellent understanding of project scope and delivers professional-quality software.",
+        "Good (80-89)": "Project implements all major requirements successfully. Core functionality works well with only minor bugs or missing edge case handling. Most user stories completed. Generally meets expectations with few issues.",
+        "Satisfactory (70-79)": "Project implements most requirements but some features may be incomplete or have issues. Core functionality mostly works but has noticeable bugs. Some user stories incomplete. Meets basic expectations but needs refinement.",
+        "Needs Improvement (60-69)": "Project is missing significant functionality or has major bugs affecting core features. Many requirements not met. Multiple user stories incomplete. Substantial work needed to meet expectations.",
+        "Unsatisfactory (<60)": "Project fails to meet most requirements. Core functionality is broken or missing. Application does not work as intended. Shows inadequate effort or understanding of requirements."
+      }
+    },
+    {
+      "name": "Software Design & Architecture",
+      "weight": 0.15,
+      "description": "Quality of software design, architecture patterns, and system organization",
+      "levels": {
+        "Excellent (90-100)": "Excellent software architecture following appropriate design patterns (MVC, MVVM, microservices, etc.). Clear separation of concerns with well-defined layers/modules. Uses SOLID principles effectively. Code is highly modular and maintainable. Database schema (if applicable) is well-normalized. API design (if applicable) follows REST/GraphQL best practices. Shows sophisticated understanding of software architecture.",
+        "Good (80-89)": "Good software design with clear organization. Uses appropriate design patterns. Reasonable separation of concerns. Code is modular and generally maintainable. Shows solid understanding of architecture principles.",
+        "Satisfactory (70-79)": "Adequate design but could be improved. Some attempt at organization and modularity. May have some tight coupling or unclear separation of concerns. Basic architecture is present but not optimal.",
+        "Needs Improvement (60-69)": "Poor software design. Little separation of concerns. Tightly coupled code. Poor modularity. Difficult to maintain or extend. Shows limited understanding of design principles.",
+        "Unsatisfactory (<60)": "No clear design or architecture. Monolithic, unorganized code. No separation of concerns. Shows lack of understanding of software design principles."
+      }
+    },
+    {
+      "name": "Code Quality & Best Practices",
+      "weight": 0.15,
+      "description": "Code readability, style consistency, naming conventions, and adherence to language-specific best practices",
+      "levels": {
+        "Excellent (90-100)": "Exceptional code quality throughout. Consistent style following language conventions (PEP 8 for Python, Google Style for Java, Airbnb for JavaScript, etc.). Excellent naming (classes, functions, variables). Well-organized file/folder structure. Minimal code duplication (DRY). Appropriate use of language features and idioms. Code reviews would find minimal issues. Professional-grade code quality.",
+        "Good (80-89)": "High code quality with consistent style. Good naming and organization. Follows most best practices. Code is readable and maintainable. Minor style inconsistencies but overall very good.",
+        "Satisfactory (70-79)": "Acceptable code quality but inconsistent. Some parts well-written, others need improvement. Naming could be clearer. Some code duplication. Basic best practices followed but not consistently.",
+        "Needs Improvement (60-69)": "Poor code quality. Inconsistent or poor style. Unclear naming. Significant code duplication. Poor organization. Violates multiple best practices. Difficult to read and maintain.",
+        "Unsatisfactory (<60)": "Very poor code quality. No consistent style. Cryptic naming. Massive duplication. Violates fundamental coding standards. Essentially unmaintainable code."
+      }
+    },
+    {
+      "name": "Testing & Quality Assurance",
+      "weight": 0.15,
+      "description": "Comprehensive testing including unit tests, integration tests, and test coverage",
+      "levels": {
+        "Excellent (90-100)": "Comprehensive test suite with excellent coverage (>80%). Unit tests for all major functions/methods using appropriate framework (pytest, JUnit, Jest, etc.). Integration tests for key workflows. Tests are well-organized and follow AAA pattern (Arrange-Act-Assert). Includes edge case testing. Uses mocking appropriately. CI/CD pipeline with automated testing. Shows professional testing practices.",
+        "Good (80-89)": "Good test coverage (60-80%). Unit tests for major functionality. Some integration tests. Tests are clear and verify expected behavior. Uses testing framework properly. Shows solid understanding of testing.",
+        "Satisfactory (70-79)": "Basic testing present (40-60% coverage). Tests main functionality but misses edge cases or error handling. May mix unit and integration tests. Testing methodology could be more rigorous. Shows basic testing skills.",
+        "Needs Improvement (60-69)": "Minimal testing (<40% coverage). Few tests, mostly happy path. Missing important test cases. Poor test organization. Shows limited testing knowledge or effort.",
+        "Unsatisfactory (<60)": "No meaningful tests or only trivial tests. No evidence of quality assurance. Code appears untested. Shows lack of understanding of testing importance."
+      }
+    },
+    {
+      "name": "Version Control & Collaboration",
+      "weight": 0.10,
+      "description": "Effective use of Git/version control with meaningful commits and branches",
+      "levels": {
+        "Excellent (90-100)": "Excellent Git usage with meaningful, atomic commits. Clear commit messages following conventions (conventional commits or similar). Appropriate use of branches for features/fixes. Clean commit history. Proper .gitignore file. README with setup instructions. Shows professional version control practices. For team projects: evidence of collaboration, code reviews, pull requests.",
+        "Good (80-89)": "Good Git usage. Regular commits with generally clear messages. Uses branches appropriately. .gitignore present. README exists. Shows solid version control skills.",
+        "Satisfactory (70-79)": "Basic Git usage. Commits present but may be too large or have unclear messages. Limited use of branches. May include files that should be ignored. Basic README present. Shows fundamental Git knowledge.",
+        "Needs Improvement (60-69)": "Poor Git usage. Few, massive commits. Unclear commit messages. No branching strategy. Missing .gitignore (unwanted files committed). Minimal or no README. Limited version control skills.",
+        "Unsatisfactory (<60)": "Minimal or no version control usage. One or two commits with everything. No meaningful commit messages. No .gitignore or README. Shows lack of understanding of version control."
+      }
+    },
+    {
+      "name": "Documentation",
+      "weight": 0.10,
+      "description": "Comprehensive documentation including README, API docs, code comments, and user guides",
+      "levels": {
+        "Excellent (90-100)": "Exceptional documentation. Comprehensive README with project description, setup instructions, dependencies, usage examples, screenshots/demos. API documentation (if applicable) with endpoints, parameters, responses. Code comments/docstrings for complex logic. Architecture diagrams. User guide or wiki. Contributing guidelines. Shows professional documentation standards.",
+        "Good (80-89)": "Good documentation. Clear README with setup and usage instructions. API docs or code documentation present. Comments for non-obvious code. Adequate for users and developers to understand the project.",
+        "Satisfactory (70-79)": "Basic documentation. README exists with minimal setup instructions. Limited code comments. Documentation is present but could be more comprehensive or clearer. Sufficient to get project running but missing details.",
+        "Needs Improvement (60-69)": "Sparse documentation. Minimal README. Few or no comments. Missing key information for setup or usage. Difficult for others to understand or run the project.",
+        "Unsatisfactory (<60)": "No meaningful documentation. Missing README or only placeholder text. No comments. Impossible for others to understand, setup, or use the project without significant effort."
+      }
+    },
+    {
+      "name": "Error Handling & Robustness",
+      "weight": 0.08,
+      "description": "Appropriate error handling, input validation, and graceful failure handling",
+      "levels": {
+        "Excellent (90-100)": "Excellent error handling throughout. Proper exception handling with try-catch blocks. Input validation for all user inputs. Graceful error messages to users. Logging of errors. Handles edge cases and unexpected inputs. Application never crashes. Shows sophisticated understanding of robust software development.",
+        "Good (80-89)": "Good error handling. Most exceptions caught and handled appropriately. Input validation present for critical inputs. Provides user-friendly error messages. Application handles most error conditions gracefully.",
+        "Satisfactory (70-79)": "Basic error handling present. Some exceptions caught. Limited input validation. Error messages may be unclear or technical. Application handles common errors but may crash on edge cases.",
+        "Needs Improvement (60-69)": "Minimal error handling. Few try-catch blocks. Little input validation. Application crashes on errors. Poor user experience when things go wrong.",
+        "Unsatisfactory (<60)": "No error handling. Application crashes frequently. No input validation. Shows lack of awareness of error handling importance."
+      }
+    },
+    {
+      "name": "Security & Best Practices",
+      "weight": 0.07,
+      "description": "Security considerations including authentication, data validation, and protection against common vulnerabilities",
+      "levels": {
+        "Excellent (90-100)": "Excellent security practices. Proper authentication/authorization (if applicable). Passwords hashed (bcrypt, etc.). Protection against SQL injection (parameterized queries/ORM). Protection against XSS and CSRF (if web app). Environment variables for secrets. Input sanitization. Security headers. HTTPS. Shows strong security awareness. Follows OWASP guidelines.",
+        "Good (80-89)": "Good security practices. Implements authentication properly. Basic protection against common vulnerabilities. Uses environment variables. Shows solid security awareness.",
+        "Satisfactory (70-79)": "Adequate security. Basic authentication implemented but may have weaknesses. Some security considerations but not comprehensive. May have minor vulnerabilities.",
+        "Needs Improvement (60-69)": "Weak security. Poor authentication implementation. Potential vulnerabilities to SQL injection, XSS, or other attacks. Secrets in code. Limited security awareness.",
+        "Unsatisfactory (<60)": "No security considerations. Major vulnerabilities. Plain text passwords. No protection against attacks. Shows lack of security awareness."
+      }
+    }
+  ]
+}
+

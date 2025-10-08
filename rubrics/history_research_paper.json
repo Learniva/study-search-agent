@@ -1,0 +1,94 @@
+{
+  "id": "history_research_paper",
+  "name": "History - Research Paper (Chicago Style)",
+  "type": "essay",
+  "description": "Specialized rubric for history research papers with emphasis on historiography, primary sources, and Chicago Manual of Style (Notes-Bibliography) citations",
+  "max_score": 100,
+  "criteria": [
+    {
+      "name": "Thesis & Historical Argument",
+      "weight": 0.18,
+      "description": "Clear, argumentative thesis that addresses a historical question with analytical depth",
+      "levels": {
+        "Excellent (90-100)": "Sophisticated historical argument that goes beyond description to analyze causation, change over time, or significance. Thesis is specific, debatable, and historically grounded. Shows nuanced understanding of historical complexity. Addresses 'how' and 'why' rather than just 'what.' Demonstrates historiographical awareness. Makes a clear contribution to understanding of the topic.",
+        "Good (80-89)": "Clear, strong historical argument. Thesis is analytical rather than purely descriptive. Makes debatable claims about historical events, trends, or significance. Shows good historical thinking and understanding.",
+        "Satisfactory (70-79)": "Acceptable thesis but may be more descriptive than analytical. Makes a claim about history but could be more sophisticated or debatable. Shows basic historical understanding but lacks depth or complexity.",
+        "Needs Improvement (60-69)": "Weak thesis that is too vague, obvious, or purely descriptive. May simply narrate events rather than analyzing them. Limited analytical depth or historical thinking.",
+        "Unsatisfactory (<60)": "No clear thesis or thesis is completely off-topic. Purely narrative with no argument. Shows fundamental misunderstanding of historical analysis."
+      }
+    },
+    {
+      "name": "Use of Primary Sources",
+      "weight": 0.25,
+      "description": "Effective use and analysis of primary historical sources (documents, letters, speeches, artifacts, images, etc.)",
+      "levels": {
+        "Excellent (90-100)": "Exceptional use of diverse primary sources. Analyzes multiple primary sources critically, considering author perspective, audience, purpose, and historical context (APPARTS analysis). Evaluates source reliability and bias. Uses primary sources to support original arguments rather than just as illustration. Demonstrates sophisticated source analysis skills. Properly contextualizes sources within their historical moment. Shows understanding that primary sources are evidence to be interpreted, not facts.",
+        "Good (80-89)": "Strong use of primary sources. Analyzes sources rather than just quoting them. Considers context and perspective. Uses varied sources appropriately. Shows good source analysis skills and historical thinking.",
+        "Satisfactory (70-79)": "Adequate use of primary sources but analysis may be superficial. May quote sources without sufficient interpretation. Limited consideration of bias or context. Uses sources but could engage more critically with them.",
+        "Needs Improvement (60-69)": "Limited use of primary sources or poor source analysis. May rely too heavily on secondary sources. Treats primary sources as simple facts rather than evidence requiring interpretation. Minimal critical engagement.",
+        "Unsatisfactory (<60)": "Little to no use of primary sources or completely uncritical use. No source analysis. Shows lack of understanding of how historians work with primary evidence."
+      }
+    },
+    {
+      "name": "Secondary Sources & Historiography",
+      "weight": 0.18,
+      "description": "Engagement with scholarly secondary sources and awareness of historiographical debates",
+      "levels": {
+        "Excellent (90-100)": "Excellent engagement with historiography showing awareness of how historians have interpreted the topic differently over time or across schools of thought. Uses recent scholarly monographs and journal articles. Synthesizes multiple scholarly perspectives. Shows understanding of historical debates and positions own argument within scholarly conversation. Distinguishes between different interpretations (e.g., social history vs. political history approaches). Uses both seminal older works and cutting-edge recent scholarship.",
+        "Good (80-89)": "Good use of scholarly secondary sources. Shows awareness of major historical interpretations. Uses credible academic sources (university press books, peer-reviewed journals). Engages thoughtfully with historians' arguments.",
+        "Satisfactory (70-79)": "Adequate use of secondary sources but may lack depth or variety. Uses some scholarly sources but may also rely on textbooks or general works. Limited engagement with historiographical debates. Shows basic research skills.",
+        "Needs Improvement (60-69)": "Limited use of scholarly sources. May rely primarily on encyclopedias, websites, or outdated sources. Little awareness of historiographical debates. Weak research evident.",
+        "Unsatisfactory (<60)": "Inadequate secondary sources. No scholarly books or articles used. Relies on Wikipedia or unreliable sources. No engagement with academic historical scholarship."
+      }
+    },
+    {
+      "name": "Historical Context & Understanding",
+      "weight": 0.12,
+      "description": "Demonstrates deep understanding of historical period, context, and significance",
+      "levels": {
+        "Excellent (90-100)": "Exceptional historical understanding. Situates events, ideas, or developments within broader historical context (political, social, economic, cultural). Shows nuanced understanding of the period. Avoids anachronism and presentism. Understands historical contingency and change over time. Makes connections across time periods or regions when appropriate. Demonstrates sophisticated historical thinking about causation, continuity, and change.",
+        "Good (80-89)": "Strong historical understanding. Properly contextualizes events and developments. Shows good grasp of the period and its complexities. Avoids major anachronisms. Demonstrates solid historical knowledge.",
+        "Satisfactory (70-79)": "Adequate historical understanding but may be superficial or incomplete. Basic contextualization present. May have some anachronistic thinking. Shows fundamental knowledge but lacks depth.",
+        "Needs Improvement (60-69)": "Limited historical understanding. Weak contextualization. May make anachronistic judgments. Significant gaps in historical knowledge. Shows superficial grasp of the period.",
+        "Unsatisfactory (<60)": "Poor or inaccurate historical understanding. Major errors or anachronisms. Fails to understand historical context. Shows lack of basic historical knowledge."
+      }
+    },
+    {
+      "name": "Chicago Style Citations (Notes-Bibliography)",
+      "weight": 0.15,
+      "description": "Proper use of Chicago Manual of Style (Notes-Bibliography system) with footnotes/endnotes and bibliography",
+      "levels": {
+        "Excellent (90-100)": "Flawless or near-flawless Chicago Notes-Bibliography style (17th edition). Properly formatted footnotes/endnotes with full citation on first reference and shortened form subsequently. Complete bibliography with proper formatting (hanging indents, alphabetization, punctuation, italics vs. quotation marks). Different source types formatted correctly (books, journal articles, edited volumes, primary sources, archival materials, online sources). Proper use of Ibid. Distinguishes between primary and secondary sources in bibliography if appropriate. Shows mastery of Chicago style.",
+        "Good (80-89)": "Strong Chicago style formatting with minor errors. Footnotes/endnotes generally correct. Bibliography properly formatted with few mistakes. Shows good understanding of Chicago Notes-Bibliography system.",
+        "Satisfactory (70-79)": "Adequate Chicago style with multiple formatting errors. Basic structure correct but inconsistencies in formatting. Bibliography present but with errors. Shows basic understanding but needs refinement.",
+        "Needs Improvement (60-69)": "Significant Chicago style errors. Incorrect footnote/endnote format or bibliography. May mix citation styles. Incomplete citations. Shows limited understanding of Chicago style.",
+        "Unsatisfactory (<60)": "Major citation problems. No proper Chicago style formatting. Missing footnotes or bibliography. Potential plagiarism concerns. Shows lack of understanding of citation requirements."
+      }
+    },
+    {
+      "name": "Argument & Analysis",
+      "weight": 0.07,
+      "description": "Quality of historical argumentation, analytical depth, and interpretation",
+      "levels": {
+        "Excellent (90-100)": "Sophisticated historical analysis throughout. Makes original, well-supported arguments. Goes beyond description to explain causation, significance, and change over time. Considers multiple perspectives and interpretations. Addresses counterevidence. Shows mature historical thinking and analytical skills.",
+        "Good (80-89)": "Strong historical analysis with good argumentation. Makes clear, supported claims. Shows analytical depth. Considers evidence thoughtfully. Generally sophisticated historical thinking.",
+        "Satisfactory (70-79)": "Adequate analysis but may be simplistic or one-sided. Basic argumentation present but could be deeper. Some analytical thinking but needs development. May rely too much on narrative.",
+        "Needs Improvement (60-69)": "Weak analysis. Primarily narrative or descriptive. Limited argumentation. Superficial engagement with historical questions. Poor analytical skills.",
+        "Unsatisfactory (<60)": "No meaningful analysis. Entirely narrative. No historical argumentation. Shows inability to think analytically about history."
+      }
+    },
+    {
+      "name": "Organization & Writing",
+      "weight": 0.05,
+      "description": "Clear organization with strong introduction, body, conclusion, and polished academic prose",
+      "levels": {
+        "Excellent (90-100)": "Exemplary organization following standard research paper structure. Strong introduction with historical background and thesis. Logical body paragraphs with topic sentences. Effective conclusion that addresses significance. Smooth transitions. Elegant, clear academic prose. Proper grammar and mechanics. Professional quality writing.",
+        "Good (80-89)": "Well-organized paper with clear structure. Good introduction, body, and conclusion. Generally smooth flow. Clear, grammatically correct writing with few errors. Appropriate academic tone.",
+        "Satisfactory (70-79)": "Adequate organization but may have weaknesses. Basic structure present. Some organizational or writing issues. Multiple grammar/mechanical errors but generally readable.",
+        "Needs Improvement (60-69)": "Weak organization or writing quality. Structural problems. Frequent errors. Poor transitions. Difficult to follow. Needs significant revision.",
+        "Unsatisfactory (<60)": "Poor organization and writing. Confusing structure. Pervasive errors. Very difficult to understand. Major problems throughout."
+      }
+    }
+  ]
+}
+

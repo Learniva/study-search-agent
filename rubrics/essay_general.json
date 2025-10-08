@@ -1,0 +1,57 @@
+{
+  "id": "essay_general",
+  "name": "General Essay Rubric",
+  "type": "essay",
+  "description": "Standard rubric for essay grading",
+  "max_score": 100,
+  "criteria": [
+    {
+      "name": "Thesis Statement",
+      "weight": 0.2,
+      "description": "Clear, arguable thesis that guides the essay",
+      "levels": {
+        "Excellent (90-100)": "Compelling, sophisticated thesis that shows deep understanding",
+        "Good (80-89)": "Clear thesis that is arguable and appropriate",
+        "Satisfactory (70-79)": "Thesis present but could be stronger or clearer",
+        "Needs Improvement (60-69)": "Weak or unclear thesis",
+        "Unsatisfactory (<60)": "No clear thesis statement"
+      }
+    },
+    {
+      "name": "Evidence & Support",
+      "weight": 0.3,
+      "description": "Use of relevant evidence to support arguments",
+      "levels": {
+        "Excellent (90-100)": "Exceptional use of relevant, well-integrated evidence",
+        "Good (80-89)": "Strong evidence that supports main points",
+        "Satisfactory (70-79)": "Adequate evidence, but could be stronger",
+        "Needs Improvement (60-69)": "Insufficient or poorly integrated evidence",
+        "Unsatisfactory (<60)": "Little to no relevant evidence"
+      }
+    },
+    {
+      "name": "Organization",
+      "weight": 0.25,
+      "description": "Logical structure and flow of ideas",
+      "levels": {
+        "Excellent (90-100)": "Exceptional organization with smooth transitions",
+        "Good (80-89)": "Clear organization with logical progression",
+        "Satisfactory (70-79)": "Basic organization, some awkward transitions",
+        "Needs Improvement (60-69)": "Poor organization, hard to follow",
+        "Unsatisfactory (<60)": "No clear organization"
+      }
+    },
+    {
+      "name": "Grammar & Style",
+      "weight": 0.25,
+      "description": "Writing mechanics and style",
+      "levels": {
+        "Excellent (90-100)": "Virtually error-free, sophisticated style",
+        "Good (80-89)": "Few errors, appropriate style",
+        "Satisfactory (70-79)": "Some errors, basic style",
+        "Needs Improvement (60-69)": "Many errors that distract from content",
+        "Unsatisfactory (<60)": "Pervasive errors"
+      }
+    }
+  ]
+}

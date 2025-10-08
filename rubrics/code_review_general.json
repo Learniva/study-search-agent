@@ -1,0 +1,57 @@
+{
+  "id": "code_review_general",
+  "name": "General Code Review Rubric",
+  "type": "code",
+  "description": "Standard rubric for code evaluation",
+  "max_score": 100,
+  "criteria": [
+    {
+      "name": "Correctness",
+      "weight": 0.4,
+      "description": "Code produces correct output for all test cases",
+      "levels": {
+        "Excellent (90-100)": "Correct for all cases including edge cases",
+        "Good (80-89)": "Correct for most cases, minor edge case issues",
+        "Satisfactory (70-79)": "Mostly correct, some logical errors",
+        "Needs Improvement (60-69)": "Significant correctness issues",
+        "Unsatisfactory (<60)": "Does not work correctly"
+      }
+    },
+    {
+      "name": "Code Quality",
+      "weight": 0.3,
+      "description": "Style, readability, and best practices",
+      "levels": {
+        "Excellent (90-100)": "Exceptional style, highly readable",
+        "Good (80-89)": "Good style, follows best practices",
+        "Satisfactory (70-79)": "Acceptable style, some issues",
+        "Needs Improvement (60-69)": "Poor style, hard to read",
+        "Unsatisfactory (<60)": "Very poor code quality"
+      }
+    },
+    {
+      "name": "Efficiency",
+      "weight": 0.2,
+      "description": "Algorithm efficiency and optimization",
+      "levels": {
+        "Excellent (90-100)": "Optimal algorithm, well-optimized",
+        "Good (80-89)": "Efficient approach",
+        "Satisfactory (70-79)": "Acceptable efficiency",
+        "Needs Improvement (60-69)": "Inefficient approach",
+        "Unsatisfactory (<60)": "Very inefficient"
+      }
+    },
+    {
+      "name": "Documentation",
+      "weight": 0.1,
+      "description": "Comments and documentation",
+      "levels": {
+        "Excellent (90-100)": "Excellent documentation",
+        "Good (80-89)": "Good comments",
+        "Satisfactory (70-79)": "Basic comments",
+        "Needs Improvement (60-69)": "Insufficient comments",
+        "Unsatisfactory (<60)": "No documentation"
+      }
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "id": "social_sciences_intro",
+  "name": "Social Sciences - Introduction Level Essay/Paper",
+  "type": "essay",
+  "description": "Beginner-friendly rubric for introductory social science courses (Psychology, Sociology, Political Science, Economics) with emphasis on basic APA citation",
+  "max_score": 100,
+  "criteria": [
+    {
+      "name": "Thesis Statement & Focus",
+      "weight": 0.20,
+      "description": "Clear main argument or thesis about a social science topic",
+      "levels": {
+        "Excellent (90-100)": "Clear, focused thesis statement that presents a specific argument about a social science topic. Shows good understanding of the topic and makes a debatable claim. Thesis guides the entire paper effectively.",
+        "Good (80-89)": "Clear thesis that addresses the topic appropriately. Makes an argument though may be slightly broad. Provides direction for the paper.",
+        "Satisfactory (70-79)": "Thesis is present but may be too broad, vague, or more descriptive than argumentative. Shows basic understanding but needs more focus or specificity.",
+        "Needs Improvement (60-69)": "Weak or unclear thesis. May be too vague, purely factual, or not debatable. Provides insufficient direction for the paper.",
+        "Unsatisfactory (<60)": "No clear thesis statement or completely off-topic. Shows misunderstanding of the assignment or topic."
+      }
+    },
+    {
+      "name": "Use of Sources & Evidence",
+      "weight": 0.25,
+      "description": "Appropriate use of sources to support arguments with evidence from scholarly or credible sources",
+      "levels": {
+        "Excellent (90-100)": "Excellent use of relevant, credible sources to support all major points. Uses appropriate mix of course materials (textbook, lectures) and outside scholarly sources. Evidence is well-integrated and clearly supports arguments. Shows ability to select and use relevant evidence effectively.",
+        "Good (80-89)": "Good use of sources to support main points. Uses credible sources appropriately. Evidence generally supports arguments well. Most claims are backed by sources.",
+        "Satisfactory (70-79)": "Adequate use of sources but may be limited in number or variety. Relies primarily on course materials with few outside sources. Some claims lack supporting evidence. Integration of sources could be smoother.",
+        "Needs Improvement (60-69)": "Limited use of sources. May rely on weak or non-credible sources (e.g., Wikipedia, random websites). Poor integration of evidence. Many claims lack support.",
+        "Unsatisfactory (<60)": "Little to no use of credible sources. No evidence to support claims. May rely entirely on personal opinion without scholarly support."
+      }
+    },
+    {
+      "name": "APA Citations & Formatting",
+      "weight": 0.20,
+      "description": "Proper use of APA 7th edition citation style for in-text citations and reference page",
+      "levels": {
+        "Excellent (90-100)": "Correct APA 7th edition format throughout. In-text citations are properly formatted (Author, Year) or (Author, Year, p. #) for quotes. Reference page is properly formatted with hanging indents, alphabetical order, and correct capitalization/italics. All sources cited appear in references and vice versa. Shows strong understanding of APA basics.",
+        "Good (80-89)": "Generally correct APA format with minor errors. In-text citations mostly correct. Reference page has proper format with few errors. All sources are properly cited. Shows good understanding of APA style.",
+        "Satisfactory (70-79)": "Basic APA format attempted with multiple errors. In-text citations present but may have formatting issues. Reference page has correct elements but formatting errors (capitalization, italics, order, indentation). Shows basic effort to follow APA style.",
+        "Needs Improvement (60-69)": "Significant APA errors. Inconsistent citation format. Reference page is incomplete or poorly formatted. Missing citations for some sources. Shows limited understanding of APA requirements.",
+        "Unsatisfactory (<60)": "Major citation problems. No clear attempt to follow APA format. Missing reference page or in-text citations. Potential plagiarism concerns due to inadequate citations."
+      }
+    },
+    {
+      "name": "Understanding of Social Science Concepts",
+      "weight": 0.15,
+      "description": "Demonstrates understanding of key concepts, theories, or research relevant to the topic",
+      "levels": {
+        "Excellent (90-100)": "Excellent understanding of relevant social science concepts, theories, or research findings. Correctly uses discipline-specific terminology (e.g., socialization, cognitive dissonance, supply and demand). Shows ability to apply course concepts to the topic effectively. Demonstrates critical engagement with ideas.",
+        "Good (80-89)": "Good understanding of key concepts and theories. Uses appropriate terminology correctly most of the time. Shows ability to apply course material to the topic. Generally solid grasp of content.",
+        "Satisfactory (70-79)": "Basic understanding of concepts but may have some misconceptions or superficial application. Uses some discipline-specific terms but may misuse them occasionally. Shows effort to engage with course material.",
+        "Needs Improvement (60-69)": "Limited understanding of concepts. Misuses key terms or shows confusion about basic theories. Weak connection between course concepts and topic. Significant gaps in comprehension.",
+        "Unsatisfactory (<60)": "Poor or no understanding of relevant social science concepts. Fundamental misunderstandings. Failure to engage with course material meaningfully."
+      }
+    },
+    {
+      "name": "Organization & Clarity",
+      "weight": 0.10,
+      "description": "Clear organization with introduction, body paragraphs, and conclusion; logical flow of ideas",
+      "levels": {
+        "Excellent (90-100)": "Excellent organization with clear introduction (including thesis), well-developed body paragraphs (one main idea per paragraph), and strong conclusion. Smooth transitions between paragraphs. Ideas flow logically and build upon each other. Easy to follow.",
+        "Good (80-89)": "Good organization with clear introduction, body, and conclusion. Logical progression of ideas. Generally smooth transitions. Structure supports the argument well.",
+        "Satisfactory (70-79)": "Basic organization present but may have weaknesses. Introduction, body, and conclusion are identifiable. Some paragraphs may lack focus or transitions may be abrupt. Flow could be smoother.",
+        "Needs Improvement (60-69)": "Poor organization. Unclear structure or missing key components. Paragraphs lack focus or organization. Weak or missing transitions. Difficult to follow the argument.",
+        "Unsatisfactory (<60)": "No clear organization. Missing introduction or conclusion. No logical flow. Very difficult to follow. Structure hinders understanding."
+      }
+    },
+    {
+      "name": "Writing Quality",
+      "weight": 0.10,
+      "description": "Clear, grammatically correct writing appropriate for academic context",
+      "levels": {
+        "Excellent (90-100)": "Excellent writing quality. Clear, concise sentences. Very few grammar, spelling, or punctuation errors. Appropriate academic tone (formal, objective). Word choice is precise and appropriate. Writing enhances understanding of content.",
+        "Good (80-89)": "Good writing quality with clear sentences. Minor grammar or mechanical errors that don't impede understanding. Generally appropriate academic tone. Good word choice.",
+        "Satisfactory (70-79)": "Adequate writing with some clarity issues. Multiple grammar, spelling, or punctuation errors. Tone may occasionally be too informal. Some awkward sentences but generally understandable.",
+        "Needs Improvement (60-69)": "Weak writing quality. Frequent grammar and mechanical errors that distract from content. Unclear or confusing sentences. May be too informal or have inappropriate tone.",
+        "Unsatisfactory (<60)": "Poor writing quality with pervasive errors. Very difficult to understand due to grammar, spelling, or structural issues. Inappropriate tone or word choice."
+      }
+    }
+  ]
+}
+

@@ -1,0 +1,82 @@
+{
+  "id": "humanities_intro",
+  "name": "Humanities - Introduction Level Essay",
+  "type": "essay",
+  "description": "Beginner-friendly rubric for introductory humanities courses (Literature, History, Philosophy) with basic MLA citation requirements",
+  "max_score": 100,
+  "criteria": [
+    {
+      "name": "Thesis & Main Argument",
+      "weight": 0.20,
+      "description": "Clear thesis statement that makes an argument about the text, historical event, or topic",
+      "levels": {
+        "Excellent (90-100)": "Clear, focused thesis statement that makes a specific, arguable claim about the topic. Thesis goes beyond simple observation to present an interpretation or argument. Shows good understanding and engagement with the subject. Provides clear direction for the essay.",
+        "Good (80-89)": "Clear thesis that makes an argument. May be slightly broad but is debatable and appropriate. Shows understanding of the topic. Guides the essay effectively.",
+        "Satisfactory (70-79)": "Thesis is present but may be too vague, too obvious, or more descriptive than argumentative. Shows basic understanding but could be more specific or focused. Provides some direction.",
+        "Needs Improvement (60-69)": "Weak or unclear thesis. May be purely factual rather than argumentative. Too vague or off-topic. Provides little direction for the essay.",
+        "Unsatisfactory (<60)": "No clear thesis or thesis is completely off-topic. May only summarize without making any argument. Shows misunderstanding of the assignment."
+      }
+    },
+    {
+      "name": "Use of Evidence & Examples",
+      "weight": 0.25,
+      "description": "Uses specific examples, quotations, or details from texts to support arguments",
+      "levels": {
+        "Excellent (90-100)": "Excellent use of specific, relevant evidence to support all main points. For literature: uses well-chosen quotations with page numbers. For history: cites specific events, dates, or primary sources. Examples are well-integrated and clearly support arguments. Shows strong ability to connect evidence to claims.",
+        "Good (80-89)": "Good use of evidence to support main points. Uses appropriate quotations or examples. Evidence generally supports arguments well. Most claims are backed with specific details.",
+        "Satisfactory (70-79)": "Adequate use of evidence but may be limited or general. Some claims lack specific support. Uses quotations or examples but could integrate them better or choose more relevant ones. Shows basic understanding of how to use evidence.",
+        "Needs Improvement (60-69)": "Limited use of evidence. Many claims lack support. Few or poorly chosen quotations/examples. Weak connection between evidence and arguments. May rely too much on summary.",
+        "Unsatisfactory (<60)": "Little to no evidence used. No quotations or specific examples. Relies entirely on unsupported opinion or vague generalizations. Shows inability to use evidence effectively."
+      }
+    },
+    {
+      "name": "Analysis vs. Summary",
+      "weight": 0.15,
+      "description": "Analyzes and interprets rather than simply summarizing plot, events, or content",
+      "levels": {
+        "Excellent (90-100)": "Excellent analysis throughout. Moves beyond plot summary or description to interpret meaning, significance, or implications. Explains how and why, not just what. Shows critical thinking and engagement with ideas. Minimal or no unnecessary summary.",
+        "Good (80-89)": "Good balance of analysis with minimal summary. Focuses primarily on interpretation and explanation. Shows solid analytical thinking. Summary is used only when necessary for context.",
+        "Satisfactory (70-79)": "Some analysis present but mixed with too much summary. Tends toward description but includes some interpretation. Shows effort at analysis but needs to develop analytical skills further.",
+        "Needs Improvement (60-69)": "Primarily summary with little analysis. Mostly describes what happens rather than analyzing why it matters. Limited interpretation or critical thinking. Needs to move beyond plot/event description.",
+        "Unsatisfactory (<60)": "Entirely summary with no analysis. Simply retells plot or describes events without any interpretation. Shows inability to analyze or think critically about the subject."
+      }
+    },
+    {
+      "name": "MLA Citations & Formatting",
+      "weight": 0.15,
+      "description": "Proper use of MLA 9th edition format for in-text citations and Works Cited page",
+      "levels": {
+        "Excellent (90-100)": "Correct MLA 9th edition format throughout. In-text citations properly formatted with author and page number in parentheses (Author page#). Works Cited page properly formatted with hanging indents, alphabetical order, correct punctuation and italics. All quotations and paraphrases are cited. Shows strong understanding of MLA basics.",
+        "Good (80-89)": "Generally correct MLA format with minor errors. In-text citations mostly correct. Works Cited page has proper format with few errors. All sources are properly cited. Shows good understanding of MLA style.",
+        "Satisfactory (70-79)": "Basic MLA format attempted with multiple errors. In-text citations present but may have formatting issues (e.g., missing page numbers, incorrect punctuation). Works Cited present but with formatting errors. Shows effort to follow MLA but needs improvement.",
+        "Needs Improvement (60-69)": "Significant MLA errors. Inconsistent or incorrect citation format. Works Cited incomplete or poorly formatted. Missing citations for some quotations or paraphrases. Shows limited understanding of MLA requirements.",
+        "Unsatisfactory (<60)": "Major citation problems. Little to no attempt to follow MLA format. Missing Works Cited or in-text citations. Potential plagiarism concerns due to inadequate documentation of sources."
+      }
+    },
+    {
+      "name": "Organization & Paragraph Structure",
+      "weight": 0.15,
+      "description": "Clear organization with introduction, body paragraphs, and conclusion; focused paragraphs with topic sentences",
+      "levels": {
+        "Excellent (90-100)": "Excellent organization. Clear introduction with thesis, well-developed body paragraphs with clear topic sentences, and strong conclusion. Each paragraph focuses on one main idea. Smooth transitions between paragraphs. Logical flow of ideas. Easy to follow.",
+        "Good (80-89)": "Good organization with clear structure. Introduction, body, and conclusion are well-developed. Most paragraphs have topic sentences and focus. Generally smooth transitions. Logical progression of ideas.",
+        "Satisfactory (70-79)": "Adequate organization but may have weaknesses. Introduction, body, and conclusion present but may be underdeveloped. Some paragraphs lack clear focus or topic sentences. Transitions could be smoother. Flow is acceptable but could be better.",
+        "Needs Improvement (60-69)": "Weak organization. Structure is unclear or components are poorly developed. Paragraphs lack focus or organization. Missing or weak transitions. Difficult to follow the argument's progression.",
+        "Unsatisfactory (<60)": "Poor or no organization. Missing introduction or conclusion. No clear paragraph structure. No logical flow. Very difficult to follow. Structure severely hinders understanding."
+      }
+    },
+    {
+      "name": "Writing Quality & Mechanics",
+      "weight": 0.10,
+      "description": "Clear writing with proper grammar, spelling, punctuation, and appropriate academic tone",
+      "levels": {
+        "Excellent (90-100)": "Excellent writing quality. Clear, well-constructed sentences. Very few grammar, spelling, or punctuation errors. Appropriate formal, academic tone throughout. Good word choice. Writing is polished and professional.",
+        "Good (80-89)": "Good writing quality with clear sentences. Minor grammar or mechanical errors that don't significantly impact understanding. Generally appropriate academic tone. Generally good word choice and sentence construction.",
+        "Satisfactory (70-79)": "Adequate writing with noticeable errors. Multiple grammar, spelling, or punctuation errors. Tone may occasionally be too informal or conversational. Some awkward or unclear sentences but generally understandable.",
+        "Needs Improvement (60-69)": "Weak writing quality. Frequent grammar and mechanical errors that distract from content. Many unclear or awkward sentences. Often too informal. Poor word choice. Needs significant editing.",
+        "Unsatisfactory (<60)": "Poor writing quality with pervasive errors. Very difficult to understand due to grammar, spelling, and structural problems. Inappropriate tone. Severely impacts ability to communicate ideas."
+      }
+    }
+  ]
+}
+
