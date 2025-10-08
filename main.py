@@ -1,25 +1,127 @@
 """
-Main entry point for the Study and Search Agent.
+Main entry point for the Multi-Agent Study & Grading System.
+
+Supports role-based access control:
+- Students: Can access study features only
+- Teachers: Can access study + grading features
+
+Usage:
+    python main.py --role professor        # Start as professor
+    python main.py --role student          # Start as student
+    python main.py                         # Will prompt for role
 """
 
 import os
 import sys
+import argparse
 from dotenv import load_dotenv
 
-from agent import StudySearchAgent
+from agent.supervisor_agent import SupervisorAgent
 from tools.document_qa import initialize_document_qa
 
 # Load environment variables
 load_dotenv()
 
 
-def main():
-    """Main entry point for the agent."""
+def get_user_role(args):
+    """
+    Get user role from command line flag or interactive prompt.
     
-    # Get LLM provider from environment or default to gemini
+    Args:
+        args: Parsed command line arguments
+        
+    Returns:
+        str: User role (student, teacher, professor, instructor, admin)
+    """
+    # Method 1: Using Flag (Recommended)
+    if args.role:
+        role = args.role.lower()
+        print(f"🎓 Role set via flag: {role.upper()}")
+        return role
+    
+    # Method 2: Using Prompt
+    print("\n" + "="*70)
+    print("  🎓 Multi-Agent Study & Grading System")
+    print("="*70)
+    print("\nPlease select your role:")
+    print("  1. Student   - Access study features (research, Q&A, animations)")
+    print("  2. Teacher   - Access study + grading features")
+    print("  3. Professor - Same as teacher")
+    print("  4. Admin     - Full access")
+    
+    while True:
+        choice = input("\nEnter your choice (1-4) or role name: ").strip().lower()
+        
+        # Map choices to roles
+        role_map = {
+            "1": "student",
+            "2": "teacher",
+            "3": "professor",
+            "4": "admin",
+            "student": "student",
+            "teacher": "teacher",
+            "professor": "teacher",  # Treat professor as teacher
+            "instructor": "teacher",
+            "admin": "admin"
+        }
+        
+        if choice in role_map:
+            role = role_map[choice]
+            print(f"\n✅ Role selected: {role.upper()}")
+            return role
+        else:
+            print("❌ Invalid choice. Please enter 1-4 or a valid role name.")
+
+
+def main():
+    """Main entry point for the multi-agent system."""
+    
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(
+        description="Multi-Agent Study & Grading System with role-based access",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python main.py --role professor       Start as professor
+  python main.py --role student         Start as student
+  python main.py                        Will prompt for role
+  python main.py --role teacher --question "Grade this essay..."
+        """
+    )
+    
+    parser.add_argument(
+        "--role",
+        type=str,
+        choices=["student", "teacher", "professor", "instructor", "admin"],
+        help="User role (student, teacher, professor, instructor, or admin)"
+    )
+    
+    parser.add_argument(
+        "--question",
+        type=str,
+        help="Single question to process (non-interactive mode)"
+    )
+    
+    parser.add_argument(
+        "--user-id",
+        type=str,
+        help="User ID for database tracking (optional)"
+    )
+    
+    args = parser.parse_args()
+    
+    # Get user role
+    user_role = get_user_role(args)
+    
+    # Normalize professor/instructor to teacher
+    if user_role in ["professor", "instructor"]:
+        user_role = "teacher"
+    
+    # Get LLM provider from environment
     llm_provider = os.getenv("LLM_PROVIDER", "gemini")
     
-    print(f"\n🚀 Initializing Study and Search Agent with {llm_provider.upper()}...\n")
+    print(f"\n🚀 Initializing Multi-Agent System with {llm_provider.upper()}...")
+    print(f"👤 Your Role: {user_role.upper()}\n")
     
     # Try to load documents if any exist
     documents_dir = os.getenv("DOCUMENTS_DIR", "documents")
@@ -29,25 +131,132 @@ def main():
         print()
     
     try:
-        agent = StudySearchAgent(llm_provider=llm_provider)
+        # Initialize supervisor agent
+        supervisor = SupervisorAgent(llm_provider=llm_provider)
+        
+        # Get user ID (for database tracking)
+        user_id = args.user_id or user_role + "_cli_user"
         
         # Check if a question was provided as command line argument
-        if len(sys.argv) > 1:
-            question = " ".join(sys.argv[1:])
+        if args.question:
+            question = args.question
             print(f"Question: {question}\n")
-            print("=" * 60)
-            answer = agent.query(question)
-            print("=" * 60)
-            print(f"\n✅ Final Answer: {answer}\n")
+            print("=" * 70)
+            
+            result = supervisor.query(
+                question=question,
+                user_role=user_role,
+                user_id=user_id
+            )
+            
+            print("=" * 70)
+            print(f"\n✅ Agent Used: {result.get('agent_used', 'N/A')}")
+            print(f"\n{result['answer']}\n")
         else:
             # Start interactive chat mode
-            agent.chat()
+            print("\n" + "="*70)
+            print(f"  Interactive Mode - Role: {user_role.upper()}")
+            print("="*70)
+            
+            # Show capabilities for this role
+            capabilities = supervisor.get_capabilities(user_role)
+            
+            print("\n📚 Your Available Features:")
+            for feature in capabilities["study_features"]:
+                print(f"   {feature}")
+            
+            if capabilities["grading_features"]:
+                print("\n📝 Your Grading Features:")
+                for feature in capabilities["grading_features"]:
+                    print(f"   {feature}")
+            
+            print("\n💡 Special Commands:")
+            print("   'arch' - Show system architecture")
+            print("   'caps' - Show your capabilities")
+            print("   'help' - Show help message")
+            print("   'quit', 'exit', 'q' - Exit program")
+            print()
+            
+            # Interactive loop
+            while True:
+                try:
+                    question = input(f"\n[{user_role.upper()}] Your request: ").strip()
+                    
+                    if question.lower() in ['quit', 'exit', 'q']:
+                        print("\n👋 Goodbye! Happy learning and teaching!")
+                        break
+                    
+                    if question.lower() == 'arch':
+                        print(supervisor.visualize_architecture())
+                        continue
+                    
+                    if question.lower() == 'caps':
+                        caps = supervisor.get_capabilities(user_role)
+                        print(f"\n📋 Capabilities for {user_role.upper()}:")
+                        print("\n📚 Study Features:")
+                        for f in caps["study_features"]:
+                            print(f"  {f}")
+                        if caps["grading_features"]:
+                            print("\n📝 Grading Features:")
+                            for f in caps["grading_features"]:
+                                print(f"  {f}")
+                        continue
+                    
+                    if question.lower() == 'help':
+                        print("\n" + "="*70)
+                        print("  HELP - Multi-Agent System")
+                        print("="*70)
+                        print(f"\nYour Role: {user_role.upper()}")
+                        print("\nHow to use:")
+                        print("  • Type your question naturally")
+                        print("  • System automatically routes to the right agent")
+                        print("  • Students: Get study help")
+                        print("  • Teachers: Get study help + grading assistance")
+                        print("\nExamples:")
+                        if user_role == "student":
+                            print("  'Explain quantum physics'")
+                            print("  'Generate 10 MCQs about biology'")
+                            print("  'Animate the Pythagorean theorem'")
+                        else:
+                            print("  'Grade this essay: [paste essay]'")
+                            print("  'Review this Python code: [paste code]'")
+                            print("  'Generate study guide for calculus'")
+                        print("="*70)
+                        continue
+                    
+                    if not question:
+                        continue
+                    
+                    # Process request through supervisor
+                    print("\n" + "="*70)
+                    
+                    result = supervisor.query(
+                        question=question,
+                        user_role=user_role,
+                        user_id=user_id
+                    )
+                    
+                    print("="*70)
+                    
+                    if result["success"]:
+                        if result.get("agent_used"):
+                            print(f"\n✅ Processed by: {result['agent_used']}")
+                        print(f"\n{result['answer']}\n")
+                    else:
+                        print(f"\n❌ Error: {result['answer']}\n")
+                    
+                except KeyboardInterrupt:
+                    print("\n\n👋 Goodbye! Happy learning and teaching!")
+                    break
+                except Exception as e:
+                    print(f"\n❌ Error: {str(e)}\n")
             
     except Exception as e:
-        print(f"❌ Failed to initialize agent: {str(e)}")
+        print(f"❌ Failed to initialize system: {str(e)}")
         print("\nPlease ensure you have:")
         print("1. Created a .env file with your API keys (see env_example.txt)")
         print("2. Installed required packages: pip install -r requirements.txt")
+        print("3. Set up database (optional): python setup_database.py")
         sys.exit(1)
 
 
