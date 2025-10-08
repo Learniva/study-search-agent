@@ -140,7 +140,8 @@ class GradingAgent:
             model_name: Optional model name override
         """
         self.llm_provider = llm_provider.lower()
-        self.llm = initialize_llm(llm_provider, model_name)
+        # Use grading-optimized LLM (temperature=0.3 for precise, consistent evaluation)
+        self.llm = initialize_llm(model_name=model_name, use_case="grading")
         self.tools = get_all_grading_tools()
         
         # Create tool lookup
@@ -220,24 +221,26 @@ class GradingAgent:
         routing_prompt = """Analyze this grading request and determine which tool to use:
 
 Available grading tools:
-1. grade_essay - For grading essays, written assignments, reports, papers
-   Use when: "grade essay", "evaluate writing", "score paper"
-   Features: RAG rubric retrieval, file processing, deep LLM reasoning
+1. grade_essay - For grading ANY text-based submissions (essays, reports, assignments, math problems)
+   Use when: Request contains plain text submission, written work, math assignment, lab report
+   Features: RAG rubric retrieval, handles all text formats automatically
+   DEFAULT CHOICE for most grading requests
 
-2. review_code - For reviewing code submissions, programming assignments
-   Use when: "review code", "grade program", "check code", "evaluate coding assignment"
-   Features: File processing, detailed critique, structured output
+2. review_code - For code/programming submissions ONLY
+   Use when: Submission contains Python, Java, C++, or other programming code
+   Features: Code analysis, bug detection, style review
 
-3. grade_mcq - For auto-grading multiple choice questions
-   Use when: "grade mcq", "score quiz", "check multiple choice answers", "grade test"
+3. grade_mcq - For multiple choice questions ONLY
+   Use when: Request explicitly mentions MCQ, quiz, or multiple choice answers
 
-4. evaluate_with_rubric - For detailed rubric-based evaluation
-   Use when: "evaluate with rubric", "rubric evaluation", "grade using rubric"
-   Features: RAG rubric retrieval from ChromaDB
+4. evaluate_with_rubric - ONLY when submission is in JSON format with explicit rubric
+   Use when: Request provides BOTH submission AND rubric in JSON format
+   NEVER use for plain text submissions
 
-5. generate_feedback - For generating personalized feedback
-   Use when: "provide feedback", "write feedback", "give comments", "feedback on work"
-   Features: Generative AI for structured, constructive feedback
+5. generate_feedback - For feedback-only requests (no grading)
+   Use when: Explicit request for "feedback only", "comments only", no score needed
+
+IMPORTANT: For plain text submissions (essays, math, reports), ALWAYS use grade_essay, NOT evaluate_with_rubric.
 
 Respond with ONLY the tool name: grade_essay, review_code, grade_mcq, evaluate_with_rubric, or generate_feedback"""
         
