@@ -2,18 +2,20 @@
 Utility modules for the Study and Search Agent.
 
 Provides:
-- LLM initialization (Gemini-first with optional providers)
+- LLM initialization (Google Gemini 2.5 Flash)
 - Centralized prompt templates for all agents and tools
 - Authentication and authorization utilities
 """
 
-# LLM initialization
+# LLM initialization (Gemini 2.5 Flash)
 from .llm import (
     initialize_llm,
     initialize_study_llm,
     initialize_grading_llm,
     initialize_routing_llm,
-    GEMINI_MODELS,
+    initialize_creative_llm,
+    initialize_precise_llm,
+    DEFAULT_MODEL,
     TEMPERATURE_SETTINGS
 )
 
@@ -47,12 +49,14 @@ from .prompts import (
 )
 
 __all__ = [
-    # LLM
+    # LLM (Gemini 2.5 Flash)
     'initialize_llm',
     'initialize_study_llm',
     'initialize_grading_llm',
     'initialize_routing_llm',
-    'GEMINI_MODELS',
+    'initialize_creative_llm',
+    'initialize_precise_llm',
+    'DEFAULT_MODEL',
     'TEMPERATURE_SETTINGS',
     
     # Study Agent
