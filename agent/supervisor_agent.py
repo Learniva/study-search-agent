@@ -75,7 +75,8 @@ class SupervisorAgent:
             model_name: Optional model name override
         """
         self.llm_provider = llm_provider.lower()
-        self.llm = initialize_llm(llm_provider, model_name)
+        # Use routing-optimized LLM (temperature=0.0 for deterministic classification)
+        self.llm = initialize_llm(model_name=model_name, use_case="routing")
         
         # Initialize specialized agents
         self.study_agent = StudySearchAgent(llm_provider=llm_provider, model_name=model_name)
