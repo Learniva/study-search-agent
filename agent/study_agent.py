@@ -48,7 +48,7 @@ class StudySearchAgent:
     - Reduces prompt overhead with explicit state management
     """
     
-    def __init__(self, llm_provider: str = "openai", model_name: Optional[str] = None):
+    def __init__(self, llm_provider: str = "gemini", model_name: Optional[str] = None):
         """
         Initialize the Study and Search Agent with LangGraph.
         
@@ -57,7 +57,8 @@ class StudySearchAgent:
             model_name: Optional model name override
         """
         self.llm_provider = llm_provider.lower()
-        self.llm = initialize_llm(llm_provider, model_name)
+        # Use study-optimized LLM (temperature=0.7 for creative, conversational responses)
+        self.llm = initialize_llm(model_name=model_name, use_case="study")
         self.tools = get_all_tools()
         
         # Create tool lookup dictionary for fast access
