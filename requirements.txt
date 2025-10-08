@@ -1,9 +1,12 @@
 # Core LangChain & AI
 langchain>=0.3.0
-langchain-google-genai>=2.0.0
+langchain-google-genai>=2.0.5  # Updated for Gemini 2.5 support
 langchain-community>=0.3.0
 langchain-experimental>=0.3.0
 langgraph>=0.2.28
+
+# Optional: Direct Google GenAI SDK (for compatibility)
+google-genai>=0.2.0
 
 # Search & APIs
 tavily-python>=0.5.0
