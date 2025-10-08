@@ -13,6 +13,8 @@ Temperature-based configuration for different use cases:
 - Routing: 0.0 (deterministic)
 - Creative: 0.9 (animations, content generation)
 - Precise: 0.0 (math, code execution)
+
+Optimized for educational tasks with role-specific settings.
 """
 
 import os
@@ -20,8 +22,9 @@ from typing import Optional, Literal
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 
-# Default Gemini model
-DEFAULT_MODEL = "gemini-2.5-flash"
+# Default Gemini models (2.5 generation - stable)
+DEFAULT_MODEL = "gemini-2.5-flash"  # Fast, cost-effective
+FALLBACK_MODEL = "gemini-2.5-pro"   # Advanced reasoning
 
 # Temperature settings by use case
 TEMPERATURE_SETTINGS = {
@@ -72,9 +75,12 @@ def initialize_llm(
     elif temperature is None:
         temperature = 0.7
     
+    # Determine model to use
+    model = model_name or DEFAULT_MODEL
+    
     # Configure Gemini
     config = {
-        "model": model_name or DEFAULT_MODEL,
+        "model": model,
         "temperature": temperature,
         "google_api_key": api_key,
         "convert_system_message_to_human": True,
@@ -85,7 +91,15 @@ def initialize_llm(
     
     config.update(kwargs)
     
-    return ChatGoogleGenerativeAI(**config)
+    try:
+        return ChatGoogleGenerativeAI(**config)
+    except Exception as e:
+        # If default model fails, try fallback
+        if model == DEFAULT_MODEL and "not found" in str(e).lower():
+            print(f"⚠️  {DEFAULT_MODEL} unavailable, falling back to {FALLBACK_MODEL}")
+            config["model"] = FALLBACK_MODEL
+            return ChatGoogleGenerativeAI(**config)
+        raise
 
 
 # =============================================================================
