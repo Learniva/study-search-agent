@@ -1,13 +1,18 @@
 """
-Web search tool with hybrid approach:
-1. Google Custom Search API
-2. DuckDuckGo (free fallback)
-3. Tavily (legacy support)
+Web Search Tool using LangChain with fallback architecture.
+
+Search Strategy:
+1. Tavily Search (Primary) - AI-optimized search with high-quality results
+2. Google Custom Search (Fallback) - Comprehensive search when Tavily unavailable
+
+Built on LangChain's RunnableWithFallbacks for clean, maintainable fallback logic.
 """
 
 import os
 from typing import Optional, List, Dict, Any
 from langchain.tools import Tool
+from langchain_core.runnables import RunnablePassthrough, RunnableLambda
+from langchain_core.output_parsers import StrOutputParser
 
 
 def format_search_results(results: List[Dict[str, Any]]) -> str:
@@ -72,62 +77,14 @@ def google_custom_search(query: str, api_key: str, search_engine_id: str, num_re
         return None
 
 
-def duckduckgo_search(query: str, num_results: int = 5) -> Optional[List[Dict]]:
-    """
-    Perform DuckDuckGo search with retry logic 
-    
-    Args:
-        query: Search query
-        num_results: Number of results to return
-        
-    Returns:
-        List of search results or None if error
-    """
-    import time
-    
-    max_retries = 2
-    retry_delay = 2  # seconds
-    
-    for attempt in range(max_retries):
-        try:
-            from duckduckgo_search import DDGS
-            
-            # Add headers to avoid rate limiting
-            with DDGS(headers={
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-            }) as ddgs:
-                results = list(ddgs.text(query, max_results=num_results))
-                
-            if results:
-                return [
-                    {
-                        'title': r.get('title', ''),
-                        'snippet': r.get('body', ''),
-                        'link': r.get('href', '')
-                    }
-                    for r in results
-                ]
-            return None
-            
-        except Exception as e:
-            error_msg = str(e).lower()
-            
-            # If rate limited, retry after delay
-            if 'ratelimit' in error_msg and attempt < max_retries - 1:
-                print(f"⚠️  DuckDuckGo rate limited. Retrying in {retry_delay}s... (attempt {attempt + 1}/{max_retries})")
-                time.sleep(retry_delay)
-                retry_delay *= 2  # Exponential backoff
-                continue
-            else:
-                print(f"❌ DuckDuckGo search failed: {e}")
-                return None
-    
-    return None
 
 
 def tavily_search(query: str, api_key: str, num_results: int = 5) -> Optional[List[Dict]]:
     """
-    Perform Tavily search (legacy support).
+    Perform Tavily search using LangChain integration.
+    
+    Tavily is an AI-optimized search engine designed for LLMs and RAG applications.
+    Provides high-quality, relevant results with content extraction.
     
     Args:
         query: Search query
@@ -142,25 +99,38 @@ def tavily_search(query: str, api_key: str, num_results: int = 5) -> Optional[Li
         
         tavily = TavilySearchResults(
             max_results=num_results,
-            api_key=api_key
+            api_key=api_key,
+            search_depth="advanced"  # Use advanced search for better quality
         )
         
-        results = tavily.run(query)
+        # Use invoke() method for modern LangChain compatibility
+        results = tavily.invoke({"query": query})
         
-        if isinstance(results, list):
-            return results
+        if isinstance(results, list) and results:
+            # Normalize result format to match our standard
+            normalized = []
+            for r in results:
+                normalized.append({
+                    'title': r.get('title', r.get('name', 'No title')),
+                    'snippet': r.get('content', r.get('snippet', 'No description')),
+                    'link': r.get('url', r.get('link', 'No URL'))
+                })
+            return normalized
         return None
     except Exception as e:
-        print(f"Tavily search error: {e}")
+        print(f"❌ Tavily search error: {e}")
         return None
 
 
 def get_web_search_tool() -> Optional[Tool]:
     """
-    Create web search tool with hybrid approach:
-    1. Try Google Custom Search API (best quality)
-    2. Fall back to DuckDuckGo (free, good quality)
-    3. Fall back to Tavily (if configured)
+    Create web search tool using LangChain with fallback architecture.
+    
+    Architecture:
+    1. Primary: Tavily Search (AI-optimized, high-quality results)
+    2. Fallback: Google Custom Search (comprehensive backup)
+    
+    Uses LangChain's RunnableWithFallbacks for clean fallback logic.
     
     Returns:
         Tool object configured for web search
@@ -173,69 +143,86 @@ def get_web_search_tool() -> Optional[Tool]:
     has_google = bool(google_api_key and google_search_engine_id)
     has_tavily = bool(tavily_api_key)
     
-    # DuckDuckGo is always available (no API key needed)
+    if not has_tavily and not has_google:
+        print("⚠️  No search providers configured. Set TAVILY_API_KEY or GOOGLE_SEARCH_API_KEY")
+        return None
     
-    def hybrid_search(query: str) -> str:
+    def search_with_langchain(query: str) -> str:
         """
-        Hybrid search with fallback strategy.
-        Tries Tavily → Google → DuckDuckGo
-        """
-        results = None
-        search_provider = None
+        LangChain-based search with fallback.
         
-        # Try Tavily first (reliable, good quality for specific queries)
+        Uses LCEL (LangChain Expression Language) with RunnableWithFallbacks
+        for clean, maintainable fallback logic.
+        """
+        # Create LangChain runnables for each search provider
+        search_chain = None
+        
         if has_tavily:
-            print("🔍 Searching with Tavily...")
-            results = tavily_search(query, tavily_api_key, num_results=5)
-            if results:
-                search_provider = "Tavily"
+            # Primary: Tavily search
+            def tavily_runnable(q: str) -> str:
+                print("🔍 Searching with Tavily (Primary)...")
+                results = tavily_search(q, tavily_api_key, num_results=5)
+                if not results:
+                    raise ValueError("Tavily search returned no results")
+                print("✅ Tavily search successful")
+                return format_search_results(results)
+            
+            search_chain = RunnableLambda(tavily_runnable)
+            
+            # Add Google as fallback if available
+            if has_google:
+                def google_runnable(q: str) -> str:
+                    print("🔍 Falling back to Google Custom Search...")
+                    results = google_custom_search(q, google_api_key, google_search_engine_id, num_results=5)
+                    if not results:
+                        raise ValueError("Google search returned no results")
+                    print("✅ Google search successful (fallback)")
+                    return format_search_results(results)
+                
+                # Add fallback using LangChain's with_fallbacks
+                search_chain = search_chain.with_fallbacks([RunnableLambda(google_runnable)])
         
-        # Fall back to Google Custom Search (best quality if configured)
-        if not results and has_google:
-            print("🔍 Searching with Google Custom Search API (fallback)...")
-            results = google_custom_search(
-                query, 
-                google_api_key, 
-                google_search_engine_id,
-                num_results=5
-            )
-            if results:
-                search_provider = "Google"
+        elif has_google:
+            # Only Google available (no fallback needed)
+            def google_runnable(q: str) -> str:
+                print("🔍 Searching with Google Custom Search...")
+                results = google_custom_search(q, google_api_key, google_search_engine_id, num_results=5)
+                if not results:
+                    raise ValueError("Google search returned no results")
+                print("✅ Google search successful")
+                return format_search_results(results)
+            
+            search_chain = RunnableLambda(google_runnable)
         
-        # Fall back to DuckDuckGo (free but rate-limited)
-        if not results:
-            print("🔍 Searching with DuckDuckGo (free fallback)...")
-            results = duckduckgo_search(query, num_results=5)
-            if results:
-                search_provider = "DuckDuckGo"
-        
-        # Format results
-        if results:
-            formatted = format_search_results(results)
-            print(f"✅ Found results using {search_provider}")
-            return formatted
-        else:
-            return "No search results found. Please try a different query."
+        # Execute the search chain
+        try:
+            return search_chain.invoke(query)
+        except Exception as e:
+            error_msg = str(e)
+            print(f"❌ All search providers failed: {error_msg}")
+            return "No search results found. Please try a different query or check your API keys."
     
     # Show which providers are configured
-    providers = []
-    if has_tavily:
-        providers.append("Tavily (primary, reliable)")
+    if has_tavily and has_google:
+        config_msg = "Tavily (Primary) with Google fallback"
+    elif has_tavily:
+        config_msg = "Tavily only"
     else:
-        providers.append("Tavily (not configured)")
-    if has_google:
-        providers.append("Google Custom Search (fallback)")
-    providers.append("DuckDuckGo (free fallback)")
+        config_msg = "Google only"
     
-    print(f"🌐 Web search configured with: {', '.join(providers)}")
+    print(f"🌐 Web search configured: {config_msg}")
+    print(f"🔗 Built on LangChain's RunnableWithFallbacks for clean fallback logic")
     
     return Tool(
         name="Web_Search",
-        func=hybrid_search,
-        description="""Use this tool for real-time web searches. Hybrid search with:
-1. Tavily (primary - reliable, good quality, LLM-optimized)
-2. Google Custom Search API (fallback, best quality if configured)
-3. DuckDuckGo (free fallback, may have rate limits)
+        func=search_with_langchain,
+        description="""Use this tool for real-time web searches using LangChain.
+
+Search Strategy:
+- Primary: Tavily (AI-optimized search for LLMs)
+- Fallback: Google Custom Search (comprehensive backup)
+
+Built on LangChain's RunnableWithFallbacks for automatic failover.
 
 Good for:
 - Current events, news, or recent happenings
@@ -243,6 +230,8 @@ Good for:
 - Latest statistics, data, or facts
 - General knowledge and research
 - Academic topics and explanations
+- Any question requiring up-to-date information
 
-Input should be a clear search query."""
+Input: A clear, specific search query
+Output: Formatted search results with titles, snippets, and URLs"""
     )
