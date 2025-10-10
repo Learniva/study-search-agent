@@ -9,7 +9,7 @@ from langchain.tools import Tool
 def get_all_tools() -> List[Tool]:
     """
     Get all available tools for the agent.
-    Document Q&A is now handled via RAG tools (retrieve_from_vector_store).
+    Includes RAG tools for document Q&A via L2 Vector Store (pgvector).
     
     Returns:
         List of Tool objects
@@ -33,7 +33,17 @@ def get_all_tools() -> List[Tool]:
     if manim_tool:
         tools.append(manim_tool)
     
-    # RAG tools (L2 Vector Store) are imported separately via tools.study.rag_tools
+    # Add RAG tools (L2 Vector Store for document Q&A)
+    try:
+        from .study.rag_tools import get_all_rag_tools, RAG_TOOLS_AVAILABLE
+        if RAG_TOOLS_AVAILABLE:
+            rag_tools = get_all_rag_tools()
+            tools.extend(rag_tools)
+            print(f"✅ RAG tools loaded ({len(rag_tools)} tools available)")
+        else:
+            print("⚠️  RAG tools not available (database not configured)")
+    except Exception as e:
+        print(f"⚠️  RAG tools initialization failed: {e}")
     
     return tools
 
