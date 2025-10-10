@@ -9,7 +9,7 @@ import re
 from typing import List, Tuple
 from langchain_core.messages import HumanMessage
 
-from utils.constants import (
+from utils.core.constants import (
     VAGUE_QUESTION_PATTERNS,
     FOLLOW_UP_PRONOUNS,
     GENERIC_SUBJECTS,

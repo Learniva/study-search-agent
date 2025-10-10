@@ -43,27 +43,27 @@ def pattern_based_route(question: str, patterns: Dict[str, List[str]]) -> Option
 STUDY_AGENT_PATTERNS = {
     'Document_QA': [
         # PRIORITY: Most flexible patterns first (allows ANY words in between)
+        # "attached/uploaded" anywhere - very strong signal for documents
+        r'\b(attached|uploaded)\b',
         # "my <anything> notes/document" - e.g., "my deep learning notes", "my AI document"
         r'\bmy\b.*\b(notes|documents|files|pdf|material|book)\b',
-        # "according to/based on/from/in + the/my + <anything> + notes/document"
-        # e.g., "according to the deep learning notes", "from my AI pdf"
-        r'\b(according to|based on|from|in)\b.*\b(the|my|this|these)\b.*\b(notes|document|pdf|file|material|book|text|content)\b',
-        # Chapter references (e.g., "chapter 1", "chapter 5 of deep learning")
-        # These likely refer to uploaded documents
-        r'\b(chapter|section|page)\s+\d+\b',
-        r'\b(generate|create|make)\b.*(study guide|summary|flashcards|mcq|questions)\b.*(chapter|section)\s+\d+',
-        # Study material generation (likely from uploaded docs if specific topic mentioned)
-        r'\b(generate|create|make)\b.*(study guide|summary|flashcards|mcq|questions)\b.*(for|about|on)\b.*(deep learning|machine learning|code savanna)',
+        # "according to/based on/from/in + <anything> + notes/document/pdf"
+        # e.g., "based on the attached pdf", "from my AI document"
+        r'\b(according to|based on|from|in)\b.*\b(notes|document|pdf|file|material|book|text|content)\b',
+        # Chapter/page references - very strong signal for documents
+        r'\b(chapter|section|page)\b.*\d+',
+        # Study material generation with chapter reference (flexible - allows words between)
+        r'\b(generate|create|make)\b.*(study guide|summary|flashcards|mcq|questions)\b.*\b(chapter|section|page)\b',
+        # Study material generation from specific sources
+        r'\b(generate|create|make)\b.*(study guide|summary|flashcards|mcq|questions)\b.*(for|about|on|from)\b',
         # Direct references to documents
         r'\b(my notes|my documents|my files|uploaded files?)\b',
-        r'\b(the|my|this) (attached|uploaded)\b.*\b(document|file|pdf|docx)\b',
+        r'\b(the|my|this|an?) (attached|uploaded)\b.*\b(document|file|pdf|docx)\b',
         # Questions about what documents say/contain
         r'\b(what does|what do)\b.*\b(the|my|this)\b.*\b(notes|document|pdf|file|material|text|content)\b',
         r'\b(notes|document|file|material|text|content)\b.*\b(say|says|mention|mentions|state|states|explain|explains)\b',
         # Specific document names (customize based on your documents)
         r'\b(deep learning|code savanna|machine learning)\b.*\b(notes|document|material|pdf|book)\b',
-        # "from/in/based on/according to" + "attached/uploaded"
-        r'\b(from|in|based on|according to)\b.*\b(attached|uploaded)\b',
     ],
     'Python_REPL': [
         r'\b(calculate|compute|solve)\b.*\d',
