@@ -123,12 +123,21 @@ Examples:
     print(f"\n🚀 Initializing Multi-Agent System with {llm_provider.upper()}...")
     print(f"👤 Your Role: {user_role.upper()}\n")
     
-    # Document loading is now handled by RAG tools (L2 Vector Store)
-    # Documents should be uploaded via the API to be indexed in PostgreSQL + pgvector
+    # Auto-index documents from documents/ folder into L2 Vector Store
     documents_dir = os.getenv("DOCUMENTS_DIR", "documents")
     if os.path.exists(documents_dir) and os.listdir(documents_dir):
         print(f"📚 Documents directory found: {documents_dir}")
-        print("💡 Tip: Use the API (/documents/upload) to index documents in the vector store\n")
+        try:
+            from database.operations.document_loader import initialize_document_store
+            print("🔄 Indexing documents into vector store...")
+            success = initialize_document_store(documents_dir)
+            if success:
+                print("✅ Documents indexed and ready for Q&A\n")
+            else:
+                print("⚠️  Some documents failed to index (see logs)\n")
+        except Exception as e:
+            print(f"⚠️  Document indexing skipped: {str(e)}")
+            print("💡 Documents will be available after manual upload via API\n")
     
     try:
         # Initialize supervisor agent
