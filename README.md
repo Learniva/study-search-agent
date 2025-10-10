@@ -1,126 +1,206 @@
-# Multi-Agent Study & Grading System 🤖
+# Multi-Agent Study & Grading System
 
-Autonomous multi-agent system with intelligent routing, self-reflection, and role-based access control.
+> Autonomous AI system with **Agentic RAG**, intelligent routing, and self-improving capabilities.
 
-**CLI + REST API** • **LangGraph + LangChain** • **Gemini** • **PostgreSQL** • **ML Adaptation**
+**Stack:** LangGraph • LangChain • Gemini 2.5 • PostgreSQL + pgvector • FastAPI
+
+[![Clean Architecture](https://img.shields.io/badge/architecture-clean-brightgreen)]() [![MIT License](https://img.shields.io/badge/license-MIT-blue)]()
+
+---
 
 ## Features
 
-**📚 Study Agent** (All Users)  
-Multi-step planning • Document Q&A • Web search • Python REPL • Manim animations • ML learning
+### 📚 Study Agent (All Users)
+Multi-step planning • Document Q&A • Web search • Python REPL • Manim animations • Context-aware follow-ups
 
-**🎓 Grading Agent** (Teachers Only)  
-15+ discipline rubrics • Essay/code/MCQ grading • Self-reflection • Adaptive learning • PostgreSQL persistence
+### 🎓 Grading Agent (Teachers)
+15+ rubrics • Essay/Code/MCQ grading • Self-reflection • Adaptive learning from corrections
 
-**🔒 Access Control:** Students → Study only | Teachers → Study + Grading
+### 🤖 Agentic RAG
+- **Adaptive Retrieval** - Decides when RAG is needed
+- **Self-Correction** - Grades context quality, refines if poor
+- **L2 Vector Store** - Semantic search (pgvector)
+- **L3 Learning Store** - Learns from errors
+
+### 🔒 RBAC
+Role-based access control: Students → Study only | Teachers → Study + Grading
+
+---
 
 ## Quick Start
 
 ```bash
-# Install
+# 1. Install
 pip install -r requirements.txt
 
-# Configure .env (copy from env_example.txt)
-GOOGLE_API_KEY=your_key_here  # Required
+# 2. Configure
+cp env_example.txt .env
+# Add GOOGLE_API_KEY (required)
 
-# Run CLI
-python main.py --role student                    # Study features
-python main.py --role professor --user-id prof123  # Study + Grading
-
-# Run API
-python api/main.py  # http://localhost:8000/docs
+# 3. Run
+python main.py --role student              # CLI
+python -m api.app                          # API: http://localhost:8000/docs
 ```
 
-**Get API Keys:** [Gemini](https://aistudio.google.com/app/apikey) (required) • [Tavily](https://tavily.com/), [ElevenLabs](https://elevenlabs.io/) (optional)
+**API Keys:** [Gemini](https://aistudio.google.com/app/apikey) (required) • [Tavily](https://tavily.com/) (optional)
+
+---
 
 ## Usage
 
-**Study (All Users):**
+### CLI Examples
+
 ```bash
+# Study (all users)
 python main.py --role student
+> "Generate MCQs from my notes"
+> "Who founded Code Savanna?"
+> "What else did he create?"  # Context-aware!
 
-"Generate 10 MCQs about neural networks from my notes"
-"Who founded Code Savanna?"  # Web search with memory
-"What else did he create?"   # Context-aware follow-up
-"Animate the Pythagorean theorem"
-```
-
-**Grading (Teachers):**
-```bash
+# Grading (teachers)
 python main.py --role professor --user-id prof123
-
-# Grade essays, code, math problems
---question "Grade: $(cat test_submissions/essay_good.txt)"
---question "Review: $(cat test_submissions/intro_programming_assignment.py)"
---question "Grade: $(cat test_submissions/math_calculus_assignment.txt)"
+> "Grade: $(cat test_submissions/essay_good.txt)"
 ```
 
-## API
+### API Examples
 
 ```bash
-# Query endpoint (study or grading based on role)
-curl -X POST localhost:8000/query \
+# Query
+curl -X POST localhost:8000/query/ \
   -H "Content-Type: application/json" \
-  -d '{"question": "...", "user_role": "student"}'
+  -H "X-User-Role: student" \
+  -d '{"question": "Explain RAG", "user_role": "student"}'
 
-# Streaming responses (SSE)
-curl -N localhost:8000/query/stream -H "Content-Type: application/json" -d '{...}'
-
-# ML endpoints: /ml/feedback, /ml/profile/{user_id}, /ml/performance
-# Grading: /grading/history/{prof_id}, /rubrics/{prof_id}
+# Get grading history
+curl localhost:8000/grading/history/prof123 \
+  -H "X-User-Role: teacher"
 ```
 
-**Full API docs:** http://localhost:8000/docs
+📖 **Full API docs:** http://localhost:8000/docs
+
+---
 
 ## Architecture
 
 ```
-USER → Supervisor Agent (RBAC) → [Study Agent | Grading Agent]
-                ↓                      ↓              ↓
-          LangGraph Router       Tools + RAG    RAG + PostgreSQL
+USER → Supervisor (RBAC) → [Study Agent | Grading Agent]
+              ↓                   ↓            ↓
+        LangGraph Router     Tools + RAG   RAG + DB
+                                  ↓            ↓
+                         L2: Vector Store  L3: Learning
 ```
 
-**Agentic Workflow:** Detect complexity → Plan/Route → Execute → Self-reflect → Retry/Clarify/Finish
+**Workflow:** Detect → Plan → Execute → Reflect → Improve
 
-**Key Tech:** LangGraph • LangChain • Gemini 2.5 Flash • ChromaDB • PostgreSQL • FastAPI
+### Codebase Structure
 
-## Rubrics & Testing
-
-**15+ Rubrics:** CS (intro/algorithms/discrete/theory/projects) • Math (intro/calculus/proofs) • Social Sciences • Humanities • History
-
-**Test Submissions:** `test_submissions/` contains sample essays, code, math problems, research papers
-
-```bash
-python main.py --role professor --question "Grade: $(cat test_submissions/essay_good.txt)"
+```
+study-search-agent/
+├── agents/                   # Modular agent architecture
+│   ├── study/               # Study agent (state, nodes, routing, workflow)
+│   ├── grading/             # Grading agent (state, nodes, routing, workflow)
+│   └── supervisor/          # Supervisor agent (routing, RBAC)
+├── api/                     # FastAPI application
+│   ├── routers/            # Modular route handlers
+│   ├── app.py              # Main application
+│   ├── models.py           # Pydantic schemas
+│   └── dependencies.py     # Dependency injection
+├── tools/                   # study/ + grading/ tools
+├── utils/                   # core, api, rag, routing, ml
+├── database/               # models, operations, checkpointing
+└── docs/                   # Documentation
 ```
 
-## Database (Optional)
+---
 
-PostgreSQL enables grading history, analytics, and ML persistence:
+## Database Setup (Optional)
+
+### PostgreSQL + pgvector (Recommended)
 
 ```bash
-brew install postgresql@15 && brew services start postgresql@15
+# Install
+brew install postgresql@15        # macOS
+sudo apt install postgresql       # Linux
+
+# Setup
 createdb grading_system
-echo "DATABASE_URL=postgresql://$(whoami)@localhost:5432/grading_system" >> .env
+psql grading_system -c "CREATE EXTENSION vector;"
+alembic upgrade head
 ```
+
+**Enables:** Semantic search • Grading history • Self-correction • Conversation memory
+
+See [PostgreSQL Guide](docs/POSTGRESQL.md) for details.
+
+---
 
 ## Documentation
 
-**Architecture:** [SYSTEM_ARCHITECTURE.md](docs/SYSTEM_ARCHITECTURE.md) • [AGENTIC_CAPABILITIES_SUMMARY.md](docs/AGENTIC_CAPABILITIES_SUMMARY.md) • [ML_ADAPTATION_ARCHITECTURE.md](docs/ML_ADAPTATION_ARCHITECTURE.md)
+### Core Agents
+- **[Study Agent](docs/STUDY_AGENT.md)** - Document Q&A, web search, code execution, animations
+- **[Grading Agent](docs/GRADING_AGENT.md)** - Essay/code/MCQ grading with rubrics
+- **[Supervisor Agent](docs/SUPERVISOR_AGENT.md)** - Routing, access control, learning
 
-**Guides:** [MANIM.md](docs/MANIM.md) • [POSTGRESQL.md](docs/POSTGRESQL.md) • [API_README.md](docs/API_README.md)
+### Architecture & Workflows
+- **[Agentic Workflow](docs/AGENTIC_WORKFLOW.md)** - Autonomous decision-making and routing
+- **[Supervisor-Grading Architecture](docs/SUPERVISOR_GRADING_ARCHITECTURE.md)** - Multi-agent coordination
 
-**Rubrics:** [rubrics/README.md](rubrics/README.md) • **Tests:** [test_submissions/README.md](test_submissions/README.md)
+### Implementation
+- **[API Guide](docs/API_README.md)** - REST API reference and endpoints
+- **[PostgreSQL Guide](docs/POSTGRESQL.md)** - Database setup and RAG configuration
+- **[Manim Guide](docs/MANIM.md)** - Educational animation generation
+
+### Testing
+- `test_submissions/` - Sample essays, code, math problems
+- `rubrics/` - 15+ discipline-specific rubrics
+
+---
+
+## Key Features
+
+### 🚀 Performance
+- **80-90% LLM reduction** via pattern-based routing
+- **Result caching** with configurable TTL
+- **40-50% token reduction** via smart context
+- **Connection pooling** for database efficiency
+
+### 🧠 Intelligence
+- **Adaptive rubrics** learn from professor corrections
+- **Self-improving RAG** grades and refines context
+- **User profiling** for personalized feedback
+- **Multi-step planning** for complex queries
+
+### 🏗️ Architecture
+- **Domain-driven design** with clean separation
+- **Modular routers** for horizontal scaling
+- **Async operations** throughout
+- **Production-ready** monitoring and logging
+
+---
 
 ## ML & Optimization
 
-⚡ Pattern-based routing (80-90% LLM reduction) • 💾 Result caching • 🧠 Smart context (40-50% token reduction)  
-📊 User profiling • 🎯 Performance learning • 🤖 Adaptive rubrics • 🧩 Multi-step planning • 🔍 Self-reflection
+| Feature | Benefit |
+|---------|---------|
+| Pattern routing | 80% requests skip LLM (2-3x faster) |
+| Smart context | 40-50% token reduction |
+| Adaptive rubrics | Learn from corrections |
+| RAG self-correction | Improve retrieval quality |
+| Result caching | Instant repeated queries |
+
+---
+
+## Project Status
+
+✅ **Phase 1** - L2/L3 memory, RBAC, streaming  
+✅ **Phase 2** - Self-correcting RAG, context-aware follow-ups  
+✅ **Phase 3** - Adaptive grading, professor style matching  
+✅ **Clean Architecture** - Domain-driven, modular design
+
+---
 
 ## License
 
 MIT © 2025 Anthony Maniko
 
----
-
-**Autonomous multi-agent system built with LangGraph, LangChain, and Gemini AI** 🤖🎓
+**Built with** LangGraph, LangChain, and Gemini AI 🤖

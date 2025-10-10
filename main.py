@@ -16,8 +16,9 @@ import sys
 import argparse
 from dotenv import load_dotenv
 
-from agent.supervisor_agent import SupervisorAgent
-from tools.document_qa import initialize_document_qa
+# Updated imports for refactored agent structure
+from agents.supervisor.core import SupervisorAgent
+from tools.study.document_qa import initialize_document_qa
 
 # Load environment variables
 load_dotenv()
@@ -127,8 +128,11 @@ Examples:
     documents_dir = os.getenv("DOCUMENTS_DIR", "documents")
     if os.path.exists(documents_dir) and os.listdir(documents_dir):
         print("📚 Loading documents for Q&A...")
-        initialize_document_qa(documents_dir)
-        print()
+        try:
+            initialize_document_qa(documents_dir)
+            print("✅ Documents loaded successfully\n")
+        except Exception as e:
+            print(f"⚠️  Warning: Could not load documents: {str(e)}\n")
     
     try:
         # Initialize supervisor agent
@@ -256,7 +260,8 @@ Examples:
         print("\nPlease ensure you have:")
         print("1. Created a .env file with your API keys (see env_example.txt)")
         print("2. Installed required packages: pip install -r requirements.txt")
-        print("3. Set up database (optional): python setup_database.py")
+        print("3. Set up database (optional): See docs/POSTGRESQL.md")
+        print("\nFor API mode, run: uvicorn api.app:app --host 0.0.0.0 --port 8000")
         sys.exit(1)
 
 
