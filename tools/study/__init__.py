@@ -2,14 +2,12 @@
 Study Agent Tools
 
 Tools used by the StudySearchAgent:
-- document_qa: Document question answering with RAG
 - web_search: Web search with Tavily
 - python_repl: Python code execution
 - manim_animation: Mathematical animation generation
-- rag_tools: Phase 2 RAG tools (adaptive retrieval, self-correction)
+- rag_tools: RAG tools (adaptive retrieval, self-correction, vector store)
 """
 
-from .document_qa import initialize_document_qa, get_document_qa_tool
 from .web_search import get_web_search_tool
 from .python_repl import get_python_repl_tool
 from .manim_animation import get_manim_tool
@@ -29,13 +27,11 @@ except ImportError:
 
 __all__ = [
     # Core study tools
-    'initialize_document_qa',
-    'get_document_qa_tool',
     'get_web_search_tool',
     'get_python_repl_tool',
     'get_manim_tool',
     
-    # Phase 2 RAG tools
+    # RAG tools (includes vector store retrieval)
     'retrieve_from_vector_store',
     'query_learning_store',
     'enhanced_web_search',

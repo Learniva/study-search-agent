@@ -22,7 +22,7 @@ docx2txt>=0.9  # DOCX text extraction (reliable and maintained)
 # Vector Store & Embeddings
 chromadb>=0.4.22
 pgvector>=0.3.0  # PostgreSQL vector extension for L2 Vector Store
-langchain-postgres>=0.1.0  # LangChain PostgreSQL integration
+langchain-postgres>=0.0.15  # LangChain PostgreSQL integration
 
 # Web Framework
 fastapi>=0.115.0
@@ -30,7 +30,7 @@ uvicorn[standard]>=0.32.0
 python-multipart>=0.0.20
 
 # Utilities
-python-dotenv>=1.0.0
+python-dotenv>=0.21.0  # Constrained by manim-voiceover compatibility
 pydantic-settings>=2.0.0
 
 # Monitoring & Observability (Optional)

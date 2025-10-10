@@ -18,7 +18,6 @@ from dotenv import load_dotenv
 
 # Updated imports for refactored agent structure
 from agents.supervisor.core import SupervisorAgent
-from tools.study.document_qa import initialize_document_qa
 
 # Load environment variables
 load_dotenv()
@@ -124,15 +123,12 @@ Examples:
     print(f"\n🚀 Initializing Multi-Agent System with {llm_provider.upper()}...")
     print(f"👤 Your Role: {user_role.upper()}\n")
     
-    # Try to load documents if any exist
+    # Document loading is now handled by RAG tools (L2 Vector Store)
+    # Documents should be uploaded via the API to be indexed in PostgreSQL + pgvector
     documents_dir = os.getenv("DOCUMENTS_DIR", "documents")
     if os.path.exists(documents_dir) and os.listdir(documents_dir):
-        print("📚 Loading documents for Q&A...")
-        try:
-            initialize_document_qa(documents_dir)
-            print("✅ Documents loaded successfully\n")
-        except Exception as e:
-            print(f"⚠️  Warning: Could not load documents: {str(e)}\n")
+        print(f"📚 Documents directory found: {documents_dir}")
+        print("💡 Tip: Use the API (/documents/upload) to index documents in the vector store\n")
     
     try:
         # Initialize supervisor agent

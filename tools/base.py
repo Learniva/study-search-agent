@@ -13,10 +13,10 @@ def get_all_tools() -> List[Tool]:
     Returns:
         List of Tool objects
     """
-    from .python_repl import get_python_repl_tool
-    from .web_search import get_web_search_tool
-    from .document_qa import get_document_qa_tool
-    from .manim_animation import get_manim_tool
+    from .study.python_repl import get_python_repl_tool
+    from .study.web_search import get_web_search_tool
+    from .study.document_qa import get_document_qa_tool
+    from .study.manim_animation import get_manim_tool
     
     tools = []
     
