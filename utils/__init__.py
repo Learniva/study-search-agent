@@ -3,11 +3,13 @@ Utilities Package
 
 Organized by purpose for better maintainability:
 - core: Essential system utilities (LLM, cache, constants)
+- patterns: Shared agent patterns (base agent, graph builder, state manager)
 - api: REST API utilities (auth, streaming)
 - rag: RAG-specific utilities (context, query enrichment)
 - routing: Tool/agent routing (pattern-based, performance-based)
 - prompts: Centralized prompt templates
 - ml: Machine learning & adaptive features
+- monitoring: Logging, metrics, error handling
 
 All modules provide graceful degradation for optional dependencies.
 """
@@ -16,8 +18,21 @@ All modules provide graceful degradation for optional dependencies.
 # CORE UTILITIES
 # =============================================================================
 
-from .core import initialize_llm, initialize_grading_llm, DEFAULT_MODEL, TEMPERATURE_SETTINGS, ResultCache
+from .core import (
+    initialize_llm,
+    initialize_grading_llm,
+    DEFAULT_MODEL,
+    TEMPERATURE_SETTINGS,
+    ResultCache
+)
 from .core.constants import *
+from .core.advanced_cache import MultiTierCache, get_cache, async_cached
+
+# =============================================================================
+# SHARED PATTERNS
+# =============================================================================
+
+from .patterns import BaseAgent, GraphBuilder, StateManager
 
 # =============================================================================
 # RAG UTILITIES
@@ -78,8 +93,21 @@ from .prompts import (
     MANIM_ANIMATION_SYSTEM_PROMPT,
 )
 
-# QUERY_ENRICHMENT_SYSTEM_PROMPT is in constants, not prompts
-# (already imported above from .core)
+# =============================================================================
+# MONITORING
+# =============================================================================
+
+from .monitoring import (
+    get_logger,
+    setup_logging,
+    track_query,
+    track_error,
+    get_metrics_summary,
+    handle_error,
+    AgentError,
+    DatabaseError,
+    LLMError,
+)
 
 # =============================================================================
 # ML & ADAPTIVE FEATURES (Optional)
@@ -87,25 +115,18 @@ from .prompts import (
 
 try:
     from .ml import (
-        # Query learning
         QueryLearner,
         QueryRecord,
         get_query_learner,
         save_query_learner,
-        
-        # Adaptive rubrics
         AdaptiveRubric,
         AdaptiveRubricManager,
         get_adaptive_rubric_manager,
-        
-        # User profiling
         UserProfile,
         UserProfileManager,
         get_user_profile_manager,
         get_user_preferences,
         update_user_profile,
-        
-        # Profiling (Phase 3)
         check_past_overrides,
         get_student_profile,
         get_professor_grading_style,
@@ -121,7 +142,6 @@ except ImportError as e:
 
 try:
     from .api import (
-        # Auth
         create_access_token,
         decode_access_token,
         get_current_user,
@@ -129,8 +149,6 @@ try:
         require_role,
         TokenData,
         User,
-        
-        # Streaming
         StreamingResponse,
         stream_llm_response,
         format_sse_message,
@@ -152,6 +170,14 @@ __all__ = [
     'DEFAULT_MODEL',
     'TEMPERATURE_SETTINGS',
     'ResultCache',
+    'MultiTierCache',
+    'get_cache',
+    'async_cached',
+    
+    # Patterns
+    'BaseAgent',
+    'GraphBuilder',
+    'StateManager',
     
     # RAG
     'get_smart_context',
@@ -190,7 +216,18 @@ __all__ = [
     'get_intent_classification_prompt',
     'QUERY_ENRICHMENT_SYSTEM_PROMPT',
     
-    # Feature availability flags
+    # Monitoring
+    'get_logger',
+    'setup_logging',
+    'track_query',
+    'track_error',
+    'get_metrics_summary',
+    'handle_error',
+    'AgentError',
+    'DatabaseError',
+    'LLMError',
+    
+    # Feature flags
     'ML_FEATURES_AVAILABLE',
     'API_FEATURES_AVAILABLE',
 ]
