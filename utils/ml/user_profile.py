@@ -14,14 +14,13 @@ from dataclasses import dataclass, asdict, field
 
 # Try to import database modules
 try:
-    from database.database import get_db
-    from database.models import Base
-    from sqlalchemy import Column, String, Integer, Float, DateTime, JSON
-    from sqlalchemy.dialects.postgresql import JSONB, UUID
-    import uuid
+    from database import get_db
+    from database.models import UserLearningProfile
+    from sqlalchemy.orm import Session
     DATABASE_AVAILABLE = True
 except ImportError:
     DATABASE_AVAILABLE = False
+    UserLearningProfile = None
 
 
 @dataclass
@@ -423,13 +422,128 @@ class UserProfileManager:
     
     def _load_profile_from_database(self, user_id: str) -> Optional[UserProfile]:
         """Load profile from PostgreSQL database."""
-        # TODO: Implement database loading
-        return None
+        if not DATABASE_AVAILABLE or UserLearningProfile is None:
+            print("⚠️  Database not available, falling back to file storage")
+            return None
+        
+        try:
+            db = next(get_db())  # get_db() is a generator, use next() to get session
+            try:
+                # Query for existing profile
+                db_profile = db.query(UserLearningProfile).filter(
+                    UserLearningProfile.user_id == user_id
+                ).first()
+                
+                if not db_profile:
+                    return None
+                
+                # Convert database model to UserProfile dataclass
+                profile = UserProfile(
+                    user_id=db_profile.user_id,
+                    role=db_profile.role,
+                    preferred_explanation_depth=db_profile.preferred_explanation_depth,
+                    preferred_citation_style=db_profile.preferred_citation_style,
+                    typical_subject_areas=db_profile.typical_subject_areas or [],
+                    education_level=db_profile.education_level,
+                    average_question_length=db_profile.average_question_length,
+                    common_tools_used=db_profile.common_tools_used or {},
+                    typical_session_duration=db_profile.typical_session_duration,
+                    queries_per_session=db_profile.queries_per_session,
+                    positive_feedback_count=db_profile.positive_feedback_count,
+                    negative_feedback_count=db_profile.negative_feedback_count,
+                    neutral_feedback_count=db_profile.neutral_feedback_count,
+                    correction_patterns=db_profile.correction_patterns or [],
+                    satisfaction_score=db_profile.satisfaction_score,
+                    response_relevance_score=db_profile.response_relevance_score,
+                    tool_selection_accuracy=db_profile.tool_selection_accuracy,
+                    routing_preferences=db_profile.routing_preferences or {},
+                    temperature_preference=db_profile.temperature_preference,
+                    context_window_preference=db_profile.context_window_preference,
+                    created_at=db_profile.created_at.isoformat(),
+                    last_updated=db_profile.last_updated.isoformat(),
+                    interactions_count=db_profile.interactions_count
+                )
+                
+                return profile
+                
+            finally:
+                db.close()
+                
+        except Exception as e:
+            print(f"⚠️  Failed to load profile from database: {e}")
+            return None
     
     def _save_profile_to_database(self, profile: UserProfile):
         """Save profile to PostgreSQL database."""
-        # TODO: Implement database saving
-        pass
+        if not DATABASE_AVAILABLE or UserLearningProfile is None:
+            print("⚠️  Database not available, profile saved to file only")
+            return
+        
+        try:
+            db = next(get_db())  # get_db() is a generator, use next() to get session
+            try:
+                # Check if profile exists
+                db_profile = db.query(UserLearningProfile).filter(
+                    UserLearningProfile.user_id == profile.user_id
+                ).first()
+                
+                if db_profile:
+                    # Update existing profile
+                    db_profile.role = profile.role
+                    db_profile.preferred_explanation_depth = profile.preferred_explanation_depth
+                    db_profile.preferred_citation_style = profile.preferred_citation_style
+                    db_profile.typical_subject_areas = profile.typical_subject_areas
+                    db_profile.education_level = profile.education_level
+                    db_profile.average_question_length = profile.average_question_length
+                    db_profile.common_tools_used = profile.common_tools_used
+                    db_profile.typical_session_duration = profile.typical_session_duration
+                    db_profile.queries_per_session = profile.queries_per_session
+                    db_profile.positive_feedback_count = profile.positive_feedback_count
+                    db_profile.negative_feedback_count = profile.negative_feedback_count
+                    db_profile.neutral_feedback_count = profile.neutral_feedback_count
+                    db_profile.correction_patterns = profile.correction_patterns
+                    db_profile.satisfaction_score = profile.satisfaction_score
+                    db_profile.response_relevance_score = profile.response_relevance_score
+                    db_profile.tool_selection_accuracy = profile.tool_selection_accuracy
+                    db_profile.routing_preferences = profile.routing_preferences
+                    db_profile.temperature_preference = profile.temperature_preference
+                    db_profile.context_window_preference = profile.context_window_preference
+                    db_profile.interactions_count = profile.interactions_count
+                    db_profile.last_updated = datetime.now()
+                else:
+                    # Create new profile
+                    db_profile = UserLearningProfile(
+                        user_id=profile.user_id,
+                        role=profile.role,
+                        preferred_explanation_depth=profile.preferred_explanation_depth,
+                        preferred_citation_style=profile.preferred_citation_style,
+                        typical_subject_areas=profile.typical_subject_areas,
+                        education_level=profile.education_level,
+                        average_question_length=profile.average_question_length,
+                        common_tools_used=profile.common_tools_used,
+                        typical_session_duration=profile.typical_session_duration,
+                        queries_per_session=profile.queries_per_session,
+                        positive_feedback_count=profile.positive_feedback_count,
+                        negative_feedback_count=profile.negative_feedback_count,
+                        neutral_feedback_count=profile.neutral_feedback_count,
+                        correction_patterns=profile.correction_patterns,
+                        satisfaction_score=profile.satisfaction_score,
+                        response_relevance_score=profile.response_relevance_score,
+                        tool_selection_accuracy=profile.tool_selection_accuracy,
+                        routing_preferences=profile.routing_preferences,
+                        temperature_preference=profile.temperature_preference,
+                        context_window_preference=profile.context_window_preference,
+                        interactions_count=profile.interactions_count
+                    )
+                    db.add(db_profile)
+                
+                db.commit()
+                
+            finally:
+                db.close()
+                
+        except Exception as e:
+            print(f"⚠️  Failed to save profile to database: {e}")
 
 
 # Global profile manager instance

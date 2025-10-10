@@ -12,7 +12,7 @@ Organized by purpose:
 from .base import Base
 
 # User models
-from .user import User
+from .user import User, UserLearningProfile
 
 # Grading models
 from .grading import (
@@ -62,6 +62,7 @@ __all__ = [
     
     # User models
     'User',
+    'UserLearningProfile',
     
     # Grading models
     'GradingSession',
@@ -81,4 +82,5 @@ __all__ = [
     'create_tables',
     'drop_tables',
 ]
+
 

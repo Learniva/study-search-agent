@@ -9,6 +9,8 @@ from typing import List
 from api.models import UploadResponse, DocumentInfo, DocumentsListResponse
 from utils.monitoring import get_logger
 from config import settings
+from database import get_db
+from database.operations.document_processing import get_document_processor, remove_document_from_vector_store
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/documents", tags=["Documents"])
@@ -80,13 +82,37 @@ async def upload_document(
         
         logger.info(f"Document uploaded: {file.filename}")
         
-        # TODO: Index document in L2 Vector Store (pgvector) in background
-        # This should extract text, create embeddings, and store in database.document_vectors
-        # For now, documents are saved but not automatically indexed
+        # Index document in L2 Vector Store (pgvector) in background
+        if background_tasks:
+            def index_document():
+                try:
+                    processor = get_document_processor()
+                    db = next(get_db())  # get_db() is a generator
+                    try:
+                        result = processor.process_and_index_document_sync(
+                            db=db,
+                            file_path=file_path,
+                            document_name=file.filename,
+                            user_id=None,  # TODO: Extract from auth context
+                            course_id=None  # TODO: Extract from request
+                        )
+                        if result['success']:
+                            logger.info(f"✅ Indexed: {file.filename} - {result['vectors_stored']} vectors")
+                        else:
+                            logger.error(f"❌ Indexing failed: {result.get('error')}")
+                    finally:
+                        db.close()
+                except Exception as e:
+                    logger.error(f"Background indexing error: {e}")
+            
+            background_tasks.add_task(index_document)
+            message = f"File '{file.filename}' uploaded successfully. Indexing in progress..."
+        else:
+            message = f"File '{file.filename}' uploaded successfully. Use background_tasks for indexing."
         
         return UploadResponse(
             filename=file.filename,
-            message=f"File '{file.filename}' uploaded successfully",
+            message=message,
             success=True
         )
         
@@ -107,10 +133,24 @@ async def delete_document(filename: str, background_tasks: BackgroundTasks):
         os.remove(file_path)
         logger.info(f"Document deleted: {filename}")
         
-        # TODO: Remove document from L2 Vector Store (pgvector) in background
-        # This should delete all document_vectors entries for this document
+        # Remove document from L2 Vector Store (pgvector) in background
+        def remove_from_vector_store():
+            try:
+                db = next(get_db())  # get_db() is a generator
+                try:
+                    success = remove_document_from_vector_store(db, filename)
+                    if success:
+                        logger.info(f"✅ Removed from vector store: {filename}")
+                    else:
+                        logger.warning(f"⚠️  Vector store removal had issues: {filename}")
+                finally:
+                    db.close()
+            except Exception as e:
+                logger.error(f"Background vector removal error: {e}")
         
-        return {"message": f"File '{filename}' deleted successfully"}
+        background_tasks.add_task(remove_from_vector_store)
+        
+        return {"message": f"File '{filename}' deleted successfully. Removing from vector store..."}
         
     except Exception as e:
         logger.error(f"Delete failed: {e}")
