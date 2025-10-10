@@ -41,12 +41,12 @@ from langgraph.graph.message import add_messages
 from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 
-from tools.grading_tools import get_all_grading_tools
-from utils.llm import initialize_llm
-from utils.cache import ResultCache
-from utils.context import get_smart_context
-from utils.routing import fast_grading_route
-from utils.constants import (
+from tools.grading import get_all_grading_tools
+from utils import (
+    initialize_llm,
+    ResultCache,
+    get_smart_context,
+    fast_grading_route,
     DEFAULT_CACHE_TTL,
     MAX_GRADING_ITERATIONS,
     MAX_CONTEXT_TOKENS,
@@ -56,13 +56,12 @@ from utils.constants import (
     MIN_TERM_OVERLAP_RATIO,
     GRADING_HIGH_CONFIDENCE,
     GRADING_MEDIUM_CONFIDENCE,
-    GRADING_LOW_CONFIDENCE
+    GRADING_LOW_CONFIDENCE,
 )
 
 # Database imports (optional - gracefully handle if not available)
 try:
-    from database.database import get_db, check_db_connection
-    from database.operations import save_grading_session, log_audit, get_or_create_user
+    from database import get_db, check_db_connection, save_grading_session, log_audit, get_or_create_user
     DATABASE_AVAILABLE = True
 except ImportError:
     DATABASE_AVAILABLE = False
@@ -1438,6 +1437,70 @@ Return ONLY the JSON plan, nothing else."""
                 break
             except Exception as e:
                 print(f"\n❌ Error: {str(e)}\n")
+
+
+    def grade_with_adaptation(
+        self,
+        submission: str,
+        rubric: Optional[Dict[str, Any]] = None,
+        assignment_type: str = "essay",
+        professor_id: Optional[str] = None,
+        student_id: Optional[str] = None,
+        course_id: Optional[str] = None,
+        assignment_id: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Grade with Phase 3 adaptive features (if available).
+        
+        Uses adaptive grading workflow when professor_id is provided.
+        Falls back to standard grading otherwise.
+        
+        Args:
+            submission: Student submission text
+            rubric: Grading rubric (optional)
+            assignment_type: Type of assignment
+            professor_id: Professor's ID for adaptive features
+            student_id: Student's ID for personalization
+            course_id: Optional course context
+            assignment_id: Optional assignment identifier
+        
+        Returns:
+            Dictionary with grade, feedback, and metadata
+        """
+        # Try to use adaptive grading workflow (Phase 3)
+        if professor_id:
+            try:
+                from workflows.grading_workflow import AdaptiveGradingWorkflow
+                
+                if not hasattr(self, '_adaptive_workflow'):
+                    self._adaptive_workflow = AdaptiveGradingWorkflow(self.llm)
+                
+                return self._adaptive_workflow.execute(
+                    submission=submission,
+                    rubric=rubric or {},
+                    professor_id=professor_id,
+                    assignment_type=assignment_type,
+                    student_id=student_id
+                )
+            except ImportError:
+                print("⚠️  Adaptive workflow not available, using standard grading")
+        
+        # Fallback to standard grading
+        import json
+        grading_request = json.dumps({
+            "essay": submission,
+            "assignment_type": assignment_type,
+            "rubric": rubric
+        })
+        
+        result = self.query(grading_request)
+        
+        return {
+            "success": True,
+            "grade": {"feedback": result},
+            "adaptive_features": {"used_adaptive_rubric": False},
+            "metadata": {"phase": "0"}
+        }
 
 
 def main():
