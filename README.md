@@ -1,237 +1,126 @@
 # Multi-Agent Study & Grading System 🤖
 
-Intelligent study assistant + AI grading agent with autonomous routing, memory, and role-based access control.
+Autonomous multi-agent system with intelligent routing, self-reflection, and role-based access control.
 
-**CLI + REST API** • **LangChain & LangGraph** • **Gemini LLM** • **PostgreSQL**
+**CLI + REST API** • **LangGraph + LangChain** • **Gemini** • **PostgreSQL** • **ML Adaptation**
 
 ## Features
 
-### 📚 Study Agent (All Users)
-- 🔄 **Smart Routing** - Auto-selects best tool, fallback to web if document fails
-- 💾 **Memory** - Thread-based conversation history, context-aware follow-ups
-- 📚 **Document Q&A** - RAG with ChromaDB (MCQs, summaries, flashcards)
-- 🔍 **Web Search** - Hybrid: Tavily → Google → DuckDuckGo
-- 🐍 **Python REPL** - Code execution and math
-- 🎬 **Manim** - Educational animations with voice-over
+**📚 Study Agent** (All Users)  
+Multi-step planning • Document Q&A • Web search • Python REPL • Manim animations • ML learning
 
-### 🎓 Grading Agent (Teachers/Professors)
-- ✅ **Essay Grading** - Thesis, evidence, organization, grammar analysis
-- 💻 **Code Review** - Correctness, efficiency, style, bug detection
-- 📝 **MCQ Auto-Grading** - Instant scoring with explanations
-- 📊 **Rubric Evaluation** - Custom rubric-based assessment
-- 🤖 **RAG Rubrics** - Semantic rubric retrieval from templates
-- 💾 **PostgreSQL** - Persistent grading history and analytics
-- 🔐 **Role-Based Access** - Students can't access grading tools
+**🎓 Grading Agent** (Teachers Only)  
+15+ discipline rubrics • Essay/code/MCQ grading • Self-reflection • Adaptive learning • PostgreSQL persistence
+
+**🔒 Access Control:** Students → Study only | Teachers → Study + Grading
 
 ## Quick Start
 
 ```bash
-# Install dependencies
+# Install
 pip install -r requirements.txt
 
-# Configure
-cp env_example.txt .env
-# Add GOOGLE_API_KEY (required)
-# Add DATABASE_URL (optional, for grading persistence)
+# Configure .env (copy from env_example.txt)
+GOOGLE_API_KEY=your_key_here  # Required
 
-# Run as student (study only)
-python main.py --role student
+# Run CLI
+python main.py --role student                    # Study features
+python main.py --role professor --user-id prof123  # Study + Grading
 
-# Run as professor (study + grading)
-python main.py --role professor --user-id prof123
-
-# API server
+# Run API
 python api/main.py  # http://localhost:8000/docs
 ```
 
-**Keys:** [Gemini](https://aistudio.google.com/app/apikey) (required) • [Tavily](https://tavily.com/), [ElevenLabs](https://elevenlabs.io/) (optional)
+**Get API Keys:** [Gemini](https://aistudio.google.com/app/apikey) (required) • [Tavily](https://tavily.com/), [ElevenLabs](https://elevenlabs.io/) (optional)
 
 ## Usage
 
-### Study Features (All Users)
-
+**Study (All Users):**
 ```bash
-# Documents - Auto-generates MCQs, summaries, study guides, flashcards
+python main.py --role student
+
 "Generate 10 MCQs about neural networks from my notes"
-"Create a study guide for machine learning"
-
-# Web - Context-aware follow-ups
-"Who founded Code Savanna?"
-"What else did he create?"  # Remembers context
-
-# Python
-"Calculate 25 * 37"
-
-# Animations
+"Who founded Code Savanna?"  # Web search with memory
+"What else did he create?"   # Context-aware follow-up
 "Animate the Pythagorean theorem"
-"Animate bubble sort with voice explanation"
 ```
 
-### Grading Features (Teachers/Professors Only)
-
+**Grading (Teachers):**
 ```bash
-# Grade essays
-python main.py --role professor --user-id prof123 \
-  --question "Grade: $(cat test_submissions/essay_good.txt)"
+python main.py --role professor --user-id prof123
 
-# Review code
-python main.py --role professor --user-id prof123 \
-  --question "Review this code: def fibonacci(n): return n if n <= 1 else fibonacci(n-1) + fibonacci(n-2)"
-
-# Grade MCQs
-python main.py --role professor \
-  --question "Grade: Q1: What is 2+2? Student: 4 (Correct: 4). Q2: Capital of France? Student: London (Correct: Paris)"
-
-# Custom rubric
-python main.py --role professor \
-  --question "Evaluate using rubric: Content(40%), Style(30%), Grammar(30%). Essay: [TEXT]"
-
-# View grading history
-python setup_database.py --info
+# Grade essays, code, math problems
+--question "Grade: $(cat test_submissions/essay_good.txt)"
+--question "Review: $(cat test_submissions/intro_programming_assignment.py)"
+--question "Grade: $(cat test_submissions/math_calculus_assignment.txt)"
 ```
-
-## Access Control
-
-| Role      | Study Agent | Grading Agent | Database |
-|-----------|-------------|---------------|----------|
-| Student   | ✅          | ❌            | ❌       |
-| Teacher   | ✅          | ✅            | ✅       |
-| Professor | ✅          | ✅            | ✅       |
-| Admin     | ✅          | ✅            | ✅       |
 
 ## API
 
 ```bash
-# Study query
+# Query endpoint (study or grading based on role)
 curl -X POST localhost:8000/query \
-  -d '{"question": "Generate 5 MCQs about quantum physics"}'
+  -H "Content-Type: application/json" \
+  -d '{"question": "...", "user_role": "student"}'
 
-# Grading (requires JWT + teacher role)
-curl -X POST localhost:8000/grade \
-  -H "Authorization: Bearer $TOKEN" \
-  -d '{"submission": "essay text", "rubric": "essay_general"}'
+# Streaming responses (SSE)
+curl -N localhost:8000/query/stream -H "Content-Type: application/json" -d '{...}'
 
-# View grading history
-curl localhost:8000/grading-history \
-  -H "Authorization: Bearer $TOKEN"
+# ML endpoints: /ml/feedback, /ml/profile/{user_id}, /ml/performance
+# Grading: /grading/history/{prof_id}, /rubrics/{prof_id}
 ```
 
-**Endpoints:** `/query`, `/grade`, `/grading-history`, `/rubrics`, `/documents/upload`, `/health` • **Docs:** http://localhost:8000/docs
-
-## Programmatic
-
-```python
-from agent.supervisor_agent import SupervisorAgent
-
-# Initialize multi-agent system
-supervisor = SupervisorAgent()
-
-# Study query (any role)
-answer = supervisor.query(
-    question="Explain photosynthesis",
-    user_role="student"
-)
-
-# Grading query (teacher only)
-result = supervisor.query(
-    question="Grade this essay: [TEXT]",
-    user_role="professor",
-    user_id="prof123"
-)
-```
-
-## Database Setup (Optional)
-
-Required for grading history persistence:
-
-```bash
-# Install PostgreSQL
-brew install postgresql@15
-brew services start postgresql@15
-
-# Create database
-createdb grading_system
-
-# Configure
-echo "DATABASE_URL=postgresql://$(whoami)@localhost:5432/grading_system" >> .env
-
-# Initialize
-python setup_database.py
-python setup_database.py --seed  # Add sample data
-```
-
-## Testing
-
-```bash
-# Test grading agent
-./test_grading_samples.sh
-
-# Quick test
-python test_grading_quick.py
-
-# Test role access control
-./test_role_access.sh
-```
-
-**Sample files:** `test_submissions/` (essay_good.txt, code_sample.py, lab_report.txt)
-
-## Documentation
-
-**Architecture:**  
-[STUDY_SEARCH_ARCHITECTURE.md](docs/STUDY_SEARCH_ARCHITECTURE.md) - Study Agent  
-[GRADING_AGENT_ARCHITECTURE.md](docs/GRADING_AGENT_ARCHITECTURE.md) - Grading Agent
-
-**Guides:**  
-[MANIM.md](docs/MANIM.md) - Animation system  
-[GRADING_TESTING_GUIDE.md](GRADING_TESTING_GUIDE.md) - Grading usage examples  
-[POSTGRESQL.md](docs/POSTGRESQL.md) - Database setup  
-[API_README.md](docs/API_README.md) - API documentation
-
-**Quick Reference:**  
-[QUICK_GRADING_COMMANDS.txt](QUICK_GRADING_COMMANDS.txt) - Common grading commands
+**Full API docs:** http://localhost:8000/docs
 
 ## Architecture
 
-### Study Agent
 ```
-User → CLI/API → LangGraph Agent → Tools → Gemini → Answer
-                    ↓
-          [Route → Execute → Check]
-               ↓       ↓       ↓
-          Document  Web   Python  Manim
-            QA    Search   REPL  Animation
+USER → Supervisor Agent (RBAC) → [Study Agent | Grading Agent]
+                ↓                      ↓              ↓
+          LangGraph Router       Tools + RAG    RAG + PostgreSQL
 ```
 
-### Multi-Agent System (with Grading)
+**Agentic Workflow:** Detect complexity → Plan/Route → Execute → Self-reflect → Retry/Clarify/Finish
+
+**Key Tech:** LangGraph • LangChain • Gemini 2.5 Flash • ChromaDB • PostgreSQL • FastAPI
+
+## Rubrics & Testing
+
+**15+ Rubrics:** CS (intro/algorithms/discrete/theory/projects) • Math (intro/calculus/proofs) • Social Sciences • Humanities • History
+
+**Test Submissions:** `test_submissions/` contains sample essays, code, math problems, research papers
+
+```bash
+python main.py --role professor --question "Grade: $(cat test_submissions/essay_good.txt)"
 ```
-User → Supervisor (LangGraph) → [Study Agent | Grading Agent]
-            ↓
-      [Classify → Access → Route]
-            ↓
-    Grading Agent → Tools → LLM → PostgreSQL
-            ↓
-    [Essay | Code | MCQ | Rubric RAG]
+
+## Database (Optional)
+
+PostgreSQL enables grading history, analytics, and ML persistence:
+
+```bash
+brew install postgresql@15 && brew services start postgresql@15
+createdb grading_system
+echo "DATABASE_URL=postgresql://$(whoami)@localhost:5432/grading_system" >> .env
 ```
 
-**Study Agent:** LangGraph (routing + memory) + LangChain (RAG + tools)  
-**Grading Agent:** LangGraph (tool routing) + RAG (rubrics) + PostgreSQL  
-**Supervisor:** LangGraph (multi-agent routing) + RBAC  
-**LLM:** Gemini 2.5 Flash  
-**CLI:** `graph` • `history` • `arch` • `caps` • `quit`
+## Documentation
 
-## Tech Stack
+**Architecture:** [SYSTEM_ARCHITECTURE.md](docs/SYSTEM_ARCHITECTURE.md) • [AGENTIC_CAPABILITIES_SUMMARY.md](docs/AGENTIC_CAPABILITIES_SUMMARY.md) • [ML_ADAPTATION_ARCHITECTURE.md](docs/ML_ADAPTATION_ARCHITECTURE.md)
 
-**Frameworks:** [LangGraph](https://langchain-ai.github.io/langgraph/) • [LangChain](https://langchain.com/)  
-**LLM:** [Gemini](https://ai.google.dev/)  
-**Vectors:** [ChromaDB](https://trychroma.com/)  
-**Database:** [PostgreSQL](https://www.postgresql.org/) + [SQLAlchemy](https://www.sqlalchemy.org/)  
-**Animation:** [Manim](https://www.manim.community/)  
-**API:** [FastAPI](https://fastapi.tiangolo.com/)
+**Guides:** [MANIM.md](docs/MANIM.md) • [POSTGRESQL.md](docs/POSTGRESQL.md) • [API_README.md](docs/API_README.md)
+
+**Rubrics:** [rubrics/README.md](rubrics/README.md) • **Tests:** [test_submissions/README.md](test_submissions/README.md)
+
+## ML & Optimization
+
+⚡ Pattern-based routing (80-90% LLM reduction) • 💾 Result caching • 🧠 Smart context (40-50% token reduction)  
+📊 User profiling • 🎯 Performance learning • 🤖 Adaptive rubrics • 🧩 Multi-step planning • 🔍 Self-reflection
 
 ## License
 
-MIT - See [LICENSE](LICENSE)
+MIT © 2025 Anthony Maniko
 
 ---
 
-**Happy studying & grading! 🎓✅**
+**Autonomous multi-agent system built with LangGraph, LangChain, and Gemini AI** 🤖🎓
