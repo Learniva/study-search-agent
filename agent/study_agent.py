@@ -19,22 +19,21 @@ from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 
 from tools.base import get_all_tools
-from utils.llm import initialize_llm
-from utils.cache import ResultCache
-from utils.context import get_smart_context
-from utils.routing import fast_study_route, calculate_text_similarity
-from utils.query_enrichment import (
+from utils import (
+    initialize_llm,
+    ResultCache,
+    get_smart_context,
+    fast_study_route,
+    calculate_text_similarity,
     detect_realtime_query,
     needs_query_enrichment,
     enrich_query_with_context,
-    format_realtime_warning
-)
-from utils.constants import (
+    format_realtime_warning,
     DEFAULT_CACHE_TTL,
     MAX_AGENT_ITERATIONS,
     MAX_CONTEXT_TOKENS,
     DOCUMENT_QA_FAILURE_PHRASES,
-    WEB_SEARCH_SYNTHESIS_PROMPT
+    WEB_SEARCH_SYNTHESIS_PROMPT,
 )
 
 # ML/Adaptation features (optional - graceful fallback if not available)
@@ -49,7 +48,7 @@ except ImportError as e:
 
 # Performance-Based Routing (optional - graceful fallback if not available)
 try:
-    from utils.performance import get_performance_router, save_performance_router
+    from utils import get_performance_router, save_performance_router
     PERFORMANCE_ROUTING_AVAILABLE = True
     print("✅ Performance-Based Routing loaded successfully")
 except ImportError as e:
@@ -307,10 +306,10 @@ class StudySearchAgent:
         routing_prompt = """Analyze this question and determine which tool to use:
 
 Available tools:
-1. Document_QA - Use ONLY if user mentions "my notes", "my documents", "uploaded files", "the PDF", "the document"
-2. Python_REPL - Use for math calculations, code execution, computational problems
+1. Document_QA - Use if user mentions documents, files, or specific content (e.g., "my notes", "uploaded files", "the PDF", "the document", "attached", "chapter", "page", "book", "study guide", "flashcards from", "based on the")
+2. Python_REPL - Use ONLY for explicit math calculations, code execution, or computational problems (e.g., "calculate", "compute", "solve this equation", "run this code")
 3. render_manim_video - Use if user asks to "animate", "visualize", "create animation", or wants visual explanation of concepts
-4. Web_Search - Use for general knowledge, current events, academic topics without document reference
+4. Web_Search - Use for general knowledge, current events, research topics WITHOUT document reference
 
 Respond with ONLY the tool name: Document_QA, Python_REPL, render_manim_video, or Web_Search"""
         
@@ -1258,4 +1257,48 @@ See LANGGRAPH_MIGRATION.md for detailed architecture diagram.
                 break
             except Exception as e:
                 print(f"\n❌ Error: {str(e)}\n")
+    
+    def query_with_rag(
+        self,
+        question: str,
+        user_role: str = "student",
+        thread_id: str = "default",
+        use_adaptive_retrieval: bool = True
+    ) -> str:
+        """
+        Query with Phase 2 RAG features (if available).
+        
+        Uses RAG workflow for adaptive retrieval and self-correction.
+        Falls back to standard query if RAG not available.
+        
+        Args:
+            question: User's question
+            user_role: User role (student/teacher)
+            thread_id: Thread ID for conversation context
+            use_adaptive_retrieval: Whether to use adaptive retrieval
+        
+        Returns:
+            Answer string
+        """
+        # Try to use RAG workflow (Phase 2)
+        if use_adaptive_retrieval:
+            try:
+                from workflows.rag_workflow import RAGWorkflow
+                
+                if not hasattr(self, '_rag_workflow'):
+                    self._rag_workflow = RAGWorkflow(self.llm)
+                
+                result = self._rag_workflow.execute(
+                    query=question,
+                    user_role=user_role,
+                    thread_id=thread_id
+                )
+                
+                return result.get("final_answer", result.get("answer", ""))
+                
+            except ImportError:
+                print("⚠️  RAG workflow not available, using standard query")
+        
+        # Fallback to standard query
+        return self.query(question)
 
