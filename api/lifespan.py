@@ -77,16 +77,12 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logger.warning(f"Distributed state failed: {e}")
     
-    # Load documents if available
+    # Document loading is now handled via L2 Vector Store (pgvector)
+    # Documents should be uploaded via POST /documents/upload API endpoint
     documents_dir = os.getenv("DOCUMENTS_DIR", "documents")
     if os.path.exists(documents_dir) and os.listdir(documents_dir):
-        try:
-            logger.info(f"📚 Loading documents from {documents_dir}...")
-            from tools.study import initialize_document_qa
-            initialize_document_qa(documents_dir)
-            logger.info("✅ Documents loaded")
-        except Exception as e:
-            logger.warning(f"Document loading failed: {e}")
+        logger.info(f"📚 Documents directory found: {documents_dir}")
+        logger.info("💡 Use POST /documents/upload to index documents in the vector store")
     
     # Initialize supervisor agent
     logger.info("🤖 Initializing Supervisor Agent...")

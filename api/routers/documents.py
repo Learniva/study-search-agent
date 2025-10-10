@@ -80,16 +80,9 @@ async def upload_document(
         
         logger.info(f"Document uploaded: {file.filename}")
         
-        # Reinitialize document QA in background
-        if background_tasks:
-            def reload_docs():
-                try:
-                    from tools.study import initialize_document_qa
-                    initialize_document_qa(DOCUMENTS_DIR)
-                except Exception as e:
-                    logger.error(f"Failed to reload documents: {e}")
-            
-            background_tasks.add_task(reload_docs)
+        # TODO: Index document in L2 Vector Store (pgvector) in background
+        # This should extract text, create embeddings, and store in database.document_vectors
+        # For now, documents are saved but not automatically indexed
         
         return UploadResponse(
             filename=file.filename,
@@ -114,15 +107,8 @@ async def delete_document(filename: str, background_tasks: BackgroundTasks):
         os.remove(file_path)
         logger.info(f"Document deleted: {filename}")
         
-        # Reinitialize document QA in background
-        def reload_docs():
-            try:
-                from tools.study import initialize_document_qa
-                initialize_document_qa(DOCUMENTS_DIR)
-            except Exception as e:
-                logger.error(f"Failed to reload documents: {e}")
-        
-        background_tasks.add_task(reload_docs)
+        # TODO: Remove document from L2 Vector Store (pgvector) in background
+        # This should delete all document_vectors entries for this document
         
         return {"message": f"File '{filename}' deleted successfully"}
         

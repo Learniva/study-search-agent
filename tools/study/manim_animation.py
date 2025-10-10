@@ -787,15 +787,10 @@ class ManimAnimationManager:
         # Check if Manim is installed
         self._check_manim_installation()
         
-        # Try to get document retriever if available
+        # Document retrieval is now handled via RAG tools (L2 Vector Store)
+        # Animations are generated without direct document context
         self.doc_retriever = None
-        try:
-            from .document_qa import _doc_manager
-            if _doc_manager and _doc_manager.retriever:
-                self.doc_retriever = _doc_manager.retriever
-                print("✓ Document retriever connected for context-aware animations")
-        except:
-            print("ℹ️  Document retriever not available - will generate animations without document context")
+        print("ℹ️  Manim animations are generated from query context only")
     
     def _check_manim_installation(self) -> bool:
         """

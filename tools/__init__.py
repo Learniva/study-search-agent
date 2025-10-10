@@ -2,12 +2,12 @@
 Tools Package
 
 Organized by agent:
-- tools.study: Tools for StudySearchAgent
+- tools.study: Tools for StudySearchAgent (web_search, python_repl, manim, rag_tools)
 - tools.grading: Tools for GradingAgent  
 - tools.base: Base tool utilities (shared)
 
 Import from subdirectories:
-    from tools.study import get_document_qa_tool, get_web_search_tool
+    from tools.study import get_web_search_tool, get_python_repl_tool
     from tools.grading import get_all_grading_tools
 """
 
@@ -17,11 +17,9 @@ from .base import get_all_tools
 # Study tools
 try:
     from .study import (
-        get_document_qa_tool,
         get_web_search_tool,
         get_python_repl_tool,
         get_manim_tool,
-        initialize_document_qa,
     )
     STUDY_TOOLS_AVAILABLE = True
 except ImportError:
@@ -44,11 +42,9 @@ __all__ = [
     'get_all_tools',
     
     # Study tools
-    'get_document_qa_tool',
     'get_web_search_tool',
     'get_python_repl_tool',
     'get_manim_tool',
-    'initialize_document_qa',
     
     # Grading tools
     'get_all_grading_tools',

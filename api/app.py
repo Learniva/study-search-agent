@@ -178,19 +178,24 @@ app.include_router(ml_router)
 @app.post("/admin/reload", tags=["Admin"])
 async def reload_documents():
     """
-    Reload documents from disk.
+    Reload documents from disk (deprecated - use /documents/upload instead).
+    
+    Documents are now managed via the L2 Vector Store (pgvector).
+    Use POST /documents/upload to index documents.
     
     **Requires:** Admin role
     """
     import os
-    from tools.study import initialize_document_qa
     
     documents_dir = os.getenv("DOCUMENTS_DIR", "documents")
     
     try:
         if os.path.exists(documents_dir):
-            initialize_document_qa(documents_dir)
-            return {"message": "Documents reloaded successfully"}
+            return {
+                "message": "Document reload is deprecated. Use POST /documents/upload to index documents in the vector store.",
+                "documents_dir": documents_dir,
+                "status": "use_upload_endpoint"
+            }
         else:
             return {"message": "Documents directory not found"}
     except Exception as e:
@@ -286,4 +291,5 @@ if __name__ == "__main__":
         reload=settings.api_reload,
         log_level=settings.log_level.lower()
     )
+
 
