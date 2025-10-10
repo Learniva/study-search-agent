@@ -17,8 +17,7 @@ from dotenv import load_dotenv
 from langgraph.graph import StateGraph, END
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 
-from utils.llm import initialize_llm
-from utils.routing import fast_intent_classification, calculate_text_similarity
+from utils import initialize_llm, fast_intent_classification, calculate_text_similarity
 
 # Load environment variables
 load_dotenv()
