@@ -69,8 +69,7 @@ def load_documents_from_directory(
         try:
             # Check if already indexed (by checking vector store)
             if not force_reindex:
-                db = next(get_db())
-                try:
+                with get_db() as db:
                     from database.models import DocumentVector
                     existing = db.query(DocumentVector).filter(
                         DocumentVector.document_name == filename
@@ -84,13 +83,10 @@ def load_documents_from_directory(
                             "message": "Already indexed"
                         })
                         continue
-                finally:
-                    db.close()
             
             # Index the document
             logger.info(f"  📄 Indexing {filename}...")
-            db = next(get_db())
-            try:
+            with get_db() as db:
                 result = processor.process_and_index_document_sync(
                     db=db,
                     file_path=filepath,
@@ -107,9 +103,6 @@ def load_documents_from_directory(
                     logger.error(f"  ❌ {filename}: {result.get('error')}")
                 
                 results.append(result)
-                
-            finally:
-                db.close()
                 
         except Exception as e:
             error_count += 1

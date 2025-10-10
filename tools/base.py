@@ -35,11 +35,14 @@ def get_all_tools() -> List[Tool]:
     
     # Add RAG tools (L2 Vector Store for document Q&A)
     try:
-        from .study.rag_tools import get_all_rag_tools, RAG_TOOLS_AVAILABLE
+        from .study import RAG_TOOLS_AVAILABLE
+        from .study.rag_tools import get_all_rag_tools
+        
         if RAG_TOOLS_AVAILABLE:
             rag_tools = get_all_rag_tools()
-            tools.extend(rag_tools)
-            print(f"✅ RAG tools loaded ({len(rag_tools)} tools available)")
+            if rag_tools:
+                tools.extend(rag_tools)
+                print(f"✅ RAG tools loaded ({len(rag_tools)} tools available)")
         else:
             print("⚠️  RAG tools not available (database not configured)")
     except Exception as e:

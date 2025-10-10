@@ -427,8 +427,7 @@ class UserProfileManager:
             return None
         
         try:
-            db = next(get_db())  # get_db() is a generator, use next() to get session
-            try:
+            with get_db() as db:
                 # Query for existing profile
                 db_profile = db.query(UserLearningProfile).filter(
                     UserLearningProfile.user_id == user_id
@@ -466,9 +465,6 @@ class UserProfileManager:
                 
                 return profile
                 
-            finally:
-                db.close()
-                
         except Exception as e:
             print(f"⚠️  Failed to load profile from database: {e}")
             return None
@@ -480,8 +476,7 @@ class UserProfileManager:
             return
         
         try:
-            db = next(get_db())  # get_db() is a generator, use next() to get session
-            try:
+            with get_db() as db:
                 # Check if profile exists
                 db_profile = db.query(UserLearningProfile).filter(
                     UserLearningProfile.user_id == profile.user_id
@@ -538,9 +533,6 @@ class UserProfileManager:
                     db.add(db_profile)
                 
                 db.commit()
-                
-            finally:
-                db.close()
                 
         except Exception as e:
             print(f"⚠️  Failed to save profile to database: {e}")

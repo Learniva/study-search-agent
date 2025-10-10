@@ -87,8 +87,7 @@ async def upload_document(
             def index_document():
                 try:
                     processor = get_document_processor()
-                    db = next(get_db())  # get_db() is a generator
-                    try:
+                    with get_db() as db:
                         result = processor.process_and_index_document_sync(
                             db=db,
                             file_path=file_path,
@@ -100,8 +99,6 @@ async def upload_document(
                             logger.info(f"✅ Indexed: {file.filename} - {result['vectors_stored']} vectors")
                         else:
                             logger.error(f"❌ Indexing failed: {result.get('error')}")
-                    finally:
-                        db.close()
                 except Exception as e:
                     logger.error(f"Background indexing error: {e}")
             
@@ -136,15 +133,12 @@ async def delete_document(filename: str, background_tasks: BackgroundTasks):
         # Remove document from L2 Vector Store (pgvector) in background
         def remove_from_vector_store():
             try:
-                db = next(get_db())  # get_db() is a generator
-                try:
+                with get_db() as db:
                     success = remove_document_from_vector_store(db, filename)
                     if success:
                         logger.info(f"✅ Removed from vector store: {filename}")
                     else:
                         logger.warning(f"⚠️  Vector store removal had issues: {filename}")
-                finally:
-                    db.close()
             except Exception as e:
                 logger.error(f"Background vector removal error: {e}")
         
