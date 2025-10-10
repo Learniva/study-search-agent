@@ -28,9 +28,11 @@ except ImportError:
     except ImportError:
         DOCX_AVAILABLE = False
 
-# LangChain for text splitting and embeddings
+# LangChain for text splitting
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+
+# Google GenAI SDK for 768D embeddings (direct API)
+import google.generativeai as genai
 
 # Database operations
 from sqlalchemy.orm import Session
@@ -57,15 +59,16 @@ class DocumentProcessor:
         embedding_model: str = "models/embedding-001"
     ):
         """
-        Initialize document processor.
+        Initialize document processor with Google Gemini 768D embeddings.
         
         Args:
             chunk_size: Size of text chunks in characters
             chunk_overlap: Overlap between chunks for context continuity
-            embedding_model: Google Gemini embedding model to use
+            embedding_model: Google Gemini embedding model (default: models/embedding-001, 768D)
         """
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
+        self.embedding_model = embedding_model
         
         # Initialize text splitter
         self.text_splitter = RecursiveCharacterTextSplitter(
@@ -75,15 +78,30 @@ class DocumentProcessor:
             separators=["\n\n", "\n", ". ", " ", ""]
         )
         
-        # Initialize embedding model
+        # Configure Google GenAI SDK for 768D embeddings
         try:
-            self.embeddings = GoogleGenerativeAIEmbeddings(
-                model=embedding_model
+            api_key = os.getenv("GOOGLE_API_KEY")
+            if not api_key:
+                raise ValueError("GOOGLE_API_KEY not found in environment")
+            
+            genai.configure(api_key=api_key)
+            
+            # Verify model access with test embedding
+            test_result = genai.embed_content(
+                model=self.embedding_model,
+                content="test",
+                task_type="retrieval_document"
             )
-            logger.info(f"✅ Embeddings initialized: {embedding_model}")
+            embedding_dim = len(test_result['embedding'])
+            
+            logger.info(f"✅ Google Gemini embeddings initialized: {embedding_model} ({embedding_dim}D)")
+            
+            if embedding_dim != 768:
+                logger.warning(f"⚠️  Expected 768D, got {embedding_dim}D")
+                
         except Exception as e:
-            logger.error(f"Failed to initialize embeddings: {e}")
-            self.embeddings = None
+            logger.error(f"❌ Failed to initialize Google Gemini embeddings: {e}")
+            raise
     
     def extract_text(self, file_path: str) -> str:
         """
@@ -198,41 +216,55 @@ class DocumentProcessor:
     
     async def generate_embeddings(self, texts: List[str]) -> List[List[float]]:
         """
-        Generate embeddings for text chunks.
+        Generate 768D embeddings using Google Gemini.
         
         Args:
             texts: List of text strings to embed
             
         Returns:
-            List of embedding vectors
+            List of 768-dimensional embedding vectors
         """
-        if not self.embeddings:
-            raise RuntimeError("Embeddings model not initialized. Check GOOGLE_API_KEY.")
-        
         try:
-            # Generate embeddings in batches for efficiency
-            embeddings = await self.embeddings.aembed_documents(texts)
+            # Google GenAI SDK doesn't have async batch embed, so use sync
+            embeddings = []
+            for text in texts:
+                result = genai.embed_content(
+                    model=self.embedding_model,
+                    content=text,
+                    task_type="retrieval_document"
+                )
+                embeddings.append(result['embedding'])
+            
+            logger.debug(f"Generated {len(embeddings)} embeddings ({len(embeddings[0])}D each)")
             return embeddings
+            
         except Exception as e:
             logger.error(f"Embedding generation failed: {e}")
             raise
     
     def generate_embeddings_sync(self, texts: List[str]) -> List[List[float]]:
         """
-        Generate embeddings synchronously (for background tasks).
+        Generate 768D embeddings synchronously (for background tasks).
         
         Args:
             texts: List of text strings to embed
             
         Returns:
-            List of embedding vectors
+            List of 768-dimensional embedding vectors
         """
-        if not self.embeddings:
-            raise RuntimeError("Embeddings model not initialized. Check GOOGLE_API_KEY.")
-        
         try:
-            embeddings = self.embeddings.embed_documents(texts)
+            embeddings = []
+            for text in texts:
+                result = genai.embed_content(
+                    model=self.embedding_model,
+                    content=text,
+                    task_type="retrieval_document"
+                )
+                embeddings.append(result['embedding'])
+            
+            logger.debug(f"Generated {len(embeddings)} embeddings ({len(embeddings[0])}D each)")
             return embeddings
+            
         except Exception as e:
             logger.error(f"Embedding generation failed: {e}")
             raise

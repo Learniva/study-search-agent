@@ -79,56 +79,77 @@ def retrieve_from_vector_store(
         return "❌ Vector store not available. Database not configured. Please set DATABASE_URL in .env"
     
     try:
-        # Get embedding for query
-        # Note: In production, use actual embedding model
-        # For now, we'll use a placeholder that returns text-based results
+        # Generate 768D query embedding using Google Gemini
+        import google.generativeai as genai
+        genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
         
-        db = get_db()
-        try:
-            # Use hybrid search for better results (semantic + keyword)
-            from utils import initialize_llm
+        query_result = genai.embed_content(
+            model="models/embedding-001",
+            content=query,
+            task_type="retrieval_query"  # Query task type for search
+        )
+        query_embedding = query_result['embedding']
+        
+        with get_db() as db:
+            # Perform pgvector similarity search with 768D embeddings
+            from sqlalchemy import text
             
-            # Get embedding using the same model as document indexing
-            # For now, just do keyword search
-            from sqlalchemy import or_
-            
-            results = db.query(DocumentVector).filter(
-                or_(
-                    DocumentVector.content.ilike(f"%{query}%"),
-                    DocumentVector.document_name.ilike(f"%{query}%")
-                )
-            )
+            # Build SQL query with user/course filters
+            filters = []
+            params = {
+                'embedding': query_embedding,
+                'limit': limit
+            }
             
             if user_id:
-                results = results.filter(DocumentVector.user_id == user_id)
+                filters.append("user_id = :user_id")
+                params['user_id'] = user_id
             if course_id:
-                results = results.filter(DocumentVector.course_id == course_id)
+                filters.append("course_id = :course_id")
+                params['course_id'] = course_id
             
-            results = results.limit(limit).all()
+            where_clause = " AND " + " AND ".join(filters) if filters else ""
+            
+            # Use pgvector's <=> operator for cosine distance (lower = more similar)
+            sql = f"""
+                SELECT 
+                    id, document_name, content, relevance_score, retrieval_count,
+                    (embedding <=> :embedding::vector) as distance
+                FROM document_vectors
+                WHERE 1=1 {where_clause}
+                ORDER BY embedding <=> :embedding::vector
+                LIMIT :limit
+            """
+            
+            result = db.execute(text(sql), params)
+            results = result.fetchall()
             
             if not results:
                 return f"📚 No relevant documents found for query: '{query}'\n\nTip: Make sure documents are uploaded and indexed in the vector store."
             
-            # Format results
-            formatted_results = f"📚 Retrieved {len(results)} relevant chunks from Vector Store:\n\n"
+            # Format results with similarity scores
+            formatted_results = f"📚 Retrieved {len(results)} semantically relevant chunks (768D Google Gemini embeddings):\n\n"
             
             for i, doc in enumerate(results, 1):
+                # Convert distance to similarity score (1 - distance for cosine)
+                similarity = 1 - doc.distance
                 formatted_results += f"**Result {i}** (Document: {doc.document_name})\n"
                 formatted_results += f"{doc.content[:500]}{'...' if len(doc.content) > 500 else ''}\n"
-                formatted_results += f"_Relevance: {doc.relevance_score:.2f} | Retrieved {doc.retrieval_count} times_\n\n"
+                formatted_results += f"_Similarity: {similarity:.3f} | Retrieved {doc.retrieval_count} times_\n\n"
             
             # Update retrieval stats
             for doc in results:
-                doc.retrieval_count += 1
+                db.execute(
+                    text("UPDATE document_vectors SET retrieval_count = retrieval_count + 1 WHERE id = :id"),
+                    {'id': doc.id}
+                )
             db.commit()
             
             return formatted_results
             
-        finally:
-            db.close()
-            
     except Exception as e:
-        return f"❌ Error retrieving from vector store: {str(e)}"
+        import traceback
+        return f"❌ Error retrieving from vector store: {str(e)}\n{traceback.format_exc()}"
 
 
 @tool

@@ -38,9 +38,9 @@ class DocumentVector(Base):
     content = Column(Text, nullable=False)  # Original text chunk
     chunk_index = Column(Integer)  # Position in document
     
-    # Vector embedding (1536 dimensions for OpenAI, 768 for others)
-    # Dimension will be set dynamically based on embedding model
-    embedding = Column(Vector(1536))  # pgvector column for semantic search
+    # Vector embedding (768 dimensions for Google Gemini models/embedding-001)
+    # Provides effective semantic search for autonomous agent learning
+    embedding = Column(Vector(768))  # pgvector column for semantic search
     
     # Metadata for context (renamed from 'metadata' to avoid SQLAlchemy conflict)
     doc_metadata = Column(JSONB)  # Additional metadata (page, section, etc.)
