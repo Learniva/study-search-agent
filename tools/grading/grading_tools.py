@@ -571,12 +571,13 @@ Remember: This feedback is meant to help you grow. Keep up the great work!
 
 def get_all_grading_tools():
     """
-    Return all grading tools including RAG and file processing.
+    Return all grading tools including RAG, file processing, and lesson planning.
     
     Tools include:
     1. Core grading tools (essay, code, MCQ, rubric, feedback)
     2. RAG tools (rubric retrieval) - if available
     3. File processing tools (submission parser) - if available
+    4. Lesson planning tools (for teachers/professors) - always included
     """
     tools = [
         grade_essay,
@@ -585,6 +586,15 @@ def get_all_grading_tools():
         evaluate_with_rubric,
         generate_feedback
     ]
+    
+    # Add lesson planning tools for teachers and professors
+    try:
+        from .lesson_planning import get_lesson_planning_tools
+        lesson_tools = get_lesson_planning_tools()
+        tools.extend(lesson_tools)
+        print(f"✅ Lesson Planning tools loaded ({len(lesson_tools)} tools)")
+    except ImportError as e:
+        print(f"⚠️  Lesson Planning tools not available: {e}")
     
     # Add RAG rubric retrieval tools if available
     if RUBRIC_RAG_AVAILABLE:
