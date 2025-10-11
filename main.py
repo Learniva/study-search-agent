@@ -123,21 +123,13 @@ Examples:
     print(f"\n🚀 Initializing Multi-Agent System with {llm_provider.upper()}...")
     print(f"👤 Your Role: {user_role.upper()}\n")
     
-    # Auto-index documents from documents/ folder into L2 Vector Store
+    # Note: Document indexing moved to API for better control
+    # Use POST /documents/upload endpoint to index documents
     documents_dir = os.getenv("DOCUMENTS_DIR", "documents")
     if os.path.exists(documents_dir) and os.listdir(documents_dir):
         print(f"📚 Documents directory found: {documents_dir}")
-        try:
-            from database.operations.document_loader import initialize_document_store
-            print("🔄 Indexing documents into vector store...")
-            success = initialize_document_store(documents_dir)
-            if success:
-                print("✅ Documents indexed and ready for Q&A\n")
-            else:
-                print("⚠️  Some documents failed to index (see logs)\n")
-        except Exception as e:
-            print(f"⚠️  Document indexing skipped: {str(e)}")
-            print("💡 Documents will be available after manual upload via API\n")
+        print("💡 To index documents, use: POST /documents/upload endpoint")
+        print("💡 Or run: python -c \"from database.operations.document_loader import initialize_document_store; initialize_document_store('documents')\"\n")
     
     try:
         # Initialize supervisor agent
