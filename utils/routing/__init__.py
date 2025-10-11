@@ -4,6 +4,7 @@ Routing Utilities Package
 Tool and agent routing utilities:
 - routing: Fast pattern-based routing (80-90% faster, no LLM)
 - performance: Performance-based routing with monitoring
+- ab_testing: A/B testing framework for routing strategy experiments
 """
 
 from .routing import (
@@ -31,6 +32,14 @@ from .performance import (
     save_performance_router,
 )
 
+from .ab_testing import (
+    ABTestingFramework,
+    ABExperiment,
+    ABTestResult,
+    get_ab_testing_framework,
+    track_routing_decision,
+)
+
 __all__ = [
     # Pattern routing
     'pattern_based_route',
@@ -54,5 +63,13 @@ __all__ = [
     'get_performance_stats',
     'get_performance_router',
     'save_performance_router',
+    
+    # A/B Testing
+    'ABTestingFramework',
+    'ABExperiment',
+    'ABTestResult',
+    'get_ab_testing_framework',
+    'track_routing_decision',
 ]
+
 

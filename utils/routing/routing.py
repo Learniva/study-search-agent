@@ -42,28 +42,28 @@ def pattern_based_route(question: str, patterns: Dict[str, List[str]]) -> Option
 
 STUDY_AGENT_PATTERNS = {
     'Document_QA': [
-        # PRIORITY: Most flexible patterns first (allows ANY words in between)
-        # "attached/uploaded" anywhere - very strong signal for documents
+        # ONLY route to Document_QA when user EXPLICITLY mentions their documents
+        # This prevents unwanted document lookups for general questions
+        
+        # Explicit document references
         r'\b(attached|uploaded)\b',
-        # "my <anything> notes/document" - e.g., "my deep learning notes", "my AI document"
         r'\bmy\b.*\b(notes|documents|files|pdf|material|book)\b',
-        # "according to/based on/from/in + <anything> + notes/document/pdf"
-        # e.g., "based on the attached pdf", "from my AI document"
         r'\b(according to|based on|from|in)\b.*\b(notes|document|pdf|file|material|book|text|content)\b',
-        # Chapter/page references - very strong signal for documents
-        r'\b(chapter|section|page)\b.*\d+',
-        # Study material generation with chapter reference (flexible - allows words between)
-        r'\b(generate|create|make)\b.*(study guide|summary|flashcards|mcq|questions)\b.*\b(chapter|section|page)\b',
-        # Study material generation from specific sources
-        r'\b(generate|create|make)\b.*(study guide|summary|flashcards|mcq|questions)\b.*(for|about|on|from)\b',
-        # Direct references to documents
         r'\b(my notes|my documents|my files|uploaded files?)\b',
         r'\b(the|my|this|an?) (attached|uploaded)\b.*\b(document|file|pdf|docx)\b',
-        # Questions about what documents say/contain
         r'\b(what does|what do)\b.*\b(the|my|this)\b.*\b(notes|document|pdf|file|material|text|content)\b',
         r'\b(notes|document|file|material|text|content)\b.*\b(say|says|mention|mentions|state|states|explain|explains)\b',
-        # Specific document names (customize based on your documents)
-        r'\b(deep learning|code savanna|machine learning)\b.*\b(notes|document|material|pdf|book)\b',
+        
+        # Chapter/section references (clearly document-related)
+        r'\b(chapter|section|page)\b.*\d+',
+        r'\b(chapter|section)\b',
+        
+        # Study material generation from documents
+        r'\b(generate|create|make)\b.*(study guide|summar|flashcard|mcq|question|quiz|test).*\b(from|based on|using)\b',
+        r'\b(summariz|summar)\b.*\b(chapter|section|my|the)\b',
+        
+        # Follow-ups explicitly about documents
+        r'\b(in|from)\s+(my|the|this)\s+(document|notes|book|material)\b',
     ],
     'Python_REPL': [
         r'\b(calculate|compute|solve)\b.*\d',
@@ -77,10 +77,13 @@ STUDY_AGENT_PATTERNS = {
         r'\b(manim|visual\s+explanation)\b',
     ],
     'Web_Search': [
-        r'^\s*(what|who|when|where|why|how|explain|tell\s+me)\b',
-        r'\b(latest|current|recent|news|today|this\s+(week|month|year))\b',
-        r'\b(what\s+is|who\s+is|when\s+is|where\s+is)\b',
-        r'\b(define|definition|meaning\s+of)\b',
+        # General knowledge questions (when documents are NOT explicitly mentioned)
+        r'^\s*(?:what|how|why|explain|describe|define|who|when|where)\b',
+        
+        # Current/time-sensitive queries
+        r'\b(latest|current|recent|news|today|yesterday|this\s+(week|month|year))\b',
+        r'\b(2024|2025|2026)\b',
+        r'\b(who\s+is|when\s+is|where\s+is)\b.*\b(now|today|currently)\b',
     ],
 }
 
@@ -123,6 +126,32 @@ GRADING_AGENT_PATTERNS = {
         r'\b(feedback|comments?)\b.*\b(only|without\s+grade)\b',
         r'\bprovide\s+feedback\b',
         r'\bgive\s+feedback\b',
+    ],
+    # Lesson Planning Tools (for teachers/professors)
+    'generate_lesson_plan': [
+        r'\b(create|generate|make|design|write)\b.*\b(lesson\s+plan)\b',
+        r'\blesson\s+plan\b.*\b(for|about|on)\b',
+        r'\bplan\s+(a|the)\s+lesson\b',
+    ],
+    'design_curriculum': [
+        r'\b(create|design|develop)\b.*\b(curriculum|syllabus|course\s+plan)\b',
+        r'\b(curriculum|syllabus)\b.*\b(for|design)\b',
+        r'\b(semester|course)\s+(plan|outline)\b',
+    ],
+    'create_learning_objectives': [
+        r'\b(create|write|develop)\b.*\b(learning\s+objectives?|learning\s+outcomes?)\b',
+        r'\blearning\s+objectives?\b.*\b(for|about)\b',
+        r'\bbloom.?s\s+taxonomy\b',
+    ],
+    'design_assessment': [
+        r'\b(create|design|make|generate)\b.*\b(quiz|test|exam|assessment)\b',
+        r'\b(quiz|test|exam)\b.*\b(for|about|on)\b',
+        r'\bdesign\s+(an?\s+)?(quiz|test|exam|assessment)\b',
+    ],
+    'generate_study_materials': [
+        r'\b(create|generate|make)\b.*\b(handout|worksheet|study\s+guide|material)\b',
+        r'\b(handout|worksheet|study\s+guide)\b.*\b(for|about|on)\b',
+        r'\bmake\s+(a|an)\s+(handout|worksheet)\b',
     ],
 }
 

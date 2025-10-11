@@ -301,3 +301,4 @@ spec:
   sessionAffinity: {"ClientIP" if self.session_affinity == SessionAffinity.IP_HASH else "None"}
 """
 
+

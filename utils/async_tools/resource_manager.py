@@ -368,3 +368,14 @@ class ResourcePool:
             "total_released": self.released_count,
         }
 
+
+# Singleton instance
+_resource_manager_instance: Optional[ResourceManager] = None
+
+
+def get_resource_manager() -> ResourceManager:
+    """Get the singleton ResourceManager instance."""
+    global _resource_manager_instance
+    if _resource_manager_instance is None:
+        _resource_manager_instance = ResourceManager()
+    return _resource_manager_instance
