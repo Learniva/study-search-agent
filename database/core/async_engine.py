@@ -19,7 +19,7 @@ from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
 )
-from sqlalchemy.pool import NullPool, QueuePool
+from sqlalchemy.pool import NullPool, AsyncAdaptedQueuePool
 from sqlalchemy import text, event
 
 from config import settings
@@ -35,8 +35,8 @@ class AsyncDatabaseEngine:
     def create_engine(self) -> AsyncEngine:
         """Create async database engine with optimized settings."""
         
-        # Choose pool class based on configuration
-        pool_class = QueuePool if not settings.testing else NullPool
+        # Choose pool class based on configuration (async requires AsyncAdaptedQueuePool)
+        pool_class = AsyncAdaptedQueuePool if not settings.testing else NullPool
         
         engine = create_async_engine(
             settings.async_database_url,

@@ -417,3 +417,4 @@ async def delete_async(model_class, **kwargs):
     ops = get_async_db_ops()
     return await ops.delete_entity(model_class, kwargs)
 
+
