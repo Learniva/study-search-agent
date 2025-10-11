@@ -60,8 +60,47 @@ def build_study_workflow(llm, tool_map: dict) -> StateGraph:
     
     workflow.add_node("check_result", check_result)
     
-    # Set entry point
-    workflow.set_entry_point("detect_complexity")
+    # Add user choice check node
+    workflow.add_node("check_user_choice", nodes.check_user_choice)
+    
+    # Set entry point - check user choice first
+    workflow.set_entry_point("check_user_choice")
+    
+    # Route from user choice check
+    def route_after_choice_check(state: StudyAgentState) -> str:
+        """Route after checking if user made a choice."""
+        if state.get("user_choice_web_search"):
+            return "handle_web_choice"
+        elif state.get("user_choice_upload"):
+            return "handle_upload_choice"
+        else:
+            return "detect_complexity"  # Continue normal flow
+    
+    # Add nodes for handling user choices
+    def handle_web_search_choice(state: StudyAgentState) -> StudyAgentState:
+        """Handle web search after user permission."""
+        return {**state, "tool_used": "Web_Search"}
+    
+    def handle_upload_choice(state: StudyAgentState) -> StudyAgentState:
+        """Handle upload choice."""
+        return state  # tool_result already set in check_user_choice
+    
+    workflow.add_node("handle_web_choice", handle_web_search_choice)
+    workflow.add_node("handle_upload_choice", handle_upload_choice)
+    
+    workflow.add_conditional_edges(
+        "check_user_choice",
+        route_after_choice_check,
+        {
+            "handle_web_choice": "handle_web_choice",
+            "handle_upload_choice": "handle_upload_choice",
+            "detect_complexity": "detect_complexity"
+        }
+    )
+    
+    # After user choice, go to appropriate tool
+    workflow.add_edge("handle_web_choice", "web_search")
+    workflow.add_edge("handle_upload_choice", "format_answer")
     
     # Complexity routing
     workflow.add_conditional_edges(

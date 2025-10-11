@@ -20,6 +20,24 @@ class StudyAgentRouter:
         
         # Try pattern-based routing first (fast, no LLM call)
         quick_route = fast_study_route(question)
+        
+        # If Document_QA was suggested, verify documents exist first
+        if quick_route == "Document_QA":
+            try:
+                from database.core import get_db
+                from sqlalchemy import text
+                
+                with get_db() as db:
+                    count_result = db.execute(text("SELECT COUNT(*) as count FROM document_vectors"))
+                    total_docs = count_result.fetchone().count
+                    
+                    if total_docs == 0:
+                        print("⚠️  No documents in vector store - routing to Web Search instead")
+                        quick_route = "Web_Search"
+            except Exception as e:
+                print(f"⚠️  Database unavailable - continuing with Document_QA route (will fallback if needed)")
+                # Continue with original route - fallback mechanism will handle it
+        
         if quick_route:
             updated_messages = previous_messages + [HumanMessage(content=question)]
             return {**state, "tool_used": quick_route, "messages": updated_messages}
@@ -74,9 +92,21 @@ Respond with ONLY the tool name."""
     
     def should_retry(self, state: StudyAgentState) -> Literal["retry", "finish"]:
         """Decide if retry with different tool is needed."""
+        # Check if we asked user for clarification and they haven't responded yet
+        if state.get("awaiting_user_choice"):
+            # Don't auto-retry - wait for user's explicit choice
+            return "finish"
+        
+        # If user explicitly chose web search, we're done after executing it
+        # Don't retry again
+        if state.get("user_choice_web_search") or state.get("user_choice_upload"):
+            return "finish"
+        
+        # Legacy auto-retry (shouldn't happen now but keep as fallback)
         if state.get("document_qa_failed") and state.get("tried_document_qa"):
-            if state.get("iteration", 0) < 2:
+            if state.get("iteration", 0) < 2 and not state.get("needs_clarification"):
                 return "retry"
+        
         return "finish"
     
     def route_by_complexity(self, state: StudyAgentState) -> Literal["plan_complex", "route_simple"]:

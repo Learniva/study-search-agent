@@ -14,6 +14,59 @@ class StudyAgentNodes:
         self.llm = llm
         self.tool_map = tool_map
     
+    def check_user_choice(self, state: StudyAgentState) -> StudyAgentState:
+        """Check if user is responding to a choice prompt (web search vs upload)."""
+        question = state["question"].lower().strip()
+        messages = state.get("messages", [])
+        
+        # Check if the last AI message was a clarification prompt
+        last_ai_message = None
+        for msg in reversed(messages):
+            if hasattr(msg, 'type') and msg.type == 'ai':
+                last_ai_message = msg.content.lower() if hasattr(msg, 'content') else ""
+                break
+        
+        # Only treat as choice if last message was our clarification prompt
+        is_clarification_context = (
+            last_ai_message and 
+            ("would you like me to" in last_ai_message or 
+             "search the web" in last_ai_message and "upload" in last_ai_message)
+        )
+        
+        if not is_clarification_context:
+            # Not responding to our prompt - treat as normal question
+            return state
+        
+        # Now check if this is a response to our clarification question
+        # Detect: "1", "2", "search web", "web search", "upload", "upload document"
+        is_web_search = any(phrase in question for phrase in [
+            "search web", "web search", "search the web", "1", "yes", "sure", "ok", "search"
+        ]) and len(question) < 50  # Short responses only
+        
+        is_upload = any(phrase in question for phrase in [
+            "upload", "upload document", "2", "wait", "no", "later"
+        ]) and len(question) < 50
+        
+        if is_web_search:
+            print("✅ User chose: Search the web")
+            return {
+                **state,
+                "user_choice_web_search": True,
+                "awaiting_user_choice": False,
+                "tool_used": "Web_Search"
+            }
+        elif is_upload:
+            print("✅ User chose: Upload document")
+            return {
+                **state,
+                "user_choice_upload": True,
+                "awaiting_user_choice": False,
+                "tool_result": "Please upload your document using the API endpoint: POST /documents/upload\n\nOnce uploaded, feel free to ask your question again!"
+            }
+        
+        # Not a clear choice - treat as new question
+        return state
+    
     def detect_complexity(self, state: StudyAgentState) -> StudyAgentState:
         """Detect if question requires multi-step planning."""
         question = state["question"].lower()
@@ -203,16 +256,128 @@ Provide a complete answer."""
             }
         
         try:
-            result = tool.func(state["question"])
-            failed = any(p in result.lower() for p in [
-                "no relevant content", "no documents", "not found"
+            # Retrieve relevant document chunks
+            raw_results = tool.func(state["question"])
+            
+            # Check if retrieval failed
+            failed = any(p in raw_results.lower() for p in [
+                "no relevant content", "no documents found", "not found", "❌",
+                "no documents", "please upload", "vector store"
             ])
+            
+            if failed:
+                # Check if this is a "no documents available" situation
+                if "no documents found" in raw_results.lower() or "please upload" in raw_results.lower():
+                    print("💡 No documents available - asking user for next action")
+                    clarification_message = (
+                        "📚 No documents found in your library.\n\n"
+                        "Would you like me to:\n"
+                        "1. 🌐 Search the web for this information\n"
+                        "2. ⏸️  Wait while you upload a document first\n\n"
+                        "Please reply with 'search web' or 'upload document' (or just '1' or '2'):"
+                    )
+                    return {
+                        **state,
+                        "tool_result": clarification_message,
+                        "tried_document_qa": True,
+                        "document_qa_failed": True,
+                        "needs_clarification": True,
+                        "awaiting_user_choice": True
+                    }
+                
+                return {
+                    **state,
+                    "tool_result": raw_results,
+                    "tried_document_qa": True,
+                    "document_qa_failed": True
+                }
+            
+            # Detect if this is a study material generation request
+            question_lower = state["question"].lower()
+            is_study_material = any(keyword in question_lower for keyword in [
+                'flashcard', 'study guide', 'summary', 'summarize', 'mcq', 
+                'multiple choice', 'quiz', 'practice questions'
+            ])
+            
+            # Synthesize answer using LLM
+            if is_study_material:
+                synthesis_prompt = f"""You are a study assistant creating educational materials from retrieved content.
+
+Question: {state["question"]}
+
+Retrieved Content:
+{raw_results}
+
+Instructions:
+1. Create the requested study material (flashcards, study guide, MCQ, etc.) based on the retrieved content
+2. Use ONLY information from the retrieved content above
+3. If the content is insufficient, clearly state what's missing
+4. Cite page numbers when available: "(p. 42)"
+5. Make the material comprehensive and well-organized
+6. For flashcards: Format as "**Front:**" and "**Back:**" pairs
+7. For study guides: Use clear headings and bullet points
+8. For MCQs: Include question, options, and correct answer
+
+Answer:"""
+            else:
+                synthesis_prompt = f"""You are a helpful study assistant. Answer the question concisely and clearly.
+
+Question: {state["question"]}
+
+Retrieved Content:
+{raw_results}
+
+Instructions:
+1. Provide a direct, focused answer to the question
+2. Use ONLY information from the retrieved content above
+3. Do NOT include chunk references like "[Chunk X]" - cite page numbers instead when available
+4. If page numbers appear in the content (e.g., "[Page 42]"), cite them naturally: "(p. 42)"
+5. Keep it concise - answer the question without extra elaboration
+6. If the user wants more details, they can ask follow-up questions
+7. Use clear, simple language and good formatting
+
+Answer:"""
+            
+            response = self.llm.invoke([HumanMessage(content=synthesis_prompt)])
+            
+            # Check if LLM indicated content was insufficient/irrelevant
+            response_lower = response.content.lower()
+            insufficient = any(phrase in response_lower for phrase in [
+                "does not contain", "do not contain", "no information about",
+                "no information available", "there is no information",
+                "provided content does not", "cannot answer",
+                "not available about", "nothing about"
+            ])
+            
+            # Also check for negative statements at the start of response
+            if response_lower.strip().startswith(("based on the retrieved content, there is no", 
+                                                   "the retrieved content", "i cannot find")):
+                insufficient = True
+            
+            if insufficient:
+                print("⚠️  Retrieved content not relevant - asking user for next action")
+                # Ask user what they want to do instead of auto-searching
+                clarification_message = (
+                    "I couldn't find relevant information about this topic in your uploaded documents.\n\n"
+                    "Would you like me to:\n"
+                    "1. 🌐 Search the web for this information\n"
+                    "2. ⏸️  Wait while you upload a document with this information\n\n"
+                    "Please reply with 'search web' or 'upload document' (or just '1' or '2'):"
+                )
+                return {
+                    **state,
+                    "tool_result": clarification_message,
+                    "tried_document_qa": True,
+                    "document_qa_failed": True,
+                    "needs_clarification": True,  # Signal that we need user input
+                    "awaiting_user_choice": True
+                }
             
             return {
                 **state,
-                "tool_result": result,
+                "tool_result": response.content,
                 "tried_document_qa": True,
-                "document_qa_failed": failed
+                "document_qa_failed": False
             }
         except Exception as e:
             return {
@@ -229,15 +394,92 @@ Provide a complete answer."""
             return {**state, "tool_result": "Web search not available"}
         
         try:
-            raw_results = tool.func(state["question"])
+            # Build conversation context for better understanding of follow-up questions
+            messages = state.get("messages", [])
+            context = ""
             
-            synthesis_prompt = f"""Synthesize search results:
+            # Include last 2-3 Q&A pairs for context
+            if messages:
+                recent_messages = []
+                for msg in messages[-6:]:  # Last 6 messages = ~3 Q&A pairs
+                    if hasattr(msg, 'content'):
+                        role = "User" if hasattr(msg, 'type') and msg.type == 'human' else "Assistant"
+                        recent_messages.append(f"{role}: {msg.content[:200]}")  # Limit to 200 chars
+                
+                if recent_messages:
+                    context = f"\n\nConversation History:\n" + "\n".join(recent_messages)
+            
+            # Build search query with context if needed
+            search_query = state["question"]
+            question_lower = search_query.lower()
+            
+            # For ambiguous follow-up questions (pronouns, "it", "that", etc.), 
+            # enhance query with context from conversation
+            has_pronoun = any(word in question_lower for word in [' it ', ' this ', ' that ', ' them ', ' these ', ' those '])
+            has_ambiguous_phrase = any(phrase in question_lower for phrase in ['where is', 'how is', 'how does', 'who discovered', 'who invented', 'who created'])
+            
+            if has_pronoun or has_ambiguous_phrase:
+                # Extract topic from recent messages
+                if messages:
+                    import re
+                    for msg in reversed(messages[-4:]):
+                        if hasattr(msg, 'type') and msg.type == 'human' and hasattr(msg, 'content'):
+                            prev_question = msg.content.lower()
+                            # Look for "what is X" pattern to extract topic
+                            topic_match = re.search(r'what\s+(?:is|are)\s+([^?]+)', prev_question)
+                            if topic_match:
+                                topic = topic_match.group(1).strip()
+                                
+                                # For specific question types, replace pronoun with topic directly
+                                if any(q in question_lower for q in ['who discovered', 'who invented', 'who created', 'who found', 
+                                                                      'how does', 'how is', 'where is', 'when was']):
+                                    # Replace "it" with the actual topic
+                                    search_query = re.sub(r'\bit\b', topic, search_query, flags=re.IGNORECASE)
+                                elif has_pronoun:
+                                    # For questions with pronouns but not specific patterns
+                                    search_query = re.sub(r'\bit\b', topic, search_query, flags=re.IGNORECASE)
+                                else:
+                                    # For other questions, add as context
+                                    search_query = f"{search_query} {topic}"
+                                break
+            
+            raw_results = tool.func(search_query)
+            
+            # Detect time-sensitive queries that need disclaimers
+            is_time_sensitive = any(phrase in question_lower for phrase in [
+                'current time', 'what time', 'time now', 'time in',
+                'current date', 'what date', 'date today', 'today date',
+                'current weather', 'weather now', 'weather today',
+                'latest', 'breaking news', 'just happened'
+            ])
+            
+            time_disclaimer = ""
+            if is_time_sensitive:
+                time_disclaimer = "\n\nIMPORTANT: Add a disclaimer that for real-time information (time, date, weather), the search results may be outdated or cached. Recommend checking a reliable real-time source directly (e.g., time.is, weather.com)."
+            
+            synthesis_prompt = f"""Answer the question concisely and directly using the search results.
 
-Question: {state["question"]}
+Question: {state["question"]}{context}
 
-Results: {raw_results}
+Search Results:
+{raw_results}{time_disclaimer}
 
-Provide comprehensive answer with sources."""
+Instructions:
+1. Use conversation history to understand follow-up questions and pronouns (it, this, that)
+2. Answer ONLY what was asked - no extra sections or elaboration
+3. Be direct and concise (2-4 sentences max for definitions)
+4. Use simple, clear language - avoid complex formatting
+5. Cite ONLY high-quality, authoritative sources:
+   - Prioritize: Wikipedia, .edu (universities), .gov (government), .org (established organizations)
+   - Avoid: blogs, forums, random websites
+   - Include MAXIMUM 4-6 sources
+6. Format sources EXACTLY as: Sources: [1] Title - https://full-url.com, [2] Title - https://full-url.com
+   - ALWAYS include the complete URL for each source
+   - DO NOT write just titles without URLs
+7. DO NOT include HTML tags or markdown links (use plain text URLs)
+8. If the user wants more details, they will ask a follow-up question
+
+Answer:"""
             
             response = self.llm.invoke([HumanMessage(content=synthesis_prompt)])
             

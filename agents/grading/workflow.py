@@ -60,11 +60,44 @@ def build_grading_workflow(llm, tool_map: dict) -> StateGraph:
         result = tool.func(state["question"]) if tool else "Feedback generation unavailable"
         return {**state, "tool_result": result}
     
+    # Lesson Planning Tool Nodes (for teachers/professors)
+    def generate_lesson_plan(state: GradingAgentState) -> GradingAgentState:
+        tool = tool_map.get("generate_lesson_plan")
+        result = tool.func(state["question"]) if tool else "Lesson planning unavailable"
+        return {**state, "tool_result": result}
+    
+    def design_curriculum(state: GradingAgentState) -> GradingAgentState:
+        tool = tool_map.get("design_curriculum")
+        result = tool.func(state["question"]) if tool else "Curriculum design unavailable"
+        return {**state, "tool_result": result}
+    
+    def create_learning_objectives(state: GradingAgentState) -> GradingAgentState:
+        tool = tool_map.get("create_learning_objectives")
+        result = tool.func(state["question"]) if tool else "Learning objectives tool unavailable"
+        return {**state, "tool_result": result}
+    
+    def design_assessment(state: GradingAgentState) -> GradingAgentState:
+        tool = tool_map.get("design_assessment")
+        result = tool.func(state["question"]) if tool else "Assessment design unavailable"
+        return {**state, "tool_result": result}
+    
+    def generate_study_materials(state: GradingAgentState) -> GradingAgentState:
+        tool = tool_map.get("generate_study_materials")
+        result = tool.func(state["question"]) if tool else "Study materials generation unavailable"
+        return {**state, "tool_result": result}
+    
     workflow.add_node("grade_essay", grade_essay)
     workflow.add_node("review_code", review_code)
     workflow.add_node("grade_mcq", grade_mcq)
     workflow.add_node("evaluate_rubric", evaluate_rubric)
     workflow.add_node("generate_feedback", generate_feedback)
+    
+    # Add lesson planning nodes
+    workflow.add_node("generate_lesson_plan", generate_lesson_plan)
+    workflow.add_node("design_curriculum", design_curriculum)
+    workflow.add_node("create_learning_objectives", create_learning_objectives)
+    workflow.add_node("design_assessment", design_assessment)
+    workflow.add_node("generate_study_materials", generate_study_materials)
     
     # Format result node
     def format_result(state: GradingAgentState) -> GradingAgentState:
@@ -152,7 +185,13 @@ def build_grading_workflow(llm, tool_map: dict) -> StateGraph:
             "code": "review_code",
             "mcq": "grade_mcq",
             "rubric": "evaluate_rubric",
-            "feedback": "generate_feedback"
+            "feedback": "generate_feedback",
+            # Lesson planning tools
+            "lesson_plan": "generate_lesson_plan",
+            "curriculum": "design_curriculum",
+            "objectives": "create_learning_objectives",
+            "assessment": "design_assessment",
+            "materials": "generate_study_materials"
         }
     )
     
@@ -162,6 +201,13 @@ def build_grading_workflow(llm, tool_map: dict) -> StateGraph:
     workflow.add_edge("grade_mcq", "check_consistency")
     workflow.add_edge("evaluate_rubric", "check_consistency")
     workflow.add_edge("generate_feedback", "check_consistency")
+    
+    # Lesson planning tools → format result (skip consistency check for educational planning)
+    workflow.add_edge("generate_lesson_plan", "format_result")
+    workflow.add_edge("design_curriculum", "format_result")
+    workflow.add_edge("create_learning_objectives", "format_result")
+    workflow.add_edge("design_assessment", "format_result")
+    workflow.add_edge("generate_study_materials", "format_result")
     
     # Consistency → self-reflection
     workflow.add_edge("check_consistency", "self_reflect_grade")

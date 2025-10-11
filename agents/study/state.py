@@ -45,4 +45,9 @@ class StudyAgentState(TypedDict):
     alternative_approaches: List[str]
     error_context: Optional[Dict[str, Any]]
     needs_retry: bool
+    
+    # User choice handling (for web search permission)
+    awaiting_user_choice: bool
+    user_choice_web_search: bool
+    user_choice_upload: bool
 

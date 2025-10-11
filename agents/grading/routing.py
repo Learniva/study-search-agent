@@ -35,16 +35,24 @@ class GradingAgentRouter:
             return {**state, "tool_used": quick_route, "messages": updated_messages}
         
         # Fall back to LLM for ambiguous cases
-        routing_prompt = """Determine grading tool:
+        routing_prompt = """Determine the appropriate tool:
 
-Tools:
-1. grade_essay - Text submissions (DEFAULT)
+**Grading Tools:**
+1. grade_essay - Text submissions (DEFAULT for grading)
 2. review_code - Code/programming
 3. grade_mcq - Multiple choice only
 4. evaluate_rubric - JSON format with rubric
 5. generate_feedback - Feedback only, no score
 
-For plain text, use grade_essay.
+**Lesson Planning Tools (for teachers/professors):**
+6. generate_lesson_plan - Create lesson plans
+7. design_curriculum - Create course curriculum/syllabus
+8. create_learning_objectives - Write learning objectives
+9. design_assessment - Create quizzes/tests/exams
+10. generate_study_materials - Create handouts/worksheets
+
+For plain text submissions, use grade_essay.
+For educational planning, use lesson planning tools.
 Respond with tool name only."""
         
         messages = [
@@ -61,6 +69,7 @@ Respond with tool name only."""
         response = self.llm.invoke(messages)
         tool_choice = response.content.strip().lower()
         
+        # Grading tools
         if "essay" in tool_choice:
             tool_choice = "grade_essay"
         elif "code" in tool_choice:
@@ -71,6 +80,17 @@ Respond with tool name only."""
             tool_choice = "evaluate_with_rubric"
         elif "feedback" in tool_choice:
             tool_choice = "generate_feedback"
+        # Lesson planning tools
+        elif "lesson" in tool_choice or "plan" in tool_choice:
+            tool_choice = "generate_lesson_plan"
+        elif "curriculum" in tool_choice or "syllabus" in tool_choice:
+            tool_choice = "design_curriculum"
+        elif "objective" in tool_choice or "outcome" in tool_choice:
+            tool_choice = "create_learning_objectives"
+        elif "assessment" in tool_choice or "quiz" in tool_choice or "test" in tool_choice:
+            tool_choice = "design_assessment"
+        elif "material" in tool_choice or "handout" in tool_choice or "worksheet" in tool_choice:
+            tool_choice = "generate_study_materials"
         else:
             tool_choice = "generate_feedback"
         
@@ -78,11 +98,13 @@ Respond with tool name only."""
         return {**state, "tool_used": tool_choice, "messages": updated_messages}
     
     def route_to_tool(self, state: GradingAgentState) -> Literal[
-        "essay", "code", "mcq", "rubric", "feedback"
+        "essay", "code", "mcq", "rubric", "feedback",
+        "lesson_plan", "curriculum", "objectives", "assessment", "materials"
     ]:
         """Conditional edge for tool routing."""
         tool = state["tool_used"]
         
+        # Grading tools
         if tool == "grade_essay":
             return "essay"
         elif tool == "review_code":
@@ -91,6 +113,19 @@ Respond with tool name only."""
             return "mcq"
         elif tool == "evaluate_with_rubric":
             return "rubric"
+        elif tool == "generate_feedback":
+            return "feedback"
+        # Lesson planning tools
+        elif tool == "generate_lesson_plan":
+            return "lesson_plan"
+        elif tool == "design_curriculum":
+            return "curriculum"
+        elif tool == "create_learning_objectives":
+            return "objectives"
+        elif tool == "design_assessment":
+            return "assessment"
+        elif tool == "generate_study_materials":
+            return "materials"
         else:
             return "feedback"
     
