@@ -67,8 +67,36 @@ class Settings(BaseSettings):
     chunk_overlap: int = Field(default=200, ge=0, description="Document chunk overlap")
     
     # ==================== Search Configuration ====================
-    tavily_api_key: Optional[str] = Field(default=None, description="Tavily API key for web search")
+    google_search_api_key: Optional[str] = Field(default=None, description="Google Custom Search API key")
+    google_search_engine_id: Optional[str] = Field(default=None, description="Google Custom Search Engine ID")
+    tavily_api_key: Optional[str] = Field(default=None, description="Tavily API key for web search (fallback)")
     search_max_results: int = Field(default=5, ge=1, le=10, description="Max search results")
+    
+    # ==================== Google Classroom Configuration ====================
+    google_classroom_credentials_file: Optional[str] = Field(
+        default="credentials.json",
+        description="Path to Google Classroom OAuth2 credentials JSON file"
+    )
+    google_classroom_token_file: Optional[str] = Field(
+        default="token.json",
+        description="Path to store Google Classroom access token"
+    )
+    google_classroom_scopes: list[str] = Field(
+        default=[
+            "https://www.googleapis.com/auth/classroom.courses.readonly",
+            "https://www.googleapis.com/auth/classroom.coursework.students",
+            "https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly",
+            "https://www.googleapis.com/auth/classroom.rosters.readonly",
+            "https://www.googleapis.com/auth/classroom.student-submissions.students.readonly",
+            "https://www.googleapis.com/auth/classroom.student-submissions.me.readonly",
+            "https://www.googleapis.com/auth/drive.readonly",
+        ],
+        description="Google Classroom API scopes"
+    )
+    enable_google_classroom: bool = Field(
+        default=True,
+        description="Enable Google Classroom integration"
+    )
     
     # ==================== Feature Flags ====================
     enable_ml_features: bool = Field(default=True, description="Enable ML/adaptive features")
