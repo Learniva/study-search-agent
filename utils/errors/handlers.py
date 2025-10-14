@@ -73,7 +73,8 @@ class ErrorHandler:
             )
         
         # Track for monitoring
-        track_error(error, context)
+        error_type = type(error).__name__
+        track_error(error_type)
     
     def handle_error(
         self,
