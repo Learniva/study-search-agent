@@ -142,8 +142,10 @@ Detect → Plan Task → Execute Loop → Synthesize → Reflect → Done
 # Required
 GOOGLE_API_KEY=xxx
 
-# Search
-TAVILY_API_KEY=xxx              # Optional
+# Search (Optional for web search)
+GOOGLE_SEARCH_API_KEY=xxx       # Google Custom Search API key (Primary)
+GOOGLE_SEARCH_ENGINE_ID=xxx     # Custom Search Engine ID
+TAVILY_API_KEY=xxx              # Tavily API key (Fallback)
 SEARCH_MAX_RESULTS=5
 
 # Documents
