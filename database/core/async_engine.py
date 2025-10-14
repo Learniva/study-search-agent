@@ -12,6 +12,7 @@ Features:
 from typing import AsyncGenerator, Optional
 from contextlib import asynccontextmanager
 import asyncio
+import random
 
 from sqlalchemy.ext.asyncio import (
     create_async_engine,
@@ -46,11 +47,17 @@ class AsyncDatabaseEngine:
             max_overflow=settings.db_max_overflow,
             pool_recycle=settings.db_pool_recycle,
             pool_pre_ping=settings.db_pool_pre_ping,
+            pool_timeout=settings.db_pool_timeout,
             # Performance settings
             echo=settings.db_echo,
             echo_pool=settings.debug,
             # Execution options
             future=True,
+            # Query execution timeout
+            connect_args={"command_timeout": settings.db_command_timeout},
+            # Connection pooling optimizations
+            pool_use_lifo=True,  # Last In, First Out - better cache locality
+            reset_on_return="rollback",  # Auto-rollback on return to pool
         )
         
         # Register event listeners for monitoring
@@ -102,21 +109,52 @@ class AsyncDatabaseEngine:
     @asynccontextmanager
     async def get_session(self) -> AsyncGenerator[AsyncSession, None]:
         """
-        Get async database session with automatic cleanup.
+        Get async database session with automatic cleanup and retry logic.
         
         Usage:
             async with db_engine.get_session() as session:
                 result = await session.execute(query)
         """
-        async with self.session_factory() as session:
+        from sqlalchemy.exc import DBAPIError, OperationalError
+        from config import settings
+        import time
+        
+        # Retry configuration
+        max_retries = settings.db_connection_retries
+        retry_backoff = settings.db_retry_backoff
+        
+        for attempt in range(max_retries + 1):
             try:
-                yield session
-                await session.commit()
-            except Exception as e:
-                await session.rollback()
-                raise
-            finally:
-                await session.close()
+                async with self.session_factory() as session:
+                    # Set statement timeout if configured
+                    if settings.db_statement_timeout > 0:
+                        await session.execute(
+                            text(f"SET statement_timeout = {settings.db_statement_timeout}")
+                        )
+                    
+                    try:
+                        yield session
+                        await session.commit()
+                    except Exception as e:
+                        await session.rollback()
+                        raise
+                    finally:
+                        await session.close()
+                        
+                # If we get here, session was successful
+                return
+                
+            except (DBAPIError, OperationalError) as e:
+                # Connection errors that might be worth retrying
+                if attempt < max_retries:
+                    # Calculate exponential backoff with jitter
+                    backoff = retry_backoff * (2 ** attempt) * (0.5 + 0.5 * random.random())
+                    print(f"Database connection error, retrying in {backoff:.2f}s: {e}")
+                    await asyncio.sleep(backoff)
+                else:
+                    # Last attempt failed, re-raise
+                    print(f"Database connection failed after {max_retries} retries: {e}")
+                    raise
     
     async def health_check(self) -> bool:
         """Check database connection health."""
