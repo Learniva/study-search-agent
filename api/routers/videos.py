@@ -9,6 +9,27 @@ import os
 router = APIRouter(prefix="/videos", tags=["Videos"])
 
 
+@router.get("/")
+async def videos_root():
+    """
+    Videos router root - redirects to list endpoint.
+    
+    Returns:
+        Basic info about video endpoints
+    """
+    return {
+        "message": "Video Download Service",
+        "endpoints": {
+            "list": "/videos/list",
+            "download": "/videos/download/{filename}",
+            "latest": "/videos/latest",
+            "delete": "/videos/delete/{filename}",
+            "cleanup": "/videos/cleanup"
+        },
+        "description": "Manage and download generated Manim animation videos"
+    }
+
+
 @router.get("/list")
 async def list_videos():
     """

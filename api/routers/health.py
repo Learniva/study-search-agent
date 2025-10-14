@@ -33,8 +33,7 @@ async def root():
 
 @router.get("/health", response_model=HealthResponse)
 async def health_check(
-    supervisor=Depends(get_supervisor),
-    db=Depends(get_optional_db)
+    supervisor=Depends(get_supervisor)
 ):
     """
     Health check endpoint.
@@ -52,10 +51,22 @@ async def health_check(
     except ImportError:
         pass
     
+    # Check database availability without triggering connection
+    database_available = False
+    try:
+        from database.core.async_engine import async_db_engine
+        # Just check if the engine exists, don't try to connect
+        database_available = async_db_engine is not None
+    except ImportError:
+        pass
+    except Exception:
+        # Database module exists but has issues
+        database_available = False
+    
     return HealthResponse(
         status="healthy",
         supervisor_ready=supervisor is not None,
-        database_available=db is not None,
+        database_available=database_available,
         ml_features_available=ml_available,
         documents_loaded=documents_loaded,
         timestamp=datetime.utcnow(),
