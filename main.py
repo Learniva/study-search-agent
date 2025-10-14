@@ -113,10 +113,6 @@ Examples:
     # Get user role
     user_role = get_user_role(args)
     
-    # Normalize professor/instructor to teacher
-    if user_role in ["professor", "instructor"]:
-        user_role = "teacher"
-    
     # Get LLM provider from environment
     llm_provider = os.getenv("LLM_PROVIDER", "gemini")
     
@@ -134,6 +130,18 @@ Examples:
     try:
         # Initialize supervisor agent
         supervisor = SupervisorAgent(llm_provider=llm_provider)
+        
+        # Initialize Google Classroom service if enabled
+        if user_role.lower() in ["teacher", "professor", "instructor"]:
+            try:
+                from utils.classroom.google_classroom_service import get_classroom_service
+                classroom_service = get_classroom_service()
+                if classroom_service.is_available():
+                    print("✅ Google Classroom integration ready")
+                else:
+                    print("⚠️  Google Classroom integration not available")
+            except Exception as e:
+                print(f"⚠️  Google Classroom initialization failed: {e}")
         
         # Get user ID (for database tracking)
         user_id = args.user_id or user_role + "_cli_user"
@@ -175,6 +183,7 @@ Examples:
             print("   'arch' - Show system architecture")
             print("   'caps' - Show your capabilities")
             print("   'help' - Show help message")
+            print("   'code' or '>>>' - Enter multi-line code mode")
             print("   'quit', 'exit', 'q' - Exit program")
             print()
             
@@ -213,6 +222,12 @@ Examples:
                         print("  • System automatically routes to the right agent")
                         print("  • Students: Get study help")
                         print("  • Teachers: Get study help + grading assistance")
+                        print("\n📝 For Multi-Line Code:")
+                        print("  1. Type 'code' or '>>>' to enter code mode")
+                        print("     (⚠️  Type ONLY 'code', not '> code')")
+                        print("  2. Paste your code (multiple lines)")
+                        print("  3. Type 'END' on a new line when done")
+                        print("  4. System will ask what to do (Grade/Review/Explain)")
                         print("\nExamples:")
                         if user_role == "student":
                             print("  'Explain quantum physics'")
@@ -220,13 +235,47 @@ Examples:
                             print("  'Animate the Pythagorean theorem'")
                         else:
                             print("  'Grade this essay: [paste essay]'")
-                            print("  'Review this Python code: [paste code]'")
+                            print("  'code' → [paste code] → 'END' → 'Review'")
                             print("  'Generate study guide for calculus'")
                         print("="*70)
                         continue
                     
                     if not question:
                         continue
+                    
+                    # Check for multi-line code mode
+                    if question.lower() in ['code', '>>>']:
+                        print("\n📝 Multi-line code mode activated!")
+                        print("   • Paste your code (multiple lines)")
+                        print("   • Type 'END' on a new line when finished")
+                        print("   • Or press Ctrl+D (Unix/Mac) or Ctrl+Z (Windows)")
+                        print()
+                        
+                        code_lines = []
+                        try:
+                            while True:
+                                line = input("... ")
+                                if line.strip().upper() == 'END':
+                                    break
+                                code_lines.append(line)
+                        except EOFError:
+                            # Ctrl+D pressed
+                            pass
+                        
+                        if not code_lines:
+                            print("❌ No code entered.")
+                            continue
+                        
+                        # Join lines and ask for context
+                        code_content = '\n'.join(code_lines)
+                        action = input("\nWhat would you like me to do? (e.g., 'Grade', 'Review', 'Explain'): ").strip()
+                        
+                        if not action:
+                            action = "Review"
+                        
+                        # Wrap code in markdown blocks for better parsing
+                        question = f"{action} code:\n\n```python\n{code_content}\n```"
+                        print(f"\n✅ Processing {len(code_lines)} lines of code...")
                     
                     # Process request through supervisor
                     print("\n" + "="*70)
