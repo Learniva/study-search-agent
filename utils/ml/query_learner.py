@@ -521,6 +521,50 @@ class QueryLearner:
         except Exception as e:
             print(f"⚠️  Failed to load query patterns: {e}")
     
+    def get_stats(self) -> Dict[str, Any]:
+        """
+        Get statistics as a dictionary (for API endpoints).
+        
+        Returns:
+            Dictionary containing learning statistics
+        """
+        # Calculate totals
+        total_queries = len(self.query_history)
+        unique_users = len(set(r.query_hash for r in self.query_history))
+        
+        # Calculate average rating (from user feedback)
+        ratings = []
+        for record in self.query_history:
+            if record.user_feedback == "positive":
+                ratings.append(5)
+            elif record.user_feedback == "neutral":
+                ratings.append(3)
+            elif record.user_feedback == "negative":
+                ratings.append(1)
+        
+        avg_rating = np.mean(ratings) if ratings else 0.0
+        
+        # Get popular topics (query types)
+        query_type_counts = defaultdict(int)
+        for record in self.query_history:
+            if record.query_type:
+                query_type_counts[record.query_type] += 1
+        
+        popular_topics = sorted(
+            [{"topic": k, "count": v} for k, v in query_type_counts.items()],
+            key=lambda x: x['count'],
+            reverse=True
+        )[:10]
+        
+        return {
+            "total_queries": total_queries,
+            "unique_users": unique_users,
+            "avg_rating": float(avg_rating),
+            "popular_topics": popular_topics,
+            "tools_tracked": len(set(r.tool_used for r in self.query_history)),
+            "query_types": len(self.tool_performance)
+        }
+    
     def print_statistics(self):
         """Print learning statistics."""
         print("\n" + "=" * 70)
