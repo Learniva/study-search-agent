@@ -14,7 +14,7 @@
 Multi-step planning • Document Q&A • Web search • Python REPL • Manim animations • Context-aware follow-ups
 
 ### 🎓 Grading Agent (Teachers)
-15+ rubrics • Essay/Code/MCQ grading • Self-reflection • Adaptive learning from corrections
+15+ rubrics • Essay/Code/MCQ grading • Self-reflection • Adaptive learning from corrections • **Google Classroom Integration**
 
 ### 🤖 Agentic RAG
 - **Adaptive Retrieval** - Decides when RAG is needed
@@ -42,7 +42,7 @@ python main.py --role student              # CLI
 python -m api.app                          # API: http://localhost:8000/docs
 ```
 
-**API Keys:** [Gemini](https://aistudio.google.com/app/apikey) (required) • [Tavily](https://tavily.com/) (optional)
+**API Keys:** [Gemini](https://aistudio.google.com/app/apikey) (required) • [Google Custom Search](https://console.cloud.google.com/apis/credentials) + [Search Engine ID](https://programmablesearchengine.google.com/) (optional - primary) • [Tavily](https://tavily.com/) (optional - fallback)
 
 ---
 
@@ -136,23 +136,39 @@ See [PostgreSQL Guide](docs/POSTGRESQL.md) for details.
 
 ## Documentation
 
+### 📖 Complete Guide
+- **[COMPLETE USER GUIDE](COMPLETE_USER_GUIDE.md)** - **All documentation in one file** ⭐
+  - Quick start & installation
+  - Grading & Study agent features
+  - Google Classroom integration
+  - Command reference
+  - Helper scripts & teaching tools
+  - 19 available rubrics
+  - Troubleshooting & examples
+
 ### Core Agents
 - **[Study Agent](docs/STUDY_AGENT.md)** - Document Q&A, web search, code execution, animations
 - **[Grading Agent](docs/GRADING_AGENT.md)** - Essay/code/MCQ grading with rubrics
 - **[Supervisor Agent](docs/SUPERVISOR_AGENT.md)** - Routing, access control, learning
 
-### Architecture & Workflows
-- **[Agentic Workflow](docs/AGENTIC_WORKFLOW.md)** - Autonomous decision-making and routing
-- **[Supervisor-Grading Architecture](docs/SUPERVISOR_GRADING_ARCHITECTURE.md)** - Multi-agent coordination
+### Google Classroom
+- **[Complete User Guide](COMPLETE_USER_GUIDE.md)** - Full Google Classroom integration documentation
+- **[Interactive Tool](grade_classroom_assignment.py)** - Step-by-step grading script
 
-### Implementation
+### Architecture & Implementation
+- **[Agentic Workflow](docs/AGENTIC_WORKFLOW.md)** - Autonomous decision-making and routing
 - **[API Guide](docs/API_README.md)** - REST API reference and endpoints
 - **[PostgreSQL Guide](docs/POSTGRESQL.md)** - Database setup and RAG configuration
 - **[Manim Guide](docs/MANIM.md)** - Educational animation generation
 
-### Testing
-- `test_submissions/` - Sample essays, code, math problems
-- `rubrics/` - 15+ discipline-specific rubrics
+### Helper Scripts
+- **[Grade Classroom Assignment](grade_classroom_assignment.py)** - Interactive Google Classroom grading
+- **[Grade File](grade_file.py)** - Quick file grading from `test_submissions/`
+
+### Testing & Resources
+- `test_submissions/` - Sample essays, code, math problems (13+ files)
+- `rubrics/` - 19 discipline-specific rubrics
+- `examples/` - Example scripts and usage patterns
 
 ---
 
