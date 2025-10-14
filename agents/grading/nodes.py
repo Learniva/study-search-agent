@@ -61,7 +61,8 @@ class GradingAgentNodes:
         question = state["question"].lower()
         
         multi_tool_indicators = [
-            ("rubric" in question or "criteria" in question) and ("grade" in question),
+            # Don't treat rubric grading as complex - it should use fetch_and_grade
+            # ("rubric" in question or "criteria" in question) and ("grade" in question),
             ("feedback" in question) and ("grade" in question),
             ("compare" in question) and ("grade" in question),
             question.count(" and ") >= 2,
