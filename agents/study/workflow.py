@@ -61,6 +61,13 @@ def build_study_workflow(llm, tool_map: dict) -> StateGraph:
     
     workflow.add_node("check_result", check_result)
     
+    # Check if we should stop before final nodes for streaming
+    def check_stop_before_final(state: StudyAgentState) -> str:
+        """Check if we should stop before final nodes for streaming."""
+        if state.get("stop_before_final"):
+            return "stop"
+        return "continue"
+    
     # Add user choice check node
     workflow.add_node("check_user_choice", nodes.check_user_choice)
     
@@ -124,7 +131,16 @@ def build_study_workflow(llm, tool_map: dict) -> StateGraph:
     workflow.add_conditional_edges(
         "execute_plan",
         router.check_plan_steps,
-        {"execute_step": "execute_plan", "synthesize": "synthesize_results"}
+        {"execute_step": "execute_plan", "synthesize": "check_complex_streaming"}
+    )
+    
+    # Add node to check if we should stop for streaming in complex path
+    workflow.add_node("check_complex_streaming", lambda x: x)
+    
+    workflow.add_conditional_edges(
+        "check_complex_streaming",
+        check_stop_before_final,
+        {"stop": END, "continue": "synthesize_results"}
     )
     
     workflow.add_edge("synthesize_results", "self_reflect")
@@ -149,7 +165,16 @@ def build_study_workflow(llm, tool_map: dict) -> StateGraph:
     workflow.add_conditional_edges(
         "check_result",
         router.should_retry,
-        {"retry": "web_search", "finish": "format_answer"}
+        {"retry": "web_search", "finish": "check_streaming"}
+    )
+    
+    # Add node to check if we should stop for streaming
+    workflow.add_node("check_streaming", lambda x: x)
+    
+    workflow.add_conditional_edges(
+        "check_streaming",
+        check_stop_before_final,
+        {"stop": END, "continue": "format_answer"}
     )
     
     workflow.add_edge("format_answer", "self_reflect")

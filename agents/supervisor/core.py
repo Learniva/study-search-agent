@@ -81,6 +81,17 @@ class SupervisorAgent:
                 model_name=self.model_name
             )
         return self._study_agent
+        
+    @property
+    def streaming_study_agent(self):
+        """Lazy load streaming study agent."""
+        if not hasattr(self, "_streaming_study_agent") or self._streaming_study_agent is None:
+            from agents.study.streaming_agent import StreamingStudyAgent
+            self._streaming_study_agent = StreamingStudyAgent(
+                llm_provider=self.llm_provider,
+                model_name=self.model_name
+            )
+        return self._streaming_study_agent
     
     @property
     def grading_agent(self):
@@ -193,6 +204,106 @@ class SupervisorAgent:
         elif agent == "grading":
             return self.grading_agent.get_conversation_history(thread_id=thread_id)
         return []
+    
+    async def aquery_stream(
+        self,
+        question: str,
+        user_role: str = "student",
+        thread_id: str = "default",
+        user_id: Optional[str] = None,
+        student_id: Optional[str] = None,
+        student_name: Optional[str] = None,
+        course_id: Optional[str] = None,
+        assignment_id: Optional[str] = None,
+        assignment_name: Optional[str] = None
+    ):
+        """
+        Streaming version of query method that yields chunks of the response.
+        
+        Args:
+            Same as query method
+            
+        Yields:
+            Chunks of the response as they become available
+        """
+        try:
+            # Normalize role
+            normalized_role = user_role.upper()
+            if normalized_role in ["PROFESSOR", "INSTRUCTOR"]:
+                normalized_role = "TEACHER"
+            
+            # Initial state
+            initial_state: SupervisorState = {
+                "question": question,
+                "user_role": normalized_role,
+                "user_id": user_id,
+                "student_id": student_id,
+                "student_name": student_name,
+                "course_id": course_id,
+                "assignment_id": assignment_id,
+                "assignment_name": assignment_name,
+                "intent": None,
+                "agent_choice": None,
+                "access_denied": False,
+                "routing_confidence": None,
+                "agent_result": None,
+                "agent_used": None,
+                "final_answer": None,
+                "routing_time": None,
+                "agent_execution_time": None,
+                "total_time": None,
+                "routing_success": None,
+                "routing_alternatives": [],
+                "learned_from_history": False,
+                "result_quality": None,
+                "user_satisfaction_predicted": None,
+                "context_used": None,
+                "similar_past_queries": [],
+                "streaming": True  # Flag to indicate streaming mode
+            }
+            
+            # Determine intent and route to appropriate agent
+            state = await self.nodes.enrich_context(initial_state)
+            state = await self.nodes.classify_intent(state)
+            state = await self.nodes.check_access(state)
+            
+            # If access denied, return error
+            if state["access_denied"]:
+                yield "⛔ Access Denied. Your role does not have permission to use this feature."
+                return
+                
+            # Route to appropriate agent with streaming
+            if state["agent_choice"] == "study_agent":
+                # Use dedicated streaming study agent
+                async for chunk in self.streaming_study_agent.aquery_stream(
+                    question=question,
+                    thread_id=thread_id
+                ):
+                    yield chunk
+            
+            elif state["agent_choice"] == "grading_agent":
+                # Get streaming response from grading agent
+                if hasattr(self.grading_agent, "aquery_stream"):
+                    async for chunk in self.grading_agent.aquery_stream(
+                        question=question,
+                        thread_id=thread_id,
+                        professor_id=user_id,
+                        student_id=student_id,
+                        student_name=student_name,
+                        course_id=course_id,
+                        assignment_id=assignment_id,
+                        assignment_name=assignment_name
+                    ):
+                        yield chunk
+                else:
+                    # Fallback if streaming not implemented in grading agent
+                    yield "Streaming not supported by grading agent. Please use non-streaming endpoint."
+            
+            # End of stream marker
+            yield "[DONE]"
+            
+        except Exception as e:
+            yield f"[ERROR] {str(e)}"
     
     def get_capabilities(self, user_role: str) -> Dict[str, list]:
         """Get capabilities available to user role."""

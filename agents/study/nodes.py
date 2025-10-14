@@ -194,14 +194,35 @@ Keep it 2-4 steps maximum."""
             for r in intermediate
         ])
         
-        synthesis_prompt = f"""Synthesize these step-by-step results:
+        # Check if question asks for code/implementation
+        asks_for_code = any(keyword in question.lower() for keyword in [
+            'code', 'implement', 'example', 'how to', 'build', 'create', 'program', 'script'
+        ])
+        
+        code_instruction = ""
+        if asks_for_code:
+            code_instruction = """
+- If the question asks for CODE or IMPLEMENTATION, you MUST provide actual code examples
+- Generate working code based on the concepts from the search results
+- Use proper code formatting with markdown code blocks (```python)
+- Include comments to explain the code
+- Make the code complete and runnable
+"""
+        
+        synthesis_prompt = f"""Synthesize these step-by-step results into a comprehensive answer.
 
 Question: {question}
 
 Results:
 {steps_context}
 
-Provide a complete answer."""
+IMPORTANT: 
+- Provide a complete, well-structured answer
+- Include ALL relevant information from the results{code_instruction}
+- ALWAYS cite sources by including the URLs at the end under a "References" or "Sources" section
+- Preserve any source URLs that were provided in the results
+
+Your synthesized answer:"""
         
         try:
             response = self.llm.invoke([HumanMessage(content=synthesis_prompt)])
@@ -457,6 +478,26 @@ Answer:"""
             if is_time_sensitive:
                 time_disclaimer = "\n\nIMPORTANT: Add a disclaimer that for real-time information (time, date, weather), the search results may be outdated or cached. Recommend checking a reliable real-time source directly (e.g., time.is, weather.com)."
             
+            # Check if question asks for code/implementation
+            question_lower = state["question"].lower()
+            asks_for_code = any(keyword in question_lower for keyword in [
+                'code', 'implement', 'example', 'how to', 'build', 'create', 'program', 'script',
+                'write', 'develop', 'tutorial', 'step by step'
+            ])
+            
+            code_instructions = ""
+            if asks_for_code:
+                code_instructions = """
+8. CODE REQUIREMENT: This question asks for code or implementation details:
+   - You MUST provide actual working code examples
+   - Generate complete, runnable code based on the concepts from search results
+   - Use proper code formatting with markdown code blocks (```python, ```javascript, etc.)
+   - Include inline comments to explain the code
+   - Make the code practical and educational
+   - If the search results mention a specific implementation (like "9 lines of Python"), recreate that implementation
+   - Provide a brief explanation before and after the code
+"""
+            
             synthesis_prompt = f"""Answer the question concisely and directly using the search results.
 
 Question: {state["question"]}{context}
@@ -476,7 +517,7 @@ Instructions:
 6. Format sources EXACTLY as: Sources: [1] Title - https://full-url.com, [2] Title - https://full-url.com
    - ALWAYS include the complete URL for each source
    - DO NOT write just titles without URLs
-7. DO NOT include HTML tags or markdown links (use plain text URLs)
+7. DO NOT include HTML tags or markdown links (use plain text URLs){code_instructions}
 8. If the user wants more details, they will ask a follow-up question
 
 Answer:"""
@@ -496,10 +537,29 @@ Answer:"""
         try:
             question = state["question"]
             
-            if "print" not in question.lower() and any(op in question for op in ['+', '-', '*', '/']):
-                code = f"print({question})"
-            else:
-                code = question
+            # Extract mathematical expression from natural language question
+            import re
+            
+            # If it's a simple math question like "What is 2+2?", extract the expression
+            math_patterns = [
+                r'what\s+is\s+([\d\s\+\-\*/\(\)\.\^]+)\??',  # "What is 2+2?"
+                r'calculate\s+([\d\s\+\-\*/\(\)\.\^]+)',      # "Calculate 5*3"
+                r'compute\s+([\d\s\+\-\*/\(\)\.\^]+)',        # "Compute 10/2"
+                r'solve\s+([\d\s\+\-\*/\(\)\.\^]+)',          # "Solve 7-3"
+            ]
+            
+            code = question
+            for pattern in math_patterns:
+                match = re.search(pattern, question, re.IGNORECASE)
+                if match:
+                    code = match.group(1).strip()
+                    break
+            
+            # If we still have a question and it contains math, wrap in print
+            if "print" not in code.lower() and any(op in code for op in ['+', '-', '*', '/', '**']):
+                # Handle ^ for exponentiation
+                code = code.replace('^', '**')
+                code = f"print({code})"
             
             result = tool.func(code)
             return {**state, "tool_result": str(result)}

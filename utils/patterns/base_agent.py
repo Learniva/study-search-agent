@@ -175,6 +175,152 @@ class BaseAgent(ABC):
         """Clear agent cache."""
         await self.cache.clear()
     
+    async def aquery_stream(
+        self,
+        question: str,
+        thread_id: str = "default",
+        **kwargs
+    ):
+        """
+        Streaming version of aquery that yields chunks of the response.
+        
+        Args:
+            question: User question
+            thread_id: Conversation thread ID
+            **kwargs: Additional arguments for state
+            
+        Yields:
+            Chunks of the answer as they become available
+        """
+        if not self.app:
+            yield "Error: Graph not compiled"
+            return
+            
+        try:
+            # Get existing messages
+            config = {"configurable": {"thread_id": thread_id}}
+            existing_messages = self._get_existing_messages(config)
+            
+            # Build initial state with streaming flag
+            initial_state = self._build_initial_state(
+                question=question,
+                existing_messages=existing_messages,
+                streaming=True,
+                **kwargs
+            )
+            
+            # Get LLM with streaming enabled
+            streaming_llm = initialize_llm(
+                model_name=self.model_name,
+                use_case=initial_state.get("use_case", "study"),
+                streaming=True
+            )
+            
+            # Create a streaming callback handler
+            from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+            
+            class StreamingCallbackHandler(StreamingStdOutCallbackHandler):
+                """Custom streaming callback handler that yields chunks."""
+                
+                def __init__(self):
+                    super().__init__()
+                    self.chunks = []
+                    self.queue = asyncio.Queue()
+                
+                def on_llm_new_token(self, token: str, **kwargs) -> None:
+                    """Run on new LLM token. Only available when streaming is enabled."""
+                    self.chunks.append(token)
+                    self.queue.put_nowait(token)
+                
+                async def get_chunks(self):
+                    """Get chunks as they become available."""
+                    while True:
+                        chunk = await self.queue.get()
+                        yield chunk
+                        self.queue.task_done()
+                        # If we receive a special end token, break the loop
+                        if chunk == "[DONE]":
+                            break
+            
+            # Create the streaming handler
+            streaming_handler = StreamingCallbackHandler()
+            
+            # Create a streaming-enabled LLM for final nodes
+            streaming_llm = initialize_llm(
+                model_name=self.model_name,
+                use_case=initial_state.get("use_case", "study"),
+                streaming=True
+            )
+            
+            # Create a modified version of the graph with streaming LLM for final nodes
+            # We'll replace the self-reflection and synthesis nodes with streaming versions
+            
+            # Execute graph up to the final node
+            # This is a simplified approach - in a production system, you would 
+            # create a more sophisticated streaming graph
+            
+            # First, run the graph normally but stop before the final nodes
+            initial_state["stop_before_final"] = True
+            result = self.app.invoke(initial_state, config)
+            
+            # Now, use streaming LLM for the final answer generation
+            if result.get("is_complex_task") and result.get("intermediate_answers"):
+                # For complex tasks, use streaming synthesis
+                intermediate = result.get("intermediate_answers", [])
+                question = result["question"]
+                
+                steps_context = "\n\n".join([
+                    f"Step {r['step']} ({r['tool']}): {r['result']}"
+                    for r in intermediate
+                ])
+                
+                synthesis_prompt = f"""Synthesize these step-by-step results:
+
+Question: {question}
+
+Results:
+{steps_context}
+
+Provide a complete answer."""
+                
+                # Stream the synthesis response
+                from langchain_core.messages import HumanMessage
+                await streaming_llm.agenerate(
+                    [[HumanMessage(content=synthesis_prompt)]],
+                    callbacks=[streaming_handler]
+                )
+                
+                # Signal end of streaming
+                await streaming_handler.queue.put("[DONE]")
+                
+            else:
+                # For simple tasks, stream the final answer directly
+                tool_result = result.get("tool_result", "No result")
+                
+                # If we need to format the answer in a special way
+                if result.get("document_qa_failed") and result.get("tried_document_qa"):
+                    final_answer = f"Note: Document not found, searched web instead.\n\n{tool_result}"
+                else:
+                    final_answer = tool_result
+                
+                # For simple answers, we can just yield the chunks directly
+                # This simulates what would happen with a streaming LLM
+                for i in range(0, len(final_answer), 20):
+                    chunk = final_answer[i:i+20]
+                    await streaming_handler.queue.put(chunk)
+                    await asyncio.sleep(0.01)  # Small delay to simulate streaming
+                
+                # Signal end of streaming
+                await streaming_handler.queue.put("[DONE]")
+            
+            # Yield chunks from the queue
+            async for chunk in streaming_handler.get_chunks():
+                if chunk != "[DONE]":
+                    yield chunk
+            
+        except Exception as e:
+            yield f"Error: {str(e)}"
+    
     def _get_existing_messages(self, config: Dict[str, Any]) -> List[Any]:
         """Helper to get existing messages from state."""
         if not self.app:

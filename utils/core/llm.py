@@ -41,6 +41,7 @@ def initialize_llm(
     temperature: Optional[float] = None,
     use_case: Optional[Literal["study", "grading", "routing", "creative", "precise"]] = None,
     max_tokens: Optional[int] = None,
+    streaming: bool = False,
     **kwargs
 ) -> ChatGoogleGenerativeAI:
     """
@@ -51,6 +52,7 @@ def initialize_llm(
         temperature: Optional temperature (0.0-1.0), overrides use_case
         use_case: Auto-set temperature: study, grading, routing, creative, precise
         max_tokens: Maximum output tokens
+        streaming: Enable streaming mode for token-by-token output
         **kwargs: Additional Gemini parameters
         
     Returns:
@@ -60,6 +62,7 @@ def initialize_llm(
         >>> llm = initialize_llm(use_case="grading")  # temp=0.3
         >>> llm = initialize_llm(use_case="creative")  # temp=0.9
         >>> llm = initialize_llm(temperature=0.5, max_tokens=2048)
+        >>> llm = initialize_llm(use_case="study", streaming=True)  # For streaming
     """
     # Get API key
     api_key = os.getenv("GOOGLE_API_KEY")
@@ -84,6 +87,7 @@ def initialize_llm(
         "temperature": temperature,
         "google_api_key": api_key,
         "convert_system_message_to_human": True,
+        "streaming": streaming,  # Enable/disable streaming mode
     }
     
     if max_tokens:

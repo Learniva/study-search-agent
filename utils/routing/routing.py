@@ -48,10 +48,12 @@ STUDY_AGENT_PATTERNS = {
         r'\b(manim|visual\s+explanation)\b',
     ],
     'Python_REPL': [
-        r'\b(calculate|compute|solve)\b.*\d',
-        r'\d+\s*[\+\-\*/\^]\s*\d+',
-        r'\b(python|execute|run|eval)\b.*\bcode\b',
-        r'\b(fibonacci|factorial|prime)\b',
+        # Only match when user wants to EXECUTE code, not when asking HOW to code
+        r'\b(calculate|compute|solve)\b.*\d',  # "Calculate 5+3"
+        r'\d+\s*[\+\-\*/\^]\s*\d+',            # "2+2" or "5*3"
+        r'\b(execute|run|eval)\b.*\b(this|the|following)\b.*\bcode\b',  # "Execute this code"
+        r'```python.*```',                     # Code blocks to execute
+        r'\b(fibonacci|factorial|prime)\b.*\b(for|of)\b.*\d+',  # "Fibonacci of 10"
     ],
     'Document_QA': [
         # ONLY route to Document_QA when user EXPLICITLY mentions their documents
