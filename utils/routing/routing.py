@@ -41,11 +41,24 @@ def pattern_based_route(question: str, patterns: Dict[str, List[str]]) -> Option
 # =============================================================================
 
 STUDY_AGENT_PATTERNS = {
+    # Animation patterns first (higher priority)
+    'render_manim_video': [
+        r'\b(animate|animation|visualize|create\s+(a\s+)?video|generate\s+(a\s+)?video)\b',
+        r'\b(show\s+(me\s+)?(an?\s+)?animation)\b',
+        r'\b(manim|visual\s+explanation)\b',
+    ],
+    'Python_REPL': [
+        r'\b(calculate|compute|solve)\b.*\d',
+        r'\d+\s*[\+\-\*/\^]\s*\d+',
+        r'\b(python|execute|run|eval)\b.*\bcode\b',
+        r'\b(fibonacci|factorial|prime)\b',
+    ],
     'Document_QA': [
         # ONLY route to Document_QA when user EXPLICITLY mentions their documents
         # This prevents unwanted document lookups for general questions
+        # NOTE: Placed after animation patterns to avoid conflicts
         
-        # Explicit document references
+        # Explicit document references (but not if asking for animation)
         r'\b(attached|uploaded)\b',
         r'\bmy\b.*\b(notes|documents|files|pdf|material|book)\b',
         r'\b(according to|based on|from|in)\b.*\b(notes|document|pdf|file|material|book|text|content)\b',
@@ -64,17 +77,6 @@ STUDY_AGENT_PATTERNS = {
         
         # Follow-ups explicitly about documents
         r'\b(in|from)\s+(my|the|this)\s+(document|notes|book|material)\b',
-    ],
-    'Python_REPL': [
-        r'\b(calculate|compute|solve)\b.*\d',
-        r'\d+\s*[\+\-\*/\^]\s*\d+',
-        r'\b(python|execute|run|eval)\b.*\bcode\b',
-        r'\b(fibonacci|factorial|prime)\b',
-    ],
-    'render_manim_video': [
-        r'\b(animate|animation|visualize|create\s+(a\s+)?video)\b',
-        r'\b(show\s+(me\s+)?(an?\s+)?animation)\b',
-        r'\b(manim|visual\s+explanation)\b',
     ],
     'Web_Search': [
         # General knowledge questions (when documents are NOT explicitly mentioned)
@@ -106,16 +108,28 @@ def fast_study_route(question: str) -> Optional[str]:
 # =============================================================================
 
 GRADING_AGENT_PATTERNS = {
-    'grade_essay': [
-        r'\b(grade|evaluate)\b.*\b(essay|paper|report|assignment|writing)\b',
-        r'\b(essay|paper|report)\b.*\b(grade|grading|evaluation)\b',
-        r'\bgrade\s+(this|an?|the)\s+(essay|paper|report)\b',
+    # Combined fetch and grade patterns (highest priority)
+    'fetch_and_grade': [
+        r'\b(?:grade|evaluate|review|assess|mark|score)\s+(?:this\s+)?(?:submission|assignment|work|student\s+work)\b',
+        r'\b(?:grade|evaluate|review|assess|mark|score)\s+(?:the\s+)?(?:submission|assignment|work|student\s+work)\b',
+        r'\b(?:submission|assignment|work|student\s+work)\s+(?:grade|evaluation|review|assessment|marking|scoring)\b',
+        r'\bgrade\s+this\s+submission\b',
+        r'\bevaluate\s+this\s+assignment\b',
+        r'\breview\s+this\s+work\b',
+        r'\bgrade\s+this\s+submission\s+using\s+the\s+computer\s+science\s+intro\s+rubric\b',
+        r'\breview\s+the\s+code\s+quality\s+and\s+provide\s+feedback\b',
     ],
     'review_code': [
         r'\b(review|grade|evaluate)\b.*\b(code|program|script)\b',
         r'\b(code|program)\b.*\b(review|grade|grading)\b',
         r'\b(python|java|c\+\+|javascript)\b.*\b(code|program)\b',
         r'\bdef\s+\w+\(|\bclass\s+\w+|\bfunction\s+\w+',
+        r'```(python|java|javascript|c\+\+)',  # Code blocks
+    ],
+    'grade_essay': [
+        r'\b(grade|evaluate)\b.*\b(essay|paper|report|writing)\b',  # Removed "assignment" to avoid false matches
+        r'\b(essay|paper|report)\b.*\b(grade|grading|evaluation)\b',
+        r'\bgrade\s+(this|an?|the)\s+(essay|paper|report)\b',
     ],
     'grade_mcq': [
         r'\b(mcq|multiple\s*choice|quiz)\b.*\b(grade|grading|score)\b',
@@ -126,6 +140,37 @@ GRADING_AGENT_PATTERNS = {
         r'\b(feedback|comments?)\b.*\b(only|without\s+grade)\b',
         r'\bprovide\s+feedback\b',
         r'\bgive\s+feedback\b',
+    ],
+    # Google Classroom Tools
+    'fetch_classroom_courses': [
+        r'\b(show|list|get|fetch|display)\b.*(my\s+)?(google\s+)?classroom\s+courses?\b',
+        r'\bgoogle\s+classroom\s+courses?\b',
+        r'\bclassroom\s+courses?\b.*\b(show|list|get)\b',
+    ],
+    'fetch_submission_content': [
+        r'\b(get|fetch|extract|read)\b.*\b(submission\s+content|file\s+content|document\s+content)\b',
+        r'\bsubmission\s+content\b.*\b(for|from)\b',
+        r'\bfetch_submission_content\b',
+        r'\bget\s+content\s+from\s+submission\b',
+        r'\bread\s+submission\s+files\b',
+        r'\bextract\s+submission\s+content\b',
+        r'\bget\s+content\s+from\b.*\bsubmission\b',
+        r'\bcontent\s+from\s+submission\b',
+    ],
+    'fetch_classroom_submissions': [
+        r'\bget\s+submissions?\b.*\bcourse\b',
+        r'\bshow\s+me\s+submissions?\b',
+        r'\bfetch_classroom_submissions\b',
+        r'\bsubmissions?\s+for\s+(assignment|coursework)\b',
+        r'\b(show|list|get|fetch)\b.*\b(student\s+)?submissions?\b.*\b(course|assignment)\b',
+        r'\bstudent\s+submissions?\b',
+    ],
+    'fetch_classroom_assignments': [
+        r'\b(show|list|get|fetch)\b.*classroom\s+assignments?\b',
+        r'\bclassroom\s+assignments?\b.*\b(show|list|get)\b',
+        r'\bassignments?\s+from\s+course\b',
+        r'\b(show|list|get|fetch)\b.*\bassignments?\s+from\s+course\b',
+        r'\bcourse\s+\d+.*\bassignments?\b',
     ],
     # Lesson Planning Tools (for teachers/professors)
     'generate_lesson_plan': [
@@ -180,6 +225,12 @@ SUPERVISOR_INTENT_PATTERNS = {
         r'\bgive\s+(a\s+)?grade\b',
         r'\bprovide\s+feedback\s+on\b',
         r'\b(score|mark)\b.*(essay|paper|assignment)\b',
+        # Google Classroom patterns
+        r'\b(google\s+)?classroom\b.*(courses?|assignments?|submissions?|rubrics?)\b',
+        r'\b(show|list|get|fetch)\b.*(my\s+)?(google\s+)?classroom\b',
+        r'\bpost\s+grade\s+to\s+classroom\b',
+        r'\bassignments?\s+from\s+course\b',
+        r'\bcourse\s+\d+',
     ],
     'STUDY': [
         r'^\s*(what|who|when|where|why|how|explain|tell\s+me)\b',
