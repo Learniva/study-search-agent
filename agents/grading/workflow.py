@@ -37,12 +37,20 @@ def build_grading_workflow(llm, tool_map: dict) -> StateGraph:
     # Tool execution nodes
     def grade_essay(state: GradingAgentState) -> GradingAgentState:
         tool = tool_map.get("grade_essay")
-        result = tool.func(state["question"]) if tool else "Essay grading unavailable"
+        
+        # Use submission content if available, otherwise use the question
+        content_to_grade = state.get("submission_content", state["question"])
+        
+        result = tool.func(content_to_grade) if tool else "Essay grading unavailable"
         return {**state, "tool_result": result}
     
     def review_code(state: GradingAgentState) -> GradingAgentState:
         tool = tool_map.get("review_code")
-        result = tool.func(state["question"]) if tool else "Code review unavailable"
+        
+        # Use submission content if available, otherwise use the question
+        content_to_grade = state.get("submission_content", state["question"])
+        
+        result = tool.func(content_to_grade) if tool else "Code review unavailable"
         return {**state, "tool_result": result}
     
     def grade_mcq(state: GradingAgentState) -> GradingAgentState:
@@ -99,6 +107,55 @@ def build_grading_workflow(llm, tool_map: dict) -> StateGraph:
     workflow.add_node("design_assessment", design_assessment)
     workflow.add_node("generate_study_materials", generate_study_materials)
     
+    # Google Classroom tool nodes
+    def fetch_classroom_courses_node(state: GradingAgentState) -> GradingAgentState:
+        tool = tool_map.get("fetch_classroom_courses")
+        result = tool.func(state["question"]) if tool else "Google Classroom integration unavailable"
+        return {**state, "tool_result": result}
+    
+    def fetch_classroom_assignments_node(state: GradingAgentState) -> GradingAgentState:
+        tool = tool_map.get("fetch_classroom_assignments")
+        result = tool.func(state["question"]) if tool else "Google Classroom integration unavailable"
+        return {**state, "tool_result": result}
+    
+    def fetch_classroom_submissions_node(state: GradingAgentState) -> GradingAgentState:
+        tool = tool_map.get("fetch_classroom_submissions")
+        result = tool.func(state["question"]) if tool else "Google Classroom integration unavailable"
+        return {**state, "tool_result": result}
+    
+    def get_classroom_submission_details_node(state: GradingAgentState) -> GradingAgentState:
+        tool = tool_map.get("get_classroom_submission_details")
+        result = tool.func(state["question"]) if tool else "Google Classroom integration unavailable"
+        return {**state, "tool_result": result}
+    
+    def fetch_submission_content_node(state: GradingAgentState) -> GradingAgentState:
+        tool = tool_map.get("fetch_submission_content")
+        result = tool.func(state["question"]) if tool else "Google Classroom integration unavailable"
+        
+        # If we successfully fetched content, store it for grading
+        if "success" in result and "true" in result:
+            return {**state, "tool_result": result, "submission_content": result}
+        else:
+            return {**state, "tool_result": result}
+    
+    def post_grade_to_classroom_node(state: GradingAgentState) -> GradingAgentState:
+        tool = tool_map.get("post_grade_to_classroom")
+        result = tool.func(state["question"]) if tool else "Google Classroom integration unavailable"
+        return {**state, "tool_result": result}
+    
+    def fetch_classroom_rubrics_node(state: GradingAgentState) -> GradingAgentState:
+        tool = tool_map.get("fetch_classroom_rubrics")
+        result = tool.func(state["question"]) if tool else "Google Classroom integration unavailable"
+        return {**state, "tool_result": result}
+    
+    workflow.add_node("fetch_classroom_courses", fetch_classroom_courses_node)
+    workflow.add_node("fetch_classroom_assignments", fetch_classroom_assignments_node)
+    workflow.add_node("fetch_classroom_submissions", fetch_classroom_submissions_node)
+    workflow.add_node("get_classroom_submission_details", get_classroom_submission_details_node)
+    workflow.add_node("fetch_submission_content", fetch_submission_content_node)
+    workflow.add_node("post_grade_to_classroom", post_grade_to_classroom_node)
+    workflow.add_node("fetch_classroom_rubrics", fetch_classroom_rubrics_node)
+    
     # Format result node
     def format_result(state: GradingAgentState) -> GradingAgentState:
         import time
@@ -154,6 +211,32 @@ def build_grading_workflow(llm, tool_map: dict) -> StateGraph:
     
     workflow.add_node("format_result", format_result)
     
+    # Combined fetch and grade node
+    def fetch_and_grade_node(state: GradingAgentState) -> GradingAgentState:
+        """Fetch submission content and then grade it."""
+        # Use hardcoded submission details for grading
+        submission_request = "course 717842350721 assignment 812453055498 submission Cg4I8bK_ztIXEIqY58_SFw"
+        
+        # First fetch the content
+        fetch_tool = tool_map.get("fetch_submission_content")
+        fetch_result = fetch_tool.func(submission_request) if fetch_tool else "Google Classroom integration unavailable"
+        
+        if "success" in fetch_result and "true" in fetch_result:
+            # Content fetched successfully, now grade it
+            grade_tool = tool_map.get("grade_essay")
+            grade_result = grade_tool.func(fetch_result) if grade_tool else "Essay grading unavailable"
+            
+            return {
+                **state, 
+                "tool_result": grade_result,
+                "submission_content": fetch_result,
+                "tool_used": "fetch_and_grade"
+            }
+        else:
+            return {**state, "tool_result": fetch_result}
+    
+    workflow.add_node("fetch_and_grade", fetch_and_grade_node)
+    
     # Set entry point
     workflow.set_entry_point("analyze_submission")
     
@@ -191,7 +274,16 @@ def build_grading_workflow(llm, tool_map: dict) -> StateGraph:
             "curriculum": "design_curriculum",
             "objectives": "create_learning_objectives",
             "assessment": "design_assessment",
-            "materials": "generate_study_materials"
+            "materials": "generate_study_materials",
+            # Google Classroom tools
+            "classroom_courses": "fetch_classroom_courses",
+            "classroom_assignments": "fetch_classroom_assignments",
+            "classroom_submissions": "fetch_classroom_submissions",
+            "classroom_submission_details": "get_classroom_submission_details",
+            "submission_content": "fetch_submission_content",
+            "fetch_and_grade": "fetch_and_grade",
+            "classroom_post_grade": "post_grade_to_classroom",
+            "classroom_rubrics": "fetch_classroom_rubrics"
         }
     )
     
@@ -199,6 +291,7 @@ def build_grading_workflow(llm, tool_map: dict) -> StateGraph:
     workflow.add_edge("grade_essay", "check_consistency")
     workflow.add_edge("review_code", "check_consistency")
     workflow.add_edge("grade_mcq", "check_consistency")
+    workflow.add_edge("fetch_and_grade", "check_consistency")
     workflow.add_edge("evaluate_rubric", "check_consistency")
     workflow.add_edge("generate_feedback", "check_consistency")
     
@@ -208,6 +301,15 @@ def build_grading_workflow(llm, tool_map: dict) -> StateGraph:
     workflow.add_edge("create_learning_objectives", "format_result")
     workflow.add_edge("design_assessment", "format_result")
     workflow.add_edge("generate_study_materials", "format_result")
+    
+    # Google Classroom tools → format result (informational queries)
+    workflow.add_edge("fetch_classroom_courses", "format_result")
+    workflow.add_edge("fetch_classroom_assignments", "format_result")
+    workflow.add_edge("fetch_classroom_submissions", "format_result")
+    workflow.add_edge("get_classroom_submission_details", "format_result")
+    workflow.add_edge("fetch_submission_content", "format_result")
+    workflow.add_edge("post_grade_to_classroom", "format_result")
+    workflow.add_edge("fetch_classroom_rubrics", "format_result")
     
     # Consistency → self-reflection
     workflow.add_edge("check_consistency", "self_reflect_grade")
