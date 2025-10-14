@@ -505,4 +505,42 @@ Answer:"""
             return {**state, "tool_result": str(result)}
         except Exception as e:
             return {**state, "tool_result": f"Execution error: {str(e)}"}
+    
+    def _execute_manim_animation(self, state: StudyAgentState) -> StudyAgentState:
+        """Execute Manim Animation tool."""
+        tool = self.tool_map.get("render_manim_video")
+        if not tool:
+            return {**state, "tool_result": "Manim animation tool not available. Please ensure Manim is installed."}
+        
+        try:
+            question = state["question"]
+            
+            # Extract topic from question (remove "animate", "create animation", etc.)
+            import re
+            topic = re.sub(r'\b(please|animate|animation|visualize|create|generate|show|me|an?|the|video|of)\b', '', question, flags=re.IGNORECASE)
+            topic = topic.strip()
+            
+            if not topic:
+                topic = question
+            
+            print(f"🎬 Generating animation for topic: {topic}")
+            result = tool.func(topic)
+            
+            # Parse JSON result from tool
+            import json
+            try:
+                result_data = json.loads(result)
+                content = result_data.get("content", "")
+                artifact = result_data.get("artifact")
+                
+                if artifact:
+                    return {**state, "tool_result": f"{content}\n\n📹 Video saved to: {artifact}"}
+                else:
+                    return {**state, "tool_result": content}
+            except json.JSONDecodeError:
+                # Fallback if result is not JSON
+                return {**state, "tool_result": str(result)}
+                
+        except Exception as e:
+            return {**state, "tool_result": f"Animation error: {str(e)}"}
 

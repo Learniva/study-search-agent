@@ -34,6 +34,7 @@ def build_study_workflow(llm, tool_map: dict) -> StateGraph:
     workflow.add_node("document_qa", nodes._execute_document_qa)
     workflow.add_node("web_search", nodes._execute_web_search)
     workflow.add_node("python_repl", nodes._execute_python_repl)
+    workflow.add_node("manim_animation", nodes._execute_manim_animation)
     
     # Format answer node
     def format_answer(state: StudyAgentState) -> StudyAgentState:
@@ -136,12 +137,14 @@ def build_study_workflow(llm, tool_map: dict) -> StateGraph:
             "document_qa": "document_qa",
             "web_search": "web_search",
             "python_repl": "python_repl",
+            "manim_animation": "manim_animation",
         }
     )
     
     workflow.add_edge("document_qa", "check_result")
     workflow.add_edge("web_search", "check_result")
     workflow.add_edge("python_repl", "check_result")
+    workflow.add_edge("manim_animation", "check_result")
     
     workflow.add_conditional_edges(
         "check_result",

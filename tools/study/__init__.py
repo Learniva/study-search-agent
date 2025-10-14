@@ -2,7 +2,7 @@
 Study Agent Tools
 
 Tools used by the StudySearchAgent:
-- web_search: Web search with Tavily
+- web_search: Web search with Google Custom Search (primary) and Tavily (fallback)
 - python_repl: Python code execution
 - manim_animation: Mathematical animation generation
 - rag_tools: RAG tools (adaptive retrieval, self-correction, vector store)

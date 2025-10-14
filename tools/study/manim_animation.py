@@ -189,7 +189,7 @@ class ConceptAnimation(VoiceoverScene):  # Use VoiceoverScene for narration
         # Animations inside the context will sync with speech
 ```
 
-VOICEOVER USAGE (OPTIONAL - adds professional narration):
+VOICEOVER USAGE (adds professional narration):
 - Wrap animations with voiceover context: with self.voiceover(text="Narration") as vo:
 - Animations inside the context sync automatically with speech
 - Speech timing stored in vo.duration - use for wait times
@@ -199,7 +199,136 @@ VOICEOVER USAGE (OPTIONAL - adds professional narration):
 - gTTS provides clear, fast narration (much faster than ElevenLabs!)
 
 CRITICAL CONSTRAINTS:
-0. ALGORITHMIC CORRECTNESS (HIGHEST PRIORITY - MOST IMPORTANT!):
+0. ANIMATION SYNTAX (MOST COMMON ERROR - CHECK FIRST!):
+   - Modern Manim uses .animate property for transformations
+   - NEVER use ApplyMethod with .animate - this causes ValueError!
+     * CORRECT: self.play(obj.animate.move_to(point))
+     * WRONG: ApplyMethod(obj.animate.move_to(point)) ❌ ValueError!
+   - If you want ApplyMethod, pass method reference WITHOUT .animate:
+     * CORRECT: self.play(ApplyMethod(obj.move_to, point))
+     * WRONG: self.play(ApplyMethod(obj.animate.move_to, point)) ❌
+   - For particles/dots moving: Use .animate directly
+     * CORRECT: self.play(dot.animate.move_to(target))
+     * CORRECT: self.play(LaggedStart(*[d.animate.move_to(p) for d, p in zip(dots, positions)]))
+   - BEST PRACTICE: Use .animate syntax (simpler and modern)
+
+0.5. TEXT STYLING PARAMETERS (CRITICAL ERROR - PREVENT TypeError!):
+   
+   ⚠️  CRITICAL: t2c, t2s, t2w ONLY work with Text() objects, NEVER with MathTex()! ⚠️
+   
+   FOR Text() OBJECTS ONLY:
+   - t2c (text-to-color): Color parts of text with COLOR values
+     * CORRECT: Text("Hello World", t2c={{"Hello": BLUE}}) ✅
+     * ONLY for Text(), NOT MathTex()!
+   
+   - t2s (text-to-style): Maps substring to STYLE DICTIONARIES (not colors!)
+     * CORRECT: Text("Hi", t2s={{"Hi": {{"color": BLUE, "font": "Arial"}}}}) ✅
+     * WRONG: Text("Hi", t2s={{"Hi": BLUE}}) ❌ AttributeError!
+     * ONLY for Text(), NOT MathTex()!
+   
+   - t2w (text-to-weight): Maps substring to font weights
+     * CORRECT: Text("Bold", t2w={{"Bold": BOLD}}) ✅
+     * ONLY for Text(), NOT MathTex()!
+   
+   FOR MathTex() OBJECTS:
+   - MathTex does NOT support t2c, t2s, or t2w parameters!
+   - NEVER use: MathTex("x^2", t2c={{"x": RED}}) ❌ TypeError!
+   - NEVER use: MathTex("y", t2s={{...}}) ❌ TypeError!
+   - To color MathTex, use set_color_by_tex() AFTER creation:
+     * CORRECT: 
+       tex = MathTex("x", "+", "y")
+       tex.set_color_by_tex("x", BLUE)
+       tex.set_color_by_tex("y", RED)
+   - Or just set a single color for entire MathTex:
+     * CORRECT: MathTex("x^2 + y^2", color=WHITE) ✅
+   
+   SUMMARY - AVOID TypeError:
+   - Text() objects: Can use t2c, t2s, t2w ✅
+   - MathTex() objects: NEVER use t2c, t2s, t2w ❌ Will cause TypeError!
+   - If you need colored math: Use set_color_by_tex() after creation
+
+1. OPACITY PARAMETERS (PREVENT ERRORS - VERY IMPORTANT!):
+   - NEVER EVER use 'opacity' parameter in ANY Manim constructor! ❌
+   - The parameter 'opacity' does NOT exist in Manim v0.19.0!
+   
+   For Lines (including arrows, vectors):
+     * CORRECT: Line(p1, p2, color=WHITE, stroke_opacity=0.5) ✅
+     * WRONG: Line(p1, p2, opacity=0.5) ❌ TypeError!
+   
+   For Circles/Shapes (Circle, Square, Rectangle, Polygon, etc.):
+     * CORRECT: Circle(color=BLUE, fill_opacity=0.2, stroke_opacity=1.0) ✅  
+     * WRONG: Circle(opacity=0.5) ❌ TypeError!
+   
+   For Dots (CRITICAL - COMMON ERROR!):
+     * CORRECT: Dot(point, radius=0.08, color=BLUE, fill_opacity=0.8) ✅
+     * CORRECT: Dot(point, radius=0.08, color=RED, stroke_opacity=0) ✅ (no border)
+     * WRONG: Dot(point, radius=0.08, color=BLUE, opacity=0.8) ❌ TypeError!
+     * Dot is a shape, so it uses fill_opacity and stroke_opacity
+   
+   For ALL Manim objects:
+     * Use fill_opacity for the interior/fill color transparency
+     * Use stroke_opacity for the border/outline transparency
+     * NEVER use 'opacity' - it will cause TypeError!
+
+1.5. POSITIONING & ROTATION METHODS (PREVENT TypeError & AttributeError!):
+   
+   POSITIONING METHODS:
+   - CORRECT centering methods:
+     * .move_to(ORIGIN) - Move object to origin (center of screen) ✅
+     * .center() - Center the object ✅
+     * .to_edge(UP/DOWN/LEFT/RIGHT, buff=0.5) - Move to screen edge ✅
+     * .shift(direction * distance) - Move by offset ✅
+     * .next_to(other, direction, buff=1.0) - Position relative to another object ✅
+   
+   - WRONG methods (will cause AttributeError):
+     * .to_center() - Does NOT exist! ❌ AttributeError!
+     * .center_on_screen() - Does NOT exist! ❌ AttributeError!
+     * Use .move_to(ORIGIN) instead ✅
+   
+   ROTATION (CRITICAL - PREVENT TypeError!):
+   - Text() and other Manim objects do NOT accept 'rotation' parameter in constructor!
+   - Use .rotate() METHOD after creation instead:
+   
+   ```python
+   # ✅ CORRECT - Rotate after creation
+   label = Text("Y-axis", font_size=24, color=GRAY)
+   label.rotate(90 * DEGREES)  # Rotate 90 degrees
+   label.next_to(axes.y_axis, LEFT)
+   
+   # ✅ CORRECT - Alternative with PI
+   text = Text("Hello")
+   text.rotate(PI / 2)  # Rotate 90 degrees (π/2 radians)
+   
+   # ❌ WRONG - 'rotation' parameter doesn't exist!
+   label = Text("Y-axis", font_size=24, color=GRAY, rotation=90)  # TypeError!
+   
+   # ❌ WRONG - 'angle' parameter doesn't exist!
+   label = Text("Y-axis", angle=90)  # TypeError!
+   ```
+   
+   CORRECT positioning examples:
+   ```python
+   # ✅ CORRECT - Center at origin
+   axes = Axes(...)
+   axes.move_to(ORIGIN)  # Works!
+   
+   # ✅ CORRECT - Alternative centering
+   circle = Circle()
+   circle.center()  # Also works!
+   
+   # ✅ CORRECT - Shift down from center
+   axes.move_to(ORIGIN).shift(DOWN * 0.5)
+   
+   # ✅ CORRECT - Rotate text for axis labels
+   y_label = Text("Y-axis", font_size=28)
+   y_label.rotate(90 * DEGREES)
+   y_label.next_to(axes.y_axis, LEFT, buff=0.5)
+   
+   # ❌ WRONG - Method doesn't exist
+   axes.to_center()  # AttributeError!
+   ```
+
+2. ALGORITHMIC CORRECTNESS (HIGHEST PRIORITY - MOST IMPORTANT!):
    - For algorithms: SHOW EVERY SINGLE STEP - do NOT skip any iterations!
    - Bubble Sort: Show ALL passes until array is fully sorted
    - Example: If array needs 3 passes to sort, animate ALL 3 passes
@@ -209,65 +338,222 @@ CRITICAL CONSTRAINTS:
    - ACCURACY > BREVITY - completeness is essential for education
    - If algorithm takes 10 steps, show all 10 steps (not just 1-2 examples)
 
-1. SPATIAL AWARENESS - PREVENT OVERLAPPING:
-   - Frame size: 14.2 units wide × 8 units tall (centered at origin)
-   - Safe zone: Keep all content within ±6 units horizontal, ±3.5 units vertical
-   - ALWAYS leave MINIMUM 1.5 units of space between objects
-   - Use .to_edge(UP/DOWN/LEFT/RIGHT, buff=0.5) to position safely
-   - Use .shift(direction * distance) for precise positioning
+3. SPATIAL AWARENESS - FIT SCREEN & CENTER PERFECTLY (CRITICAL!):
    
-   FOR HORIZONTAL ARRAYS (Bubble Sort, Lists, etc.) - CRITICAL:
-   - NEVER exceed 10 units total width (to fit in frame!)
-   - For 5 elements: Use buff=0.4 between elements (max width ~8 units)
-   - For 4 elements: Use buff=0.5 between elements (max width ~7 units)
-   - For 6+ elements: Scale down or use buff=0.3
-   - ALWAYS use VGroup.arrange(RIGHT, buff=X) for horizontal layouts
-   - Center the group: array_group.move_to(ORIGIN) or shift slightly
-   - Example for arrays:
-     ```
-     boxes = VGroup(*[Square(side_length=1.2) for _ in range(5)])
-     boxes.arrange(RIGHT, buff=0.5)  # Space them out
-     boxes.move_to(ORIGIN)            # Center in frame
-     # Result: ~8 units wide, fits perfectly!
-     ```
+   FRAME DIMENSIONS & SAFE ZONES:
+   - Frame size: 14.2 units wide × 8 units tall (centered at ORIGIN)
+   - SAFE ZONE: Keep content within ±6 units horizontal, ±3.5 units vertical
+   - DANGER ZONE: Never place objects beyond ±7 units horizontal, ±4 units vertical
+   - ALWAYS leave MINIMUM 1.0 unit of space between objects
    
-   - For multi-layer diagrams (neural networks, etc.):
-     * Horizontal spacing between layers: 4-5 units apart
-     * Vertical spacing between nodes: 1.5-2 units apart
-     * Place labels OUTSIDE shapes with buff=0.3 minimum
-   - NEVER place text on top of other text!
-   - Check for overlaps: If title is at TOP, place subtitles 1 unit below
-   - Example good spacing: 
-     * layer1 = VGroup(...).shift(LEFT * 4)  # Far left
-     * layer2 = VGroup(...).shift(ORIGIN)    # Center  
-     * layer3 = VGroup(...).shift(RIGHT * 4) # Far right
+   MODERN CENTERING STRATEGIES (MOST IMPORTANT!):
+   - DEFAULT POSITION: Always start with .move_to(ORIGIN) for centered layouts
+   - For single objects: Use .move_to(ORIGIN) or .center()
+   - For groups: Use VGroup, then .move_to(ORIGIN) to center everything
+   - Title exception: Only titles use .to_edge(UP, buff=0.5)
+   - Everything else: Center vertically and horizontally around ORIGIN
+   
+   ⚠️  NEVER use .to_center() - it doesn't exist! Use .move_to(ORIGIN) instead!
+   
+   Example of perfect centering:
+   ```
+   # Single object - centered
+   circle = Circle(radius=2)
+   circle.move_to(ORIGIN)  # Perfectly centered!
+   
+   # Multiple objects - group and center
+   diagram = VGroup(obj1, obj2, obj3)
+   diagram.arrange(RIGHT, buff=1.0)
+   diagram.move_to(ORIGIN)  # All objects centered as a group!
+   
+   # Title + centered content (modern layout)
+   title = Text("Title").to_edge(UP, buff=0.5)
+   content = VGroup(...)
+   content.move_to(ORIGIN)  # Content stays centered below title
+   ```
+   
+   AUTOMATIC SCALING TO FIT FRAME (PREVENT OVERLAPPING!):
+   - Check total width: If VGroup width > 11 units, scale it down!
+   - Check total height: If VGroup height > 6 units, scale it down!
+   - Use .scale_to_fit_width(10) to ensure horizontal fit
+   - Use .scale_to_fit_height(5) to ensure vertical fit
+   - After scaling, ALWAYS re-center: .move_to(ORIGIN)
+   
+   Example automatic fitting:
+   ```
+   # Create large diagram
+   network = VGroup(layer1, layer2, layer3)
+   network.arrange(RIGHT, buff=2.0)
+   
+   # Check and scale to fit
+   if network.width > 11:
+       network.scale_to_fit_width(10)  # Fit to safe zone
+   
+   network.move_to(ORIGIN)  # Re-center after scaling
+   ```
+   
+   TEXT POSITIONING - PREVENT OVERLAPPING TEXT:
+   - Title at TOP: .to_edge(UP, buff=0.5) - ONLY for main titles!
+   - Subtitle/labels: Use .next_to() with proper buff (1.0 minimum)
+   - Long text: Use .scale_to_fit_width(11) to prevent going off-screen
+   - NEVER place multiple text at same vertical position!
+   - When adding new text, ALWAYS FadeOut old text first
+   
+   Perfect text layout:
+   ```
+   title = Text("Main Title", font_size=48)
+   title.to_edge(UP, buff=0.5)
+   
+   # Content centered below
+   diagram = Circle(radius=2).move_to(ORIGIN)
+   
+   # Label below diagram (not at top!)
+   label = Text("Label", font_size=32)
+   label.next_to(diagram, DOWN, buff=1.0)
+   
+   # Everything fits and is centered!
+   ```
+   
+   FOR HORIZONTAL LAYOUTS (Arrays, Lists):
+   - NEVER exceed 10 units total width!
+   - Use VGroup.arrange(RIGHT, buff=X) for spacing
+   - Always center: .move_to(ORIGIN) after arranging
+   - If too wide: Use .scale_to_fit_width(10)
+   
+   Perfect horizontal layout:
+   ```
+   boxes = VGroup(*[Square(side_length=1.2) for _ in range(5)])
+   boxes.arrange(RIGHT, buff=0.5)
+   
+   # Ensure it fits
+   if boxes.width > 10:
+       boxes.scale_to_fit_width(10)
+   
+   boxes.move_to(ORIGIN)  # Perfectly centered!
+   ```
+   
+   FOR MULTI-LAYER DIAGRAMS (Neural Networks, Flowcharts):
+   - Calculate total width: n_layers * spacing (spacing = 3-4 units)
+   - If total width > 10 units: Reduce spacing or scale down
+   - ALWAYS center the entire network: network.move_to(ORIGIN)
+   - Vertical spacing between nodes: 1.2-1.5 units (tight but clear)
+   - Place labels BELOW layers with .next_to(layer, DOWN, buff=0.6)
+   
+   Perfect neural network layout:
+   ```
+   # 3 layers with proper spacing
+   input_layer = VGroup(*[Circle(radius=0.3) for _ in range(3)])
+   input_layer.arrange(DOWN, buff=1.2)
+   
+   hidden_layer = VGroup(*[Circle(radius=0.3) for _ in range(4)])
+   hidden_layer.arrange(DOWN, buff=1.2)
+   
+   output_layer = VGroup(*[Circle(radius=0.3) for _ in range(2)])
+   output_layer.arrange(DOWN, buff=1.2)
+   
+   # Position layers (3 units apart horizontally)
+   input_layer.shift(LEFT * 3)
+   hidden_layer.move_to(ORIGIN)
+   output_layer.shift(RIGHT * 3)
+   
+   # Group everything and center
+   network = VGroup(input_layer, hidden_layer, output_layer)
+   
+   # Check width and scale if needed
+   if network.width > 11:
+       network.scale_to_fit_width(10)
+   
+   network.move_to(ORIGIN)  # Final centering!
+   
+   # Labels below (not at top!)
+   input_label = Text("Input", font_size=28)
+   input_label.next_to(input_layer, DOWN, buff=0.6)
+   ```
+   
+   MODERN LAYOUT RULES:
+   - Everything centered around ORIGIN (except titles at top)
+   - Use VGroup to group related objects, then center the group
+   - Always check dimensions before finalizing positions
+   - Scale down if needed, then re-center
+   - Leave generous margins (0.5-1.0 buff minimum)
 
-2. TIMING: End each distinct animation step with self.wait(1) for proper pacing
-   - self.play(...) → self.wait(1) → next step
-   - Use self.wait(0.5) for quick transitions
-   - Use self.wait(2) for important concepts that need emphasis
+4. TIMING & VOICEOVER - SMOOTH PACING (VERY IMPORTANT!):
+   - DO NOT use self.wait() inside voiceover blocks - it's automatic!
+   - Voiceover blocks handle their own timing based on speech duration
+   
+   CORRECT voiceover usage:
+   ```
+   with self.voiceover(text="Short explanation") as vo:
+       self.play(Create(obj))
+       # NO self.wait() here! Voiceover handles timing automatically
+   ```
+   
+   WRONG voiceover usage:
+   ```
+   with self.voiceover(text="Explanation") as vo:
+       self.play(Create(obj))
+       self.wait(2)  # ❌ WRONG! This creates awkward long pauses!
+   ```
+   
+   TIMING RULES:
+   - Inside voiceover block: NO self.wait() calls (automatic timing)
+   - Outside voiceover block: Use self.wait(0.5) for quick transitions
+   - Between major sections: Use self.wait(1) for natural pauses
+   - For important concepts: Use self.wait(1.5) if NO voiceover
+   - Keep voiceover text concise (1-2 sentences max) for natural pacing
+   
+   BEST PRACTICE:
+   - Use voiceover for explanations (automatic smooth timing)
+   - Use self.wait() only between voiceover blocks for transitions
+   - Shorter voiceover text = faster, more engaging animations
+   
+5. CODE STRUCTURE: Follow the plan steps exactly in order
 
-3. CODE STRUCTURE: Follow the plan steps exactly in order
-
-4. ULTRA-MODERN PROFESSIONAL AESTHETICS:
+6. ULTRA-MODERN PROFESSIONAL AESTHETICS - USE VARIETY!:
    - MINIMALISTIC, clean design with plenty of negative space
+   - USE MULTIPLE COLORS for visual interest and beauty!
+   - Different objects should have different colors
    
-   PROFESSIONAL COLOR PALETTE (Tech/SaaS Style):
-   * Primary Brand: #58C4DD (electric cyan) or #2196F3 (material blue) - use BLUE
-   * Accent 1: #00D9FF (bright cyan) - use for highlights, important elements
-   * Accent 2: #64FFDA (mint green) - use TEAL for success, growth
-   * Neutral Light: #E0E0E0 (light gray) - use GRAY for backgrounds
-   * Pure Contrast: #FFFFFF (pure white) - use WHITE for text, important shapes
-   * Subtle Emphasis: #FFC107 (amber) - use YELLOW sparingly for warnings/attention
-   * Deep Contrast: #1A1A1A (near black) - background is already dark
-   * Keep colors consistent throughout the animation
-   * Keep it simple, clean, and professional and more focused on the content
+   BEAUTIFUL COLOR PALETTE (Use variety - mix and match!):
+   IMPORTANT: Use HEX CODES or valid Manim color constants only!
    
-   WHAT TO AVOID:
-   ❌ RED (too aggressive, use sparingly only for errors)
-   ❌ ORANGE (too bright and childish)
-   ❌ PURPLE/PINK (unprofessional)
-   ❌ Solid fills (use fill_opacity=0.1-0.2 for subtle depth)
+   Valid Manim constants: BLUE, RED, GREEN, YELLOW, ORANGE, PURPLE, PINK, TEAL, GOLD, WHITE, GRAY, BLACK
+   
+   Recommended colors (use hex codes for exact shades):
+   * Electric Cyan: "#58C4DD" or BLUE - Great for primary elements, titles
+   * Bright Cyan: "#00D9FF" - Perfect for highlights, data flow, particles
+   * Mint Green: "#64FFDA" or TEAL - Use for success states, growth, results
+   * Vibrant Green: "#4CAF50" or GREEN - Use for positive outcomes, checkmarks
+   * Sky Blue: "#2196F3" - Beautiful for backgrounds, layers, containers
+   * Soft Purple: "#9C27B0" or PURPLE - Great for contrast, special elements
+   * Coral: "#FF6B6B" or RED - Warm accent for important points (NO LIGHT_RED!)
+   * Gold: "#FFC107" or GOLD - Use for highlights, special emphasis
+   * Orange: "#FF9800" or ORANGE - Warm, energetic accent
+   * Pink: "#E91E63" or PINK - Soft, friendly accent
+   * Pure White: WHITE - Always good for text, key shapes
+   * Soft Gray: "#E0E0E0" or GRAY - Use for subtle elements, connections
+   
+   ⚠️  CRITICAL - INVALID COLOR NAMES:
+   - NEVER use: LIGHT_RED, DARK_BLUE, LIGHT_BLUE, etc. (these don't exist!)
+   - If unsure, use HEX CODES: color="#FF6B6B" (always works) ✅
+   - Valid constants: BLUE, RED, GREEN, YELLOW, ORANGE, PURPLE, PINK, TEAL, GOLD, WHITE, GRAY ✅
+   
+   COLOR USAGE STRATEGY (IMPORTANT FOR BEAUTY!):
+   - Use 3-5 different colors per animation for visual richness
+   - Assign colors by function:
+     * Input layer: Bright cyan (#00D9FF)
+     * Hidden layer: Purple or Teal
+     * Output layer: Mint green (#64FFDA)
+     * Connections: Soft gray with low opacity
+     * Data particles: Mix of cyan, green, gold
+   - Vary colors between similar objects for differentiation
+   - Use color gradients conceptually (cool to warm, blue to green)
+   
+   WHAT TO EMBRACE:
+   ✅ Multiple colors (3-5 colors make beautiful animations!)
+   ✅ Color variety between layers/sections
+   ✅ Soft, semi-transparent fills (fill_opacity=0.1-0.2)
+   ✅ Vibrant strokes with moderate opacity
    
    MODERN DESIGN PRINCIPLES:
    - Flat design with subtle depth (use fill_opacity, not gradients)
@@ -275,25 +561,91 @@ CRITICAL CONSTRAINTS:
    - Rounded corners where possible: corner_radius=0.2
    - Generous whitespace: buff=0.5-1.0 minimum
    - Hierarchy: Larger = more important (font_size: 48 title, 36 body, 28 labels)
-   - Smooth transitions: FadeIn, FadeOut, Create, Transform
+   - Smooth, dynamic transitions: FadeIn, FadeOut, Create, Transform, GrowFromCenter
+   - Use LaggedStart for sequential reveals (very beautiful!)
    
-   EXAMPLES:
-   * Modern shape: Circle(radius=2, color="#58C4DD", stroke_width=3, fill_opacity=0.15)
-   * Clean text: Text("Title", font_size=48, color=WHITE, weight=BOLD)
-   * Subtle box: RoundedRectangle(width=3, height=2, corner_radius=0.2, color=BLUE, fill_opacity=0.1, stroke_width=2)
+   BEAUTIFUL EXAMPLES (Notice the color variety and valid color usage!):
+   * Vibrant circle: Circle(radius=1.5, color="#00D9FF", stroke_width=3, fill_opacity=0.15)  # Hex code ✅
+   * Elegant shape: Circle(radius=1.2, color=PURPLE, stroke_width=3, fill_opacity=0.2)  # Valid constant ✅
+   * Golden accent: Circle(radius=0.8, color=GOLD, stroke_width=4, fill_opacity=0.25)  # Valid constant ✅
+   * Coral shape: Circle(radius=0.7, color="#FF6B6B", stroke_width=3, fill_opacity=0.2)  # Use hex, not LIGHT_RED ✅
+   * Clean title: Text("Neural Networks", font_size=48, color=WHITE, weight=BOLD)  # Valid constant ✅
+   * Colorful label: Text("Input Layer", font_size=32, color="#00D9FF")  # Hex code ✅
+   * Beautiful box: RoundedRectangle(width=3, height=2, corner_radius=0.2, color=TEAL, fill_opacity=0.15, stroke_width=3)  # Valid ✅
+   * Soft connection: Line(p1, p2, color=GRAY, stroke_width=2, stroke_opacity=0.3)  # Valid constant ✅
+   * Colorful dot: Dot(point, radius=0.1, color="#64FFDA", fill_opacity=1.0, stroke_opacity=0)  # Hex code ✅
+   
+   WRONG COLOR EXAMPLES (Will cause NameError!):
+   * Circle(color=LIGHT_RED)  # ❌ LIGHT_RED doesn't exist! Use "#FF6B6B" or RED instead
+   * Square(color=DARK_BLUE)  # ❌ DARK_BLUE doesn't exist! Use "#0D47A1" or BLUE instead
+   * Line(color=LIGHT_GRAY)  # ❌ LIGHT_GRAY doesn't exist! Use "#E0E0E0" or GRAY instead
+   
+   ANIMATION VARIETY FOR BEAUTY:
+   - Use different animations: Create(), Write(), FadeIn(), GrowFromCenter()
+   - Use LaggedStart() for staggered reveals: LaggedStart(*[Create(obj) for obj in group])
+   - Vary animation speeds: run_time=0.5 (fast), run_time=1.5 (smooth emphasis)
+   - Mix animation types in same scene for visual interest
 
-5. OBJECTS: Use appropriate Manim primitives
+7. OBJECTS: Use appropriate Manim primitives
    - Text: Text("string", font_size=36, color=WHITE, weight=BOLD)
      * CRITICAL: 'weight' parameter ONLY works with Text(), NOT MathTex()!
      * weight=BOLD or weight=NORMAL (only for Text objects)
+     
+     ⚠️  ROTATION - NEVER use 'rotation' or 'angle' parameters (they don't exist!):
+     * Text() does NOT accept 'rotation' or 'angle' in constructor
+     * Use .rotate() METHOD after creation:
+       - CORRECT: text = Text("Label"); text.rotate(90 * DEGREES) ✅
+       - WRONG: Text("Label", rotation=90) ❌ TypeError!
+       - WRONG: Text("Label", angle=90) ❌ TypeError!
+     * For axis labels: Create text first, then rotate:
+       y_label = Text("Y-axis")
+       y_label.rotate(90 * DEGREES)
+       y_label.next_to(axes.y_axis, LEFT)
+     
+     TEXT STYLING PARAMETERS - VERY IMPORTANT:
+     * t2c (text-to-color): Maps substring to COLOR values
+       - CORRECT: Text("Hello World", t2c={{"Hello": BLUE, "World": RED}}) ✅
+       - Maps specific words to specific colors
+     * t2s (text-to-style): Maps substring to STYLE DICTIONARIES (not colors!)
+       - CORRECT: Text("Hello", t2s={{"Hello": {{"color": BLUE, "font": "Arial"}}}}) ✅
+       - WRONG: Text("Hello", t2s={{"Hello": BLUE}}) ❌ AttributeError!
+       - WRONG: Text("Hello", t2s={{"Hello": "#64FFDA"}}) ❌ AttributeError!
+       - If you want to color text, use t2c NOT t2s!
+     * t2w (text-to-weight): Maps substring to font weights
+       - CORRECT: Text("Bold text", t2w={{"Bold": BOLD}}) ✅
+     * BEST PRACTICE: Use t2c for coloring parts of text, avoid t2s unless you need complex styling
+   
    - Math: MathTex("x^2 + y^2 = r^2", font_size=48, color=WHITE)
-     * CRITICAL: MathTex does NOT accept 'weight' parameter!
-     * NEVER use: MathTex(..., weight=BOLD) ❌ TypeError!
+     
+     CRITICAL - MathTex RESTRICTIONS:
+     * MathTex does NOT accept 'weight' parameter!
+       - NEVER use: MathTex(..., weight=BOLD) ❌ TypeError!
+     
+     * MathTex does NOT accept t2c, t2s, or t2w parameters!
+       - NEVER use: MathTex("x^2", t2c={{"x": RED}}) ❌ TypeError!
+       - NEVER use: MathTex("y", t2s={{...}}) ❌ TypeError!
+       - NEVER use: MathTex("a", t2w={{...}}) ❌ TypeError!
+       - These parameters ONLY work with Text(), NOT MathTex()!
+     
+     * To color parts of MathTex, use set_color_by_tex() AFTER creation:
+       - CORRECT:
+         tex = MathTex("x", "+", "y")
+         tex.set_color_by_tex("x", BLUE)
+         tex.set_color_by_tex("y", RED)
+     
+     * Or use single color for entire MathTex:
+       - CORRECT: MathTex("x^2 + y^2", color=WHITE, font_size=48) ✅
+     
+     * MathTex accepts: font_size, color (single color only)
      * Use font_size only: MathTex("x^2", font_size=48, color=WHITE) ✅
+   
    - IMPORTANT: If LaTeX is not available, use Text() instead of MathTex()
    - For simple variables, Text("a") works as well as MathTex("a")
    - Shapes: Circle(), Square(), Polygon(p1, p2, p3, ...)
-   - Lines: Line(start_point, end_point, color=WHITE, stroke_width=2)
+   - Lines: Line(start_point, end_point, color=WHITE, stroke_width=2, stroke_opacity=0.5)
+     * CRITICAL: Use 'stroke_opacity' NOT 'opacity' for lines!
+     * Example: Line(p1, p2, color=WHITE, stroke_opacity=0.5) ✅
+     * NEVER use: Line(p1, p2, opacity=0.5) ❌ TypeError!
    
    CRITICAL - SIZING OBJECTS:
    - NEVER use FRAME_WIDTH or FRAME_HEIGHT (these don't exist!) ❌
@@ -309,13 +661,31 @@ CRITICAL CONSTRAINTS:
    - Groups: VGroup(obj1, obj2, ...)
    - Right Angle: RightAngle(line1, line2, length=0.3) - REQUIRES TWO LINE OBJECTS, NOT POINTS
    - Dots: Dot(point, radius=0.05, color=BLUE)  # Use professional colors!
+     * CRITICAL: Dots use 'fill_opacity' and 'stroke_opacity', NOT 'opacity'!
+     * CORRECT: Dot(point, radius=0.08, color=BLUE, fill_opacity=0.8) ✅
+     * WRONG: Dot(point, radius=0.08, color=BLUE, opacity=0.8) ❌ TypeError!
+     * Example: Dot(ORIGIN, radius=0.1, color="#00D9FF", fill_opacity=1.0, stroke_opacity=0)
 
-6. ANIMATIONS: Use smooth, clear animations
+8. ANIMATIONS: Use smooth, clear animations
    - Create(object) - draw shapes
    - Write(text) - write text
    - FadeIn(object) - fade in
    - FadeOut(object) - fade out
    - Transform(obj1, obj2) - morph one into another
+   
+   CRITICAL - ANIMATION SYNTAX (Common Error!):
+   - Modern Manim uses .animate property for transformations
+   - CORRECT: self.play(obj.animate.move_to(point))
+   - WRONG: ApplyMethod(obj.animate.move_to(point)) ❌ ValueError!
+   - If using ApplyMethod, pass method reference (not .animate):
+     * CORRECT: ApplyMethod(obj.move_to, point)
+     * WRONG: ApplyMethod(obj.animate.move_to(point)) ❌
+   - For multiple animations: self.play(obj1.animate.move_to(p1), obj2.animate.scale(2))
+   - For moving particles/dots:
+     * CORRECT: self.play(LaggedStart(*[dot.animate.move_to(pos) for dot, pos in zip(dots, positions)]))
+     * WRONG: self.play(LaggedStart(*[ApplyMethod(dot.animate.move_to, pos) ...]))  ❌
+   - DON'T MIX .animate with ApplyMethod - use one or the other!
+   - PREFER .animate syntax (simpler, more modern)
 
 FEW-SHOT EXAMPLES:
 
@@ -372,7 +742,6 @@ class ConceptAnimation(VoiceoverScene):
             self.play(Write(title))
         
         self.play(FadeOut(title))
-        self.wait(0.5)
         
         # Draw circle with narration
         circle = Circle(radius=2, color="#58C4DD", stroke_width=3, fill_opacity=0.15)
@@ -388,8 +757,6 @@ class ConceptAnimation(VoiceoverScene):
         with self.voiceover(text="This distance from the center to any point on the circle is called the radius.") as vo:
             self.play(Create(radius_line))
             self.play(FadeIn(label, shift=DOWN*0.2))
-        
-        self.wait(2)
 ```
 
 Example 3: Step-by-Step Transformation
@@ -1018,12 +1385,30 @@ class ManimAnimationManager:
                 
                 video_path = str(video_files[0])
                 
-                print(f"✅ Animation created successfully!")
-                print(f"📁 Saved to: {video_path}")
+                # Also copy to a cleaner downloads directory for easy access
+                downloads_dir = Path("downloads/animations")
+                downloads_dir.mkdir(parents=True, exist_ok=True)
+                
+                # Create a clean filename
+                import shutil
+                from datetime import datetime
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                clean_filename = f"{output_file}_{timestamp}.mp4"
+                download_path = downloads_dir / clean_filename
+                
+                try:
+                    shutil.copy2(video_path, download_path)
+                    print(f"✅ Animation created successfully!")
+                    print(f"📁 Saved to: {video_path}")
+                    print(f"📥 Also copied to: {download_path} (easier to find!)")
+                except Exception as e:
+                    print(f"⚠️  Could not copy to downloads: {e}")
+                    download_path = video_path
                 
                 return {
                     "status": "success",
-                    "video_path": video_path,
+                    "video_path": str(download_path),  # Return the easier-to-access path
+                    "original_path": video_path,
                     "code": code,
                     "topic": topic
                 }
@@ -1219,14 +1604,33 @@ def generate_manim_animation(manim_code: str) -> str:
         
         if video_files:
             video_path = str(video_files[0])
-            print(f"✓ Video saved to: {video_path}")
+            
+            # Also copy to a cleaner downloads directory for easy access
+            downloads_dir = Path("downloads/animations")
+            downloads_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Create a clean filename
+            import shutil
+            from datetime import datetime
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            clean_filename = f"{output_file}_{timestamp}.mp4"
+            download_path = downloads_dir / clean_filename
+            
+            try:
+                shutil.copy2(video_path, download_path)
+                print(f"✓ Video saved to: {video_path}")
+                print(f"📥 Also copied to: {download_path} (easier to find!)")
+                final_path = str(download_path)
+            except Exception as e:
+                print(f"⚠️  Could not copy to downloads: {e}")
+                final_path = video_path
             
             # Return Tool Artifact: (content, artifact=video_path)
             # The artifact is the deliverable Video File (.mp4)
             # In the future, UI can use this path to display/download the video
             return json.dumps({
-                "content": "Animation successfully rendered",
-                "artifact": video_path  # Video File (.mp4) - the deliverable
+                "content": f"Animation successfully rendered and saved to {final_path}",
+                "artifact": final_path  # Video File (.mp4) - the deliverable
             })
         else:
             return json.dumps({
