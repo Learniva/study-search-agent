@@ -1,0 +1,61 @@
+{
+  "name": "Presentation & Speech Rubric",
+  "description": "Rubric for evaluating oral presentations and speeches",
+  "category": "communication",
+  "max_score": 100,
+  "criteria": [
+    {
+      "name": "Content & Organization",
+      "weight": 30,
+      "levels": {
+        "excellent": {"score": 30, "description": "Clear thesis/purpose. Logical flow. Strong introduction and conclusion. Key points well-developed"},
+        "good": {"score": 24, "description": "Clear content with good organization"},
+        "satisfactory": {"score": 18, "description": "Adequate content and structure"},
+        "needs_improvement": {"score": 12, "description": "Disorganized or unclear content"}
+      }
+    },
+    {
+      "name": "Delivery & Body Language",
+      "weight": 25,
+      "levels": {
+        "excellent": {"score": 25, "description": "Confident posture. Effective gestures. Good eye contact. Natural movement"},
+        "good": {"score": 20, "description": "Good delivery with appropriate body language"},
+        "satisfactory": {"score": 15, "description": "Adequate delivery"},
+        "needs_improvement": {"score": 10, "description": "Poor posture, limited eye contact, or distracting movements"}
+      }
+    },
+    {
+      "name": "Vocal Quality",
+      "weight": 20,
+      "levels": {
+        "excellent": {"score": 20, "description": "Clear articulation. Varied pace and tone. Appropriate volume. Minimal fillers"},
+        "good": {"score": 16, "description": "Clear voice with some variation"},
+        "satisfactory": {"score": 12, "description": "Understandable voice"},
+        "needs_improvement": {"score": 8, "description": "Monotone, too quiet/loud, or excessive fillers"}
+      }
+    },
+    {
+      "name": "Visual Aids",
+      "weight": 15,
+      "levels": {
+        "excellent": {"score": 15, "description": "Professional slides. Clear visuals. Enhance understanding. Not over-reliant"},
+        "good": {"score": 12, "description": "Good visuals that support content"},
+        "satisfactory": {"score": 9, "description": "Basic slides present"},
+        "needs_improvement": {"score": 6, "description": "Poor slides or over-reliance on reading"}
+      }
+    },
+    {
+      "name": "Engagement & Q&A",
+      "weight": 10,
+      "levels": {
+        "excellent": {"score": 10, "description": "Engages audience. Handles questions confidently. Shows deep understanding"},
+        "good": {"score": 8, "description": "Good engagement and Q&A responses"},
+        "satisfactory": {"score": 6, "description": "Basic engagement"},
+        "needs_improvement": {"score": 4, "description": "Limited engagement or poor Q&A"}
+      }
+    }
+  ]
+}
+
+
+

@@ -1,0 +1,59 @@
+{
+  "name": "Literature Analysis Essay Rubric",
+  "description": "Rubric for evaluating literary analysis essays",
+  "category": "humanities_literature",
+  "max_score": 100,
+  "criteria": [
+    {
+      "name": "Thesis & Argument",
+      "weight": 25,
+      "levels": {
+        "excellent": {"score": 25, "description": "Clear, sophisticated thesis. Original argument well-developed throughout"},
+        "good": {"score": 20, "description": "Clear thesis with solid argument"},
+        "satisfactory": {"score": 15, "description": "Basic thesis present"},
+        "needs_improvement": {"score": 10, "description": "Weak or missing thesis"}
+      }
+    },
+    {
+      "name": "Textual Evidence",
+      "weight": 25,
+      "levels": {
+        "excellent": {"score": 25, "description": "Excellent use of quotes and examples. Properly integrated and analyzed"},
+        "good": {"score": 20, "description": "Good textual support with analysis"},
+        "satisfactory": {"score": 15, "description": "Adequate evidence"},
+        "needs_improvement": {"score": 10, "description": "Insufficient or poorly integrated evidence"}
+      }
+    },
+    {
+      "name": "Literary Analysis",
+      "weight": 30,
+      "levels": {
+        "excellent": {"score": 30, "description": "Insightful analysis of themes, symbols, techniques. Shows deep understanding of literary devices"},
+        "good": {"score": 24, "description": "Solid analysis of key elements"},
+        "satisfactory": {"score": 18, "description": "Basic analysis present"},
+        "needs_improvement": {"score": 12, "description": "Superficial or missing analysis"}
+      }
+    },
+    {
+      "name": "Organization & Coherence",
+      "weight": 10,
+      "levels": {
+        "excellent": {"score": 10, "description": "Logical structure. Smooth transitions. Clear progression"},
+        "good": {"score": 8, "description": "Good organization"},
+        "satisfactory": {"score": 6, "description": "Adequate structure"},
+        "needs_improvement": {"score": 4, "description": "Poor organization"}
+      }
+    },
+    {
+      "name": "Writing Quality",
+      "weight": 10,
+      "levels": {
+        "excellent": {"score": 10, "description": "Sophisticated language. No errors. Engaging style"},
+        "good": {"score": 8, "description": "Clear writing with minor errors"},
+        "satisfactory": {"score": 6, "description": "Adequate writing"},
+        "needs_improvement": {"score": 4, "description": "Multiple errors or unclear writing"}
+      }
+    }
+  ]
+}
+

@@ -1,0 +1,69 @@
+{
+  "name": "Engineering Project Rubric",
+  "description": "Comprehensive rubric for evaluating engineering design projects",
+  "category": "engineering",
+  "max_score": 100,
+  "criteria": [
+    {
+      "name": "Problem Definition & Requirements",
+      "weight": 15,
+      "levels": {
+        "excellent": {"score": 15, "description": "Clear problem statement with comprehensive requirements analysis. All constraints and specifications identified"},
+        "good": {"score": 12, "description": "Good problem definition. Most requirements identified"},
+        "satisfactory": {"score": 9, "description": "Basic problem statement. Some requirements missing"},
+        "needs_improvement": {"score": 6, "description": "Vague problem definition or incomplete requirements"}
+      }
+    },
+    {
+      "name": "Research & Background",
+      "weight": 10,
+      "levels": {
+        "excellent": {"score": 10, "description": "Thorough literature review. Relevant prior art and existing solutions analyzed"},
+        "good": {"score": 8, "description": "Good research. Most relevant sources covered"},
+        "satisfactory": {"score": 6, "description": "Basic research present"},
+        "needs_improvement": {"score": 4, "description": "Insufficient research or missing citations"}
+      }
+    },
+    {
+      "name": "Design & Methodology",
+      "weight": 25,
+      "levels": {
+        "excellent": {"score": 25, "description": "Innovative design with clear rationale. Multiple alternatives considered. Detailed CAD/diagrams. Systematic approach"},
+        "good": {"score": 20, "description": "Solid design with good justification. Some alternatives considered"},
+        "satisfactory": {"score": 15, "description": "Basic design present. Limited alternatives"},
+        "needs_improvement": {"score": 10, "description": "Weak design or poor justification"}
+      }
+    },
+    {
+      "name": "Implementation & Testing",
+      "weight": 25,
+      "levels": {
+        "excellent": {"score": 25, "description": "Complete implementation. Comprehensive testing protocol. Results well-documented with data"},
+        "good": {"score": 20, "description": "Good implementation. Adequate testing performed"},
+        "satisfactory": {"score": 15, "description": "Basic implementation. Limited testing"},
+        "needs_improvement": {"score": 10, "description": "Incomplete implementation or insufficient testing"}
+      }
+    },
+    {
+      "name": "Analysis & Results",
+      "weight": 15,
+      "levels": {
+        "excellent": {"score": 15, "description": "Thorough analysis of results. Meets/exceeds specifications. Performance validated"},
+        "good": {"score": 12, "description": "Good analysis. Most specifications met"},
+        "satisfactory": {"score": 9, "description": "Basic analysis. Some specifications met"},
+        "needs_improvement": {"score": 6, "description": "Weak analysis or poor performance"}
+      }
+    },
+    {
+      "name": "Documentation & Communication",
+      "weight": 10,
+      "levels": {
+        "excellent": {"score": 10, "description": "Professional documentation. Clear technical writing. Excellent figures/tables"},
+        "good": {"score": 8, "description": "Good documentation. Clear writing"},
+        "satisfactory": {"score": 6, "description": "Adequate documentation"},
+        "needs_improvement": {"score": 4, "description": "Poor documentation or unclear communication"}
+      }
+    }
+  ]
+}
+

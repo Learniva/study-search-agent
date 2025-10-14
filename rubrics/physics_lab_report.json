@@ -1,0 +1,79 @@
+{
+  "name": "Physics Lab Report Rubric",
+  "description": "Comprehensive rubric for grading physics laboratory reports",
+  "category": "science_lab",
+  "max_score": 100,
+  "criteria": [
+    {
+      "name": "Title & Abstract",
+      "weight": 10,
+      "levels": {
+        "excellent": {"score": 10, "description": "Clear, concise title. Abstract summarizes purpose, methods, results, and conclusions in 150-250 words"},
+        "good": {"score": 8, "description": "Appropriate title. Abstract covers most key elements but may lack detail"},
+        "satisfactory": {"score": 6, "description": "Basic title. Abstract present but missing important elements"},
+        "needs_improvement": {"score": 4, "description": "Vague title or missing abstract, incomplete information"}
+      }
+    },
+    {
+      "name": "Introduction & Theory",
+      "weight": 20,
+      "levels": {
+        "excellent": {"score": 20, "description": "Clear statement of objectives. Thorough explanation of relevant physics principles, equations, and theory with proper citations"},
+        "good": {"score": 16, "description": "Objectives stated. Good coverage of theory with minor gaps"},
+        "satisfactory": {"score": 12, "description": "Objectives present. Basic theory explanation, may lack depth"},
+        "needs_improvement": {"score": 8, "description": "Unclear objectives. Insufficient or incorrect theory"}
+      }
+    },
+    {
+      "name": "Experimental Setup & Procedure",
+      "weight": 15,
+      "levels": {
+        "excellent": {"score": 15, "description": "Detailed description with diagrams. Clear, reproducible steps. Equipment specifications included"},
+        "good": {"score": 12, "description": "Good description. Steps mostly clear, minor details missing"},
+        "satisfactory": {"score": 9, "description": "Basic description. Procedure understandable but lacks detail"},
+        "needs_improvement": {"score": 6, "description": "Vague or incomplete description. Not reproducible"}
+      }
+    },
+    {
+      "name": "Data & Observations",
+      "weight": 20,
+      "levels": {
+        "excellent": {"score": 20, "description": "Well-organized tables/graphs with units, uncertainties, and multiple trials. Raw data and observations clearly documented"},
+        "good": {"score": 16, "description": "Data organized with tables/graphs. Most units and uncertainties present"},
+        "satisfactory": {"score": 12, "description": "Data present but organization or completeness lacking"},
+        "needs_improvement": {"score": 8, "description": "Missing data, no tables/graphs, or units/uncertainties omitted"}
+      }
+    },
+    {
+      "name": "Analysis & Calculations",
+      "weight": 20,
+      "levels": {
+        "excellent": {"score": 20, "description": "Complete calculations with clear steps. Proper error propagation and uncertainty analysis. Results with significant figures"},
+        "good": {"score": 16, "description": "Calculations mostly complete. Some error analysis present"},
+        "satisfactory": {"score": 12, "description": "Basic calculations shown. Limited error analysis"},
+        "needs_improvement": {"score": 8, "description": "Calculations missing steps or incorrect. No error analysis"}
+      }
+    },
+    {
+      "name": "Results & Discussion",
+      "weight": 10,
+      "levels": {
+        "excellent": {"score": 10, "description": "Clear comparison with theory/expected values. Thorough discussion of sources of error and their impact"},
+        "good": {"score": 8, "description": "Results compared with theory. Discussion of main error sources"},
+        "satisfactory": {"score": 6, "description": "Results stated. Brief discussion of errors"},
+        "needs_improvement": {"score": 4, "description": "Results unclear or missing comparison. Limited error discussion"}
+      }
+    },
+    {
+      "name": "Conclusion",
+      "weight": 5,
+      "levels": {
+        "excellent": {"score": 5, "description": "Clear summary of findings. Relates results to objectives. Suggests improvements"},
+        "good": {"score": 4, "description": "Summarizes main findings. Relates to objectives"},
+        "satisfactory": {"score": 3, "description": "Basic conclusion present"},
+        "needs_improvement": {"score": 2, "description": "Vague or missing conclusion"}
+      }
+    }
+  ]
+}
+

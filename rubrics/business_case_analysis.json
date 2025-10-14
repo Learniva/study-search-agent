@@ -1,0 +1,69 @@
+{
+  "name": "Business Case Analysis Rubric",
+  "description": "Rubric for evaluating business case studies and analyses",
+  "category": "business",
+  "max_score": 100,
+  "criteria": [
+    {
+      "name": "Executive Summary",
+      "weight": 10,
+      "levels": {
+        "excellent": {"score": 10, "description": "Concise, compelling summary of problem, analysis, and recommendations"},
+        "good": {"score": 8, "description": "Clear summary covering main points"},
+        "satisfactory": {"score": 6, "description": "Basic summary present"},
+        "needs_improvement": {"score": 4, "description": "Weak or missing summary"}
+      }
+    },
+    {
+      "name": "Problem Identification",
+      "weight": 15,
+      "levels": {
+        "excellent": {"score": 15, "description": "Clear identification of key issues. Root causes analyzed. Context well-established"},
+        "good": {"score": 12, "description": "Main problems identified with good context"},
+        "satisfactory": {"score": 9, "description": "Problems identified but may lack depth"},
+        "needs_improvement": {"score": 6, "description": "Vague problem identification"}
+      }
+    },
+    {
+      "name": "Industry & Market Analysis",
+      "weight": 20,
+      "levels": {
+        "excellent": {"score": 20, "description": "Comprehensive analysis using frameworks (Porter's 5 Forces, SWOT, PESTEL). Data-driven insights"},
+        "good": {"score": 16, "description": "Good analysis with appropriate frameworks"},
+        "satisfactory": {"score": 12, "description": "Basic analysis present"},
+        "needs_improvement": {"score": 8, "description": "Weak or missing analysis"}
+      }
+    },
+    {
+      "name": "Financial Analysis",
+      "weight": 20,
+      "levels": {
+        "excellent": {"score": 20, "description": "Detailed financial metrics (NPV, IRR, ROI). Clear assumptions. Sensitivity analysis"},
+        "good": {"score": 16, "description": "Good financial analysis with key metrics"},
+        "satisfactory": {"score": 12, "description": "Basic financial data presented"},
+        "needs_improvement": {"score": 8, "description": "Missing or incorrect financial analysis"}
+      }
+    },
+    {
+      "name": "Alternatives & Recommendations",
+      "weight": 25,
+      "levels": {
+        "excellent": {"score": 25, "description": "Multiple alternatives evaluated. Clear recommendation with strong justification. Implementation plan"},
+        "good": {"score": 20, "description": "Good alternatives and recommendation"},
+        "satisfactory": {"score": 15, "description": "Basic recommendations present"},
+        "needs_improvement": {"score": 10, "description": "Weak recommendations or no alternatives"}
+      }
+    },
+    {
+      "name": "Presentation & Communication",
+      "weight": 10,
+      "levels": {
+        "excellent": {"score": 10, "description": "Professional presentation. Clear exhibits. Logical flow"},
+        "good": {"score": 8, "description": "Clear presentation with good visuals"},
+        "satisfactory": {"score": 6, "description": "Adequate presentation"},
+        "needs_improvement": {"score": 4, "description": "Poor organization or unclear communication"}
+      }
+    }
+  ]
+}
+
