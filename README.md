@@ -11,10 +11,10 @@
 ## Features
 
 ### 📚 Study Agent (All Users)
-Multi-step planning • Document Q&A • Web search • Python REPL • Manim animations • Context-aware follow-ups
+Multi-step planning • Document Q&A • **Web search with source citations** • Python REPL • Manim animations • **Code generation** • Context-aware follow-ups • **Real-time streaming**
 
 ### 🎓 Grading Agent (Teachers)
-15+ rubrics • Essay/Code/MCQ grading • Self-reflection • Adaptive learning from corrections • **Google Classroom Integration**
+19 rubrics • Essay/Code/MCQ grading • Self-reflection • Adaptive learning from corrections • **Google Classroom Integration**
 
 ### 🤖 Agentic RAG
 - **Adaptive Retrieval** - Decides when RAG is needed
@@ -53,9 +53,10 @@ python -m api.app                          # API: http://localhost:8000/docs
 ```bash
 # Study (all users)
 python main.py --role student
-> "Generate MCQs from my notes"
-> "Who founded Code Savanna?"
-> "What else did he create?"  # Context-aware!
+> "Explain quantum entanglement with examples"        # Web search + sources
+> "How to implement binary search in Python?"         # Code generation
+> "Create a lesson plan on photosynthesis"            # Multi-step with streaming
+> "What is 2+2?"                                       # Direct calculation
 
 # Grading (teachers)
 python main.py --role professor --user-id prof123
@@ -70,6 +71,12 @@ curl -X POST localhost:8000/query/ \
   -H "Content-Type: application/json" \
   -H "X-User-Role: student" \
   -d '{"question": "Explain RAG", "user_role": "student"}'
+
+# Streaming (real-time token-by-token)
+curl -X POST localhost:8000/query/stream \
+  -H "Content-Type: application/json" \
+  -d '{"question": "Explain quantum computing", "user_role": "student"}' \
+  --no-buffer
 
 # Get grading history
 curl localhost:8000/grading/history/prof123 \
@@ -151,24 +158,25 @@ See [PostgreSQL Guide](docs/POSTGRESQL.md) for details.
 - **[Grading Agent](docs/GRADING_AGENT.md)** - Essay/code/MCQ grading with rubrics
 - **[Supervisor Agent](docs/SUPERVISOR_AGENT.md)** - Routing, access control, learning
 
-### Google Classroom
-- **[Complete User Guide](COMPLETE_USER_GUIDE.md)** - Full Google Classroom integration documentation
-- **[Interactive Tool](grade_classroom_assignment.py)** - Step-by-step grading script
-
 ### Architecture & Implementation
 - **[Agentic Workflow](docs/AGENTIC_WORKFLOW.md)** - Autonomous decision-making and routing
+- **[Streaming Architecture](docs/STREAMING_ARCHITECTURE.md)** - Real-time streaming implementation
 - **[API Guide](docs/API_README.md)** - REST API reference and endpoints
 - **[PostgreSQL Guide](docs/POSTGRESQL.md)** - Database setup and RAG configuration
 - **[Manim Guide](docs/MANIM.md)** - Educational animation generation
 
+### Google Classroom
+- **[Complete User Guide](COMPLETE_USER_GUIDE.md)** - Full Google Classroom integration documentation
+- **[Interactive Tool](grade_classroom_assignment.py)** - Step-by-step grading script
+
+### Testing
+- **[Streaming Test Guide](STREAMING_TEST_GUIDE.md)** - Comprehensive streaming test suite
+- `test_submissions/` - Sample essays, code, math problems (13+ files)
+- `rubrics/` - 19 discipline-specific rubrics
+
 ### Helper Scripts
 - **[Grade Classroom Assignment](grade_classroom_assignment.py)** - Interactive Google Classroom grading
 - **[Grade File](grade_file.py)** - Quick file grading from `test_submissions/`
-
-### Testing & Resources
-- `test_submissions/` - Sample essays, code, math problems (13+ files)
-- `rubrics/` - 19 discipline-specific rubrics
-- `examples/` - Example scripts and usage patterns
 
 ---
 
@@ -176,13 +184,16 @@ See [PostgreSQL Guide](docs/POSTGRESQL.md) for details.
 
 ### 🚀 Performance
 - **80-90% LLM reduction** via pattern-based routing
+- **Token-by-token streaming** with real-time indicators
 - **Result caching** with configurable TTL
 - **40-50% token reduction** via smart context
-- **Connection pooling** for database efficiency
+- **Resilient database** with retry logic & exponential backoff
 
 ### 🧠 Intelligence
 - **Adaptive rubrics** learn from professor corrections
 - **Self-improving RAG** grades and refines context
+- **Source citations** for all web search responses
+- **Code generation** with working implementations
 - **User profiling** for personalized feedback
 - **Multi-step planning** for complex queries
 
@@ -190,7 +201,7 @@ See [PostgreSQL Guide](docs/POSTGRESQL.md) for details.
 - **Domain-driven design** with clean separation
 - **Modular routers** for horizontal scaling
 - **Async operations** throughout
-- **Production-ready** monitoring and logging
+- **Production-ready** monitoring, health checks, and logging
 
 ---
 
@@ -200,9 +211,12 @@ See [PostgreSQL Guide](docs/POSTGRESQL.md) for details.
 |---------|---------|
 | Pattern routing | 80% requests skip LLM (2-3x faster) |
 | Smart context | 40-50% token reduction |
+| Streaming responses | Real-time progressive delivery |
+| Source citations | Verifiable, authoritative information |
+| Code generation | Working implementations, not descriptions |
 | Adaptive rubrics | Learn from corrections |
 | RAG self-correction | Improve retrieval quality |
-| Result caching | Instant repeated queries |
+| DB retry logic | Automatic recovery from transient failures |
 
 ---
 
@@ -211,7 +225,10 @@ See [PostgreSQL Guide](docs/POSTGRESQL.md) for details.
 ✅ **Phase 1** - L2/L3 memory, RBAC, streaming  
 ✅ **Phase 2** - Self-correcting RAG, context-aware follow-ups  
 ✅ **Phase 3** - Adaptive grading, professor style matching  
+✅ **Phase 4** - Source citations, code generation, resilient database  
 ✅ **Clean Architecture** - Domain-driven, modular design
+
+**Latest:** v2.0 - Real-time streaming, source citations, code generation (Oct 2025)
 
 ---
 
