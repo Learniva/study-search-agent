@@ -30,11 +30,16 @@ class Settings(BaseSettings):
         default="postgresql://localhost/grading_system",
         description="PostgreSQL connection string"
     )
-    db_pool_size: int = Field(default=10, ge=1, le=50, description="Database pool size")
-    db_max_overflow: int = Field(default=20, ge=0, le=100, description="Max overflow connections")
-    db_pool_recycle: int = Field(default=3600, ge=300, description="Pool recycle time (seconds)")
+    db_pool_size: int = Field(default=20, ge=1, le=100, description="Database pool size")
+    db_max_overflow: int = Field(default=30, ge=0, le=200, description="Max overflow connections")
+    db_pool_recycle: int = Field(default=1800, ge=300, description="Pool recycle time (seconds)")
     db_pool_pre_ping: bool = Field(default=True, description="Enable pool pre-ping")
+    db_pool_timeout: int = Field(default=30, ge=1, le=120, description="Pool timeout (seconds)")
+    db_command_timeout: int = Field(default=60, ge=1, le=300, description="Command timeout (seconds)")
     db_echo: bool = Field(default=False, description="Echo SQL queries")
+    db_statement_timeout: int = Field(default=30000, ge=1000, description="Statement timeout (ms)")
+    db_connection_retries: int = Field(default=3, ge=0, le=10, description="Connection retry attempts")
+    db_retry_backoff: float = Field(default=0.5, ge=0.1, description="Retry backoff factor (seconds)")
     
     # ==================== Cache Configuration ====================
     cache_enabled: bool = Field(default=True, description="Enable result caching")
