@@ -7,14 +7,16 @@ from .state import GradingAgentState
 from utils import fast_grading_route, get_smart_context, MAX_CONTEXT_TOKENS
 
 
-GRADING_SYSTEM_PROMPT = """You are a detailed academic grader.
+GRADING_SYSTEM_PROMPT = """You are a professional academic grading assistant helping teachers streamline their work.
 
-Provide:
-- Clear numerical scores
-- Detailed breakdown by criterion
-- Specific feedback with examples
-- Constructive criticism
-- Improvement suggestions"""
+CRITICAL - ALWAYS PROVIDE:
+- **NUMERICAL GRADES FIRST** - Score, percentage, grade letter at the top
+- Clear breakdown by criterion with specific scores
+- Brief, honest feedback (100-250 words max)
+- Specific examples of strengths and issues
+- Actionable improvements
+
+Remember: Help teachers grade efficiently with realistic, honest assessments."""
 
 
 class GradingAgentRouter:
@@ -38,11 +40,11 @@ class GradingAgentRouter:
         routing_prompt = """Determine the appropriate tool:
 
 **Grading Tools:**
-1. grade_essay - Text submissions (DEFAULT for grading)
-2. review_code - Code/programming
+1. grade_essay - Text submissions (DEFAULT for ANY grading with scores)
+2. review_code - Code/programming (with scores)
 3. grade_mcq - Multiple choice only
-4. evaluate_rubric - JSON format with rubric
-5. generate_feedback - Feedback only, no score
+4. evaluate_with_rubric - JSON format with rubric
+5. generate_feedback - ONLY for feedback without grading/scoring
 
 **Lesson Planning Tools (for teachers/professors):**
 6. generate_lesson_plan - Create lesson plans
@@ -51,8 +53,23 @@ class GradingAgentRouter:
 9. design_assessment - Create quizzes/tests/exams
 10. generate_study_materials - Create handouts/worksheets
 
-For plain text submissions, use grade_essay.
-For educational planning, use lesson planning tools.
+**Google Classroom Tools (if enabled):**
+11. fetch_classroom_courses - List Google Classroom courses
+12. fetch_classroom_assignments - Get assignments from a course
+13. fetch_classroom_submissions - Get student submissions for an assignment
+14. get_classroom_submission_details - Get detailed submission info
+15. post_grade_to_classroom - Post grade to Google Classroom
+16. fetch_classroom_rubrics - Get rubrics for an assignment
+
+IMPORTANT RULES:
+- If user asks to "grade" or "evaluate" → use grade_essay (not generate_feedback)
+- If user wants scores/grades → use grade_essay or review_code
+- If user only wants feedback (no scoring) → use generate_feedback
+- For plain text submissions → use grade_essay
+- For code submissions → use review_code
+- For educational planning → use lesson planning tools
+- For Google Classroom interactions → use classroom tools
+
 Respond with tool name only."""
         
         messages = [
@@ -91,6 +108,23 @@ Respond with tool name only."""
             tool_choice = "design_assessment"
         elif "material" in tool_choice or "handout" in tool_choice or "worksheet" in tool_choice:
             tool_choice = "generate_study_materials"
+        # Google Classroom tools
+        elif "fetch_classroom_courses" in tool_choice or "list courses" in tool_choice:
+            tool_choice = "fetch_classroom_courses"
+        elif "fetch_classroom_assignments" in tool_choice or "get assignments" in tool_choice:
+            tool_choice = "fetch_classroom_assignments"
+        elif "fetch_classroom_submissions" in tool_choice or "get submissions" in tool_choice:
+            tool_choice = "fetch_classroom_submissions"
+        elif "get_classroom_submission_details" in tool_choice or "submission details" in tool_choice:
+            tool_choice = "get_classroom_submission_details"
+        elif "fetch_submission_content" in tool_choice or "submission content" in tool_choice:
+            tool_choice = "fetch_submission_content"
+        elif "post_grade_to_classroom" in tool_choice or "post grade" in tool_choice:
+            tool_choice = "post_grade_to_classroom"
+        elif "fetch_classroom_rubrics" in tool_choice or "get rubrics" in tool_choice:
+            tool_choice = "fetch_classroom_rubrics"
+        elif "fetch_and_grade" in tool_choice:
+            tool_choice = "fetch_and_grade"
         else:
             tool_choice = "generate_feedback"
         
@@ -99,7 +133,9 @@ Respond with tool name only."""
     
     def route_to_tool(self, state: GradingAgentState) -> Literal[
         "essay", "code", "mcq", "rubric", "feedback",
-        "lesson_plan", "curriculum", "objectives", "assessment", "materials"
+        "lesson_plan", "curriculum", "objectives", "assessment", "materials",
+        "classroom_courses", "classroom_assignments", "classroom_submissions",
+        "classroom_submission_details", "submission_content", "fetch_and_grade", "classroom_post_grade", "classroom_rubrics"
     ]:
         """Conditional edge for tool routing."""
         tool = state["tool_used"]
@@ -126,6 +162,23 @@ Respond with tool name only."""
             return "assessment"
         elif tool == "generate_study_materials":
             return "materials"
+        # Google Classroom tools
+        elif tool == "fetch_classroom_courses":
+            return "classroom_courses"
+        elif tool == "fetch_classroom_assignments":
+            return "classroom_assignments"
+        elif tool == "fetch_classroom_submissions":
+            return "classroom_submissions"
+        elif tool == "get_classroom_submission_details":
+            return "classroom_submission_details"
+        elif tool == "fetch_submission_content":
+            return "submission_content"
+        elif tool == "post_grade_to_classroom":
+            return "classroom_post_grade"
+        elif tool == "fetch_classroom_rubrics":
+            return "classroom_rubrics"
+        elif tool == "fetch_and_grade":
+            return "fetch_and_grade"
         else:
             return "feedback"
     
