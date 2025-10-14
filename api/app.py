@@ -22,7 +22,8 @@ from api.routers import (
     documents_router,
     grading_router,
     ml_router,
-    health_router
+    health_router,
+    videos_router
 )
 from utils.rate_limiting import RateLimitMiddleware
 from utils.monitoring import TracingMiddleware, get_logger, get_correlation_id
@@ -45,7 +46,7 @@ app = FastAPI(
     
     ### Supervisor Pattern
     - Intelligent routing between Study and Grading agents
-    - Role-based access control (Student, Teacher, Admin)
+    - Role-based access control (Student, Teacher, Professor, Instructor, Admin)
     - Context-aware query handling
     
     ### Study & Search Agent
@@ -169,6 +170,9 @@ app.include_router(grading_router)
 
 # ML Features
 app.include_router(ml_router)
+
+# Video Downloads (available to all roles)
+app.include_router(videos_router)
 
 
 # ============================================================================

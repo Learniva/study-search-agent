@@ -56,16 +56,17 @@ async def get_current_user_role(
         x_user_role: User role from X-User-Role header
         
     Returns:
-        User role (student, teacher, or admin)
+        User role (student, teacher, professor, instructor, or admin)
     """
     if not x_user_role:
         return "student"  # Default to student
     
     role = x_user_role.lower()
-    if role not in ["student", "teacher", "admin"]:
+    valid_roles = ["student", "teacher", "professor", "instructor", "admin"]
+    if role not in valid_roles:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid user role. Must be student, teacher, or admin"
+            detail=f"Invalid user role. Must be one of: {', '.join(valid_roles)}"
         )
     
     return role
@@ -86,10 +87,10 @@ async def require_teacher_role(
     Raises:
         HTTPException: If user is not teacher or admin
     """
-    if role not in ["teacher", "admin"]:
+    if role not in ["teacher", "professor", "instructor", "admin"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="This endpoint requires teacher or admin privileges"
+            detail="This endpoint requires teacher/professor or admin privileges"
         )
     return role
 

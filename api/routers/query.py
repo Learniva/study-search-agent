@@ -159,10 +159,11 @@ async def get_capabilities(role: str):
     
     Returns list of features accessible to the specified role.
     """
-    if role not in ["student", "teacher", "admin"]:
+    valid_roles = ["student", "teacher", "professor", "instructor", "admin"]
+    if role not in valid_roles:
         raise HTTPException(
             status_code=400,
-            detail="Role must be student, teacher, or admin"
+            detail=f"Role must be one of: {', '.join(valid_roles)}"
         )
     
     capabilities = {
@@ -206,8 +207,13 @@ async def get_capabilities(role: str):
         }
     }
     
+    # Map professor and instructor to teacher capabilities
+    normalized_role = role
+    if role in ["professor", "instructor"]:
+        normalized_role = "teacher"
+    
     return {
         "role": role,
-        "capabilities": capabilities[role]
+        "capabilities": capabilities[normalized_role]
     }
 

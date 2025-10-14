@@ -28,7 +28,7 @@ class QueryRequest(BaseModel):
     )
     user_role: str = Field(
         default="student",
-        description="User role: student, teacher, or admin"
+        description="User role: student, teacher, professor, instructor, or admin"
     )
     user_id: Optional[str] = Field(
         default=None,
@@ -66,8 +66,9 @@ class QueryRequest(BaseModel):
     @validator('user_role')
     def validate_role(cls, v):
         """Validate user role."""
-        if v not in ['student', 'teacher', 'admin']:
-            raise ValueError('Role must be student, teacher, or admin')
+        valid_roles = ['student', 'teacher', 'professor', 'instructor', 'admin']
+        if v not in valid_roles:
+            raise ValueError(f'Role must be one of: {", ".join(valid_roles)}')
         return v
 
 
