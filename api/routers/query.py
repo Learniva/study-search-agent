@@ -101,24 +101,31 @@ async def query_supervisor_stream(
     )
     
     async def generate_stream():
-        """Generate SSE stream."""
+        """Generate SSE streaming from agents."""
         try:
-            # Query supervisor (would need streaming support in agent)
-            answer = await supervisor.aquery(
+            # Use the new streaming query method
+            async for chunk in supervisor.aquery_stream(
                 question=request.question,
                 thread_id=request.thread_id,
                 user_role=request.user_role,
-                user_id=request.user_id
-            )
-            
-            # Stream answer in chunks
-            chunk_size = 50
-            for i in range(0, len(answer), chunk_size):
-                chunk = answer[i:i+chunk_size]
-                yield f"data: {chunk}\n\n"
-            
-            yield "data: [DONE]\n\n"
-            
+                user_id=request.user_id,
+                professor_id=request.professor_id,
+                student_id=request.student_id,
+                student_name=request.student_name,
+                course_id=request.course_id,
+                assignment_id=request.assignment_id,
+                assignment_name=request.assignment_name
+            ):
+                # Check if this is a special marker
+                if chunk == "[DONE]":
+                    yield "data: [DONE]\n\n"
+                elif chunk.startswith("[ERROR]"):
+                    logger.error(f"Streaming error: {chunk}")
+                    yield f"data: {chunk}\n\n"
+                else:
+                    # Regular content chunk
+                    yield f"data: {chunk}\n\n"
+                    
         except Exception as e:
             logger.error(f"Streaming error: {e}")
             yield f"data: [ERROR] {str(e)}\n\n"

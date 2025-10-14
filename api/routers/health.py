@@ -59,6 +59,56 @@ async def health_check(
         database_available = async_db_engine is not None
     except ImportError:
         pass
+
+
+@router.get("/health/database", tags=["Monitoring"])
+async def database_health():
+    """
+    Database connection pool health check.
+    
+    Returns detailed information about the database connection pool:
+    - Current utilization
+    - Pool configuration
+    - Connection statistics
+    - Health status
+    """
+    try:
+        from database.core.async_engine import async_db_engine
+        from database.monitoring.pool_monitor import get_pool_monitor, monitor_pool_health
+        
+        # Get pool monitor
+        pool_monitor = get_pool_monitor(async_db_engine.engine)
+        
+        # Get current pool stats
+        stats = pool_monitor.get_stats()
+        
+        # Perform health check
+        health_status = await monitor_pool_health(async_db_engine.engine)
+        
+        # Get utilization trend (last 5 minutes)
+        trend = pool_monitor.get_utilization_trend(minutes=5)
+        
+        return {
+            "status": "healthy" if health_status["healthy"] else "unhealthy",
+            "pool_stats": stats,
+            "health_check": health_status,
+            "utilization_trend": trend,
+            "configuration": {
+                "pool_size": settings.db_pool_size,
+                "max_overflow": settings.db_max_overflow,
+                "pool_recycle": settings.db_pool_recycle,
+                "pool_timeout": settings.db_pool_timeout,
+                "statement_timeout": settings.db_statement_timeout,
+                "connection_retries": settings.db_connection_retries,
+            },
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Failed to check database health: {str(e)}",
+            "timestamp": datetime.utcnow().isoformat()
+        }
     except Exception:
         # Database module exists but has issues
         database_available = False
