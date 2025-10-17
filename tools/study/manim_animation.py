@@ -15,7 +15,9 @@ import re
 import json
 import tempfile
 import subprocess
-from typing import Optional, Dict, Any
+import traceback
+from typing import Optional, Dict, Any, List
+from datetime import datetime
 from pathlib import Path
 from langchain.tools import Tool
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -174,18 +176,27 @@ INPUT: A structured JSON plan with:
 
 OUTPUT: Complete, executable Python code using this ESSENTIAL BOILERPLATE:
 
+⚠️  CRITICAL - CLASS NAME REQUIREMENT:
+- The class MUST be named EXACTLY "ConceptAnimation" - NO OTHER NAME!
+- Do NOT use custom names like "NeuralNetworkAnimation", "CircleAnimation", etc.
+- The system validates for "class ConceptAnimation" - any other name will fail!
+
 ```python
 from manim import *
 from manim_voiceover import VoiceoverScene
 from manim_voiceover.services.gtts import GTTSService
+import numpy as np  # ⚠️ REQUIRED for point comparisons!
+import random  # ⚠️ REQUIRED if using random.choice(), random.uniform(), etc.!
 
-class ConceptAnimation(VoiceoverScene):  # Use VoiceoverScene for narration
+class ConceptAnimation(VoiceoverScene):  # ⚠️ MUST BE "ConceptAnimation" - DO NOT CHANGE!
     def construct(self):
         # Set up gTTS voice service (fast, reliable, 100+ languages)
         self.set_speech_service(GTTSService(lang="en", tld="com"))
         
         # YOUR CODE GOES HERE
         # Use self.voiceover(text="...") as vo: to add narration
+        # For point comparisons: np.allclose(point1, point2) NOT point1.allclose(point2)!
+        # If using randomization: import random (already done above)
         # Animations inside the context will sync with speech
 ```
 
@@ -517,12 +528,12 @@ CRITICAL CONSTRAINTS:
    BEAUTIFUL COLOR PALETTE (Use variety - mix and match!):
    IMPORTANT: Use HEX CODES or valid Manim color constants only!
    
-   Valid Manim constants: BLUE, RED, GREEN, YELLOW, ORANGE, PURPLE, PINK, TEAL, GOLD, WHITE, GRAY, BLACK
-   
-   Recommended colors (use hex codes for exact shades):
-   * Electric Cyan: "#58C4DD" or BLUE - Great for primary elements, titles
-   * Bright Cyan: "#00D9FF" - Perfect for highlights, data flow, particles
-   * Mint Green: "#64FFDA" or TEAL - Use for success states, growth, results
+  Valid Manim constants: BLUE, RED, GREEN, YELLOW, ORANGE, PURPLE, PINK, TEAL, GOLD, WHITE, GRAY, BLACK
+  
+  Recommended colors (use hex codes for exact shades):
+  * Electric Cyan: "#58C4DD" or BLUE - Great for primary elements, titles
+  * Bright Cyan: "#00D9FF" - Perfect for highlights, data flow, particles
+  * Mint/Aqua: "#64FFDA" or TEAL - Use for success states, growth, results (NO MINT_GREEN constant!)
    * Vibrant Green: "#4CAF50" or GREEN - Use for positive outcomes, checkmarks
    * Sky Blue: "#2196F3" - Beautiful for backgrounds, layers, containers
    * Soft Purple: "#9C27B0" or PURPLE - Great for contrast, special elements
@@ -530,13 +541,30 @@ CRITICAL CONSTRAINTS:
    * Gold: "#FFC107" or GOLD - Use for highlights, special emphasis
    * Orange: "#FF9800" or ORANGE - Warm, energetic accent
    * Pink: "#E91E63" or PINK - Soft, friendly accent
-   * Pure White: WHITE - Always good for text, key shapes
-   * Soft Gray: "#E0E0E0" or GRAY - Use for subtle elements, connections
-   
-   ⚠️  CRITICAL - INVALID COLOR NAMES:
-   - NEVER use: LIGHT_RED, DARK_BLUE, LIGHT_BLUE, etc. (these don't exist!)
-   - If unsure, use HEX CODES: color="#FF6B6B" (always works) ✅
-   - Valid constants: BLUE, RED, GREEN, YELLOW, ORANGE, PURPLE, PINK, TEAL, GOLD, WHITE, GRAY ✅
+  * Pure White: WHITE - Always good for text, key shapes
+  * Soft Gray: "#E0E0E0" or GRAY - Use for subtle elements, connections
+  
+ ⚠️  CRITICAL - FRAME_WIDTH / FRAME_HEIGHT DO NOT EXIST! (PREVENT NameError!):
+ - Manim does NOT have FRAME_WIDTH or FRAME_HEIGHT constants! ❌
+ - These variables DO NOT EXIST and will cause NameError!
+ - NEVER EVER use:
+   * obj.scale_to_fit_width(FRAME_WIDTH - 2) ❌ NameError!
+   * obj.set_width(FRAME_WIDTH * 0.8) ❌ NameError!
+   * obj.move_to([FRAME_WIDTH/2, 0, 0]) ❌ NameError!
+   * ANY reference to FRAME_WIDTH or FRAME_HEIGHT ❌
+ - ALWAYS use NUMERIC VALUES instead:
+   * obj.scale_to_fit_width(12) ✅ (frame is ~14 units wide)
+   * obj.set_width(10) ✅
+   * obj.move_to([6, 0, 0]) ✅ (right side of frame)
+ - Frame dimensions: ~14 units wide × 8 units tall
+ - Common widths: 12 (wide text), 10 (medium), 6 (half screen)
+ - REMEMBER: No FRAME_WIDTH, no FRAME_HEIGHT - use numbers ONLY!
+ 
+ ⚠️  CRITICAL - INVALID COLOR NAMES (WILL CAUSE NameError!):
+  - NEVER use: LIGHT_RED, DARK_BLUE, LIGHT_BLUE, MINT_GREEN, LIGHT_GREEN, etc. (these don't exist!)
+  - ONLY these constants are valid: BLUE, RED, GREEN, YELLOW, ORANGE, PURPLE, PINK, TEAL, GOLD, WHITE, GRAY, BLACK ✅
+  - If unsure, ALWAYS use HEX CODES: color="#FF6B6B" (always works) ✅
+  - For mint/aqua color: Use "#64FFDA" or TEAL (NOT MINT_GREEN!) ✅
    
    COLOR USAGE STRATEGY (IMPORTANT FOR BEAUTY!):
    - Use 3-5 different colors per animation for visual richness
@@ -575,10 +603,12 @@ CRITICAL CONSTRAINTS:
    * Soft connection: Line(p1, p2, color=GRAY, stroke_width=2, stroke_opacity=0.3)  # Valid constant ✅
    * Colorful dot: Dot(point, radius=0.1, color="#64FFDA", fill_opacity=1.0, stroke_opacity=0)  # Hex code ✅
    
-   WRONG COLOR EXAMPLES (Will cause NameError!):
-   * Circle(color=LIGHT_RED)  # ❌ LIGHT_RED doesn't exist! Use "#FF6B6B" or RED instead
-   * Square(color=DARK_BLUE)  # ❌ DARK_BLUE doesn't exist! Use "#0D47A1" or BLUE instead
-   * Line(color=LIGHT_GRAY)  # ❌ LIGHT_GRAY doesn't exist! Use "#E0E0E0" or GRAY instead
+  WRONG COLOR EXAMPLES (Will cause NameError!):
+  * Circle(color=LIGHT_RED)  # ❌ LIGHT_RED doesn't exist! Use "#FF6B6B" or RED instead
+  * Square(color=DARK_BLUE)  # ❌ DARK_BLUE doesn't exist! Use "#0D47A1" or BLUE instead
+  * Line(color=LIGHT_GRAY)  # ❌ LIGHT_GRAY doesn't exist! Use "#E0E0E0" or GRAY instead
+  * Dot(color=MINT_GREEN)  # ❌ MINT_GREEN doesn't exist! Use "#64FFDA" or TEAL instead
+  * Text(color=LIGHT_GREEN)  # ❌ LIGHT_GREEN doesn't exist! Use "#4CAF50" or GREEN instead
    
    ANIMATION VARIETY FOR BEAUTY:
    - Use different animations: Create(), Write(), FadeIn(), GrowFromCenter()
@@ -652,11 +682,31 @@ CRITICAL CONSTRAINTS:
    - Use numeric values: obj.set_width(10) or obj.scale(0.8) ✅
    - Frame is ~14 units wide × 8 units tall
    - To fit text: text.set_width(12) or text.scale_to_fit_width(12) ✅
-   - DASHED Lines: DashedLine(start_point, end_point, color=GRAY, stroke_width=2)
-     * CRITICAL: Use DashedLine class, NOT dash_length parameter!
-     * Example: DashedLine(point1, point2, color=GRAY)
-     * NEVER use: Line(..., dash_length=0.2) ❌ This will cause errors!
-   - Axes: Axes(x_range=[-5, 5], y_range=[-5, 5], color=WHITE)
+  - DASHED Lines: DashedLine(start_point, end_point, color=GRAY, stroke_width=2)
+    * CRITICAL: Use DashedLine class, NOT dash_length parameter!
+    * Example: DashedLine(point1, point2, color=GRAY)
+    * NEVER use: Line(..., dash_length=0.2) ❌ This will cause errors!
+  
+  CRITICAL - NUMPY/POINT COMPARISONS (PREVENT AttributeError!):
+  - Points returned by .get_start(), .get_end(), .get_center() are numpy arrays
+  - Numpy arrays DO NOT have .allclose() as a method! ❌
+  - To compare points, use np.allclose() FUNCTION:
+    * CORRECT: if np.allclose(line.get_start(), point): ✅
+    * WRONG: if line.get_start().allclose(point): ❌ AttributeError!
+  - You MUST import numpy at the top: import numpy as np
+  - Other numpy functions: np.array(), np.dot(), np.linalg.norm()
+  - NEVER call numpy functions as methods on arrays!
+  
+  CRITICAL - RANDOM MODULE (PREVENT NameError!):
+  - If you use random.choice(), random.uniform(), random.randint(), etc., you MUST import random!
+  - You MUST import at the top: import random
+  - Common use cases:
+    * random.choice([color1, color2, color3]) - Pick random color for variety
+    * random.uniform(0.5, 1.5) - Random float for animation timing
+    * random.randint(1, 10) - Random integer for data values
+  - ALWAYS import random if you use ANY random.* functions! ⚠️
+  
+  - Axes: Axes(x_range=[-5, 5], y_range=[-5, 5], color=WHITE)
    - Graphs: axes.plot(lambda x: x**2, color=BLUE)
    - Groups: VGroup(obj1, obj2, ...)
    - Right Angle: RightAngle(line1, line2, length=0.3) - REQUIRES TWO LINE OBJECTS, NOT POINTS
@@ -672,6 +722,62 @@ CRITICAL CONSTRAINTS:
    - FadeIn(object) - fade in
    - FadeOut(object) - fade out
    - Transform(obj1, obj2) - morph one into another
+   - ReplacementTransform(obj1, obj2) - replace one object with another
+   - GrowFromCenter(object) - grow from center
+   - GrowFromPoint(object, point) - grow from specific point
+   
+   CRITICAL - INVALID TRANSFORMATION METHODS (PREVENT NameError!):
+   - TransformFrom() DOES NOT EXIST! ❌
+   - TransformTo() DOES NOT EXIST! ❌
+   - NEVER use these! They will cause NameError!
+   
+   CORRECT transformation methods:
+   - Transform(source, target) ✅ - morphs source into target
+   - ReplacementTransform(source, target) ✅ - replaces source with target
+   - FadeTransform(source, target) ✅ - fades while transforming
+   - self.play(source.animate.move_to(position)) ✅ - moves object
+   
+   Example - animating text appearing at position:
+   ```python
+   # ❌ WRONG (TransformFrom doesn't exist!):
+   self.play(TransformFrom(text, position))  # NameError!
+   
+   # ✅ CORRECT options:
+   # Option 1: Create text at position then fade in
+   text.move_to(position)
+   self.play(FadeIn(text))
+   
+   # Option 2: Create text elsewhere, then move
+   self.play(text.animate.move_to(position))
+   
+   # Option 3: Use GrowFromPoint
+   self.play(GrowFromPoint(text, position))
+   ```
+   
+   CRITICAL - NEVER MIX .animate WITH ANIMATION CLASSES! (PREVENT TypeError!):
+   - You CANNOT use .animate inside Write(), Create(), FadeIn(), etc.! ❌
+   - This causes: TypeError: object of type '_AnimationBuilder' has no len()
+   
+   WRONG examples (will crash):
+   ```python
+   self.play(Write(obj.animate.move_to(point)))      # ❌ TypeError!
+   self.play(Create(obj.animate.scale(2)))           # ❌ TypeError!
+   self.play(FadeIn(obj.animate.shift(UP)))          # ❌ TypeError!
+   ```
+   
+   CORRECT alternatives:
+   ```python
+   # Option 1: Create/Write first, THEN animate
+   self.play(Write(obj))
+   self.play(obj.animate.move_to(point))             # ✅ Correct!
+   
+   # Option 2: Just use .animate (no Write/Create)
+   self.play(obj.animate.move_to(point))             # ✅ Correct!
+   
+   # Option 3: Create at position first
+   obj.move_to(point)
+   self.play(Write(obj))                             # ✅ Correct!
+   ```
    
    CRITICAL - ANIMATION SYNTAX (Common Error!):
    - Modern Manim uses .animate property for transformations
@@ -695,8 +801,10 @@ Plan: {{"main_object": "Quadratic formula", "key_steps": ["Show formula", "Highl
 Code:
 ```python
 from manim import *
+import numpy as np
+import random
 
-class ConceptAnimation(Scene):
+class ConceptAnimation(Scene):  # ⚠️ ALWAYS use "ConceptAnimation" as class name!
     def construct(self):
         # Title
         title = Text("Quadratic Formula", font_size=48)
@@ -728,8 +836,10 @@ Code:
 from manim import *
 from manim_voiceover import VoiceoverScene
 from manim_voiceover.services.gtts import GTTSService
+import numpy as np
+import random
 
-class ConceptAnimation(VoiceoverScene):
+class ConceptAnimation(VoiceoverScene):  # ⚠️ ALWAYS "ConceptAnimation" - NO custom names!
     def construct(self):
         # Set up gTTS voice service (fast and reliable!)
         self.set_speech_service(GTTSService(lang="en", tld="com"))
@@ -1327,6 +1437,31 @@ class ManimAnimationManager:
                     "code": None,
                     "video_path": None
                 }
+                
+            # Validate code before rendering
+            validation_error = self._validate_animation_code(code)
+            if validation_error:
+                print(f"⚠️  Code validation failed: {validation_error}")
+                
+                # Create error log
+                error_log = os.path.join(self.output_dir, "validation_error.txt")
+                try:
+                    with open(error_log, 'w') as f:
+                        f.write(f"Validation error for topic: {topic}\n")
+                        f.write(f"Error: {validation_error}\n")
+                        f.write(f"Code:\n{code}\n")
+                        f.write(f"Timestamp: {datetime.now().isoformat()}\n")
+                except Exception as log_error:
+                    print(f"Could not write error log: {log_error}")
+                
+                return {
+                    "status": "error",
+                    "error": f"Code validation failed: {validation_error}",
+                    "code": code,
+                    "video_path": None,
+                    "validation_error": validation_error,
+                    "error_log": error_log if 'error_log' in locals() else None
+                }
             
             # Create temporary Python file
             with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
@@ -1365,22 +1500,65 @@ class ManimAnimationManager:
                     error_msg = result.stderr if result.stderr else result.stdout
                     print(f"❌ Manim rendering failed:")
                     print(error_msg)
+                    
+                    # Parse error for more helpful message
+                    parsed_error = self._parse_manim_error(error_msg)
+                    
+                    # Create error log
+                    error_log = os.path.join(self.output_dir, f"manim_error_{safe_topic}.txt")
+                    try:
+                        with open(error_log, 'w') as f:
+                            f.write(f"Manim error for topic: {topic}\n")
+                            f.write(f"Parsed error: {parsed_error}\n")
+                            f.write(f"Command: {' '.join(cmd)}\n")
+                            f.write(f"Return code: {result.returncode}\n")
+                            f.write(f"Full error message:\n{error_msg}\n")
+                            f.write(f"Code:\n{code}\n")
+                            f.write(f"Timestamp: {datetime.now().isoformat()}\n")
+                    except Exception as log_error:
+                        print(f"Could not write error log: {log_error}")
+                    
                     return {
                         "status": "error",
-                        "error": f"Manim rendering failed: {error_msg[:500]}",
+                        "error": parsed_error,
+                        "full_error": error_msg[:500] + ("..." if len(error_msg) > 500 else ""),
                         "code": code,
-                        "video_path": None
+                        "video_path": None,
+                        "error_type": "manim_error",
+                        "error_log": error_log if 'error_log' in locals() else None
                     }
                 
                 # Find the generated video file
                 video_files = list(self.output_dir.rglob(f"{output_file}.mp4"))
                 
                 if not video_files:
+                    error_msg = "Video file not found after rendering"
+                    print(f"❌ {error_msg}")
+                    
+                    # Create error log
+                    error_log = os.path.join(self.output_dir, f"missing_video_{safe_topic}.txt")
+                    try:
+                        with open(error_log, 'w') as f:
+                            f.write(f"Missing video error for topic: {topic}\n")
+                            f.write(f"Error: {error_msg}\n")
+                            f.write(f"Expected file pattern: {output_file}.mp4\n")
+                            f.write(f"Output directory: {self.output_dir}\n")
+                            f.write(f"Directory contents: {os.listdir(self.output_dir)}\n")
+                            f.write(f"Manim output directory: {os.path.join(self.output_dir, 'videos')}\n")
+                            if os.path.exists(os.path.join(self.output_dir, 'videos')):
+                                f.write(f"Manim videos directory contents: {os.listdir(os.path.join(self.output_dir, 'videos'))}\n")
+                            f.write(f"Command: {' '.join(cmd)}\n")
+                            f.write(f"Timestamp: {datetime.now().isoformat()}\n")
+                    except Exception as log_error:
+                        print(f"Could not write error log: {log_error}")
+                    
                     return {
                         "status": "error",
-                        "error": "Video file not found after rendering",
+                        "error": error_msg,
                         "code": code,
-                        "video_path": None
+                        "video_path": None,
+                        "error_type": "missing_video",
+                        "error_log": error_log if 'error_log' in locals() else None
                     }
                 
                 video_path = str(video_files[0])
@@ -1421,20 +1599,187 @@ class ManimAnimationManager:
                     pass
                     
         except subprocess.TimeoutExpired:
+            error_msg = "Animation rendering timed out (exceeded 5 minutes). Script may be too complex."
+            print(f"❌ {error_msg}")
+            
+            # Create error log
+            error_log = os.path.join(self.output_dir, f"timeout_error_{int(datetime.now().timestamp())}.txt")
+            try:
+                with open(error_log, 'w') as f:
+                    f.write(f"Timeout error for topic: {topic}\n")
+                    f.write(f"Error: {error_msg}\n")
+                    f.write(f"Topic: {topic}\n")
+                    if 'code' in locals():
+                        f.write(f"Code:\n{code}\n")
+                    if 'cmd' in locals():
+                        f.write(f"Command: {' '.join(cmd)}\n")
+                    f.write(f"Timestamp: {datetime.now().isoformat()}\n")
+            except Exception as log_error:
+                print(f"Could not write error log: {log_error}")
+            
             return {
                 "status": "error",
-                "error": "Animation rendering timed out (exceeded 5 minutes). Script may be too complex.",
+                "error": error_msg,
                 "code": code if 'code' in locals() else None,
-                "video_path": None
+                "video_path": None,
+                "error_type": "timeout",
+                "error_log": error_log if 'error_log' in locals() else None
             }
         except Exception as e:
+            error_msg = f"Error creating animation: {str(e)}"
+            print(f"❌ {error_msg}")
+            traceback_str = traceback.format_exc()
+            print(traceback_str)
+            
+            # Create error log
+            error_log = os.path.join(self.output_dir, f"exception_{int(datetime.now().timestamp())}.txt")
+            try:
+                with open(error_log, 'w') as f:
+                    f.write(f"Exception for topic: {topic}\n")
+                    f.write(f"Error: {error_msg}\n")
+                    f.write(f"Topic: {topic}\n")
+                    f.write(f"Traceback:\n{traceback_str}\n")
+                    if 'code' in locals():
+                        f.write(f"Code:\n{code}\n")
+                    f.write(f"Timestamp: {datetime.now().isoformat()}\n")
+            except Exception as log_error:
+                print(f"Could not write error log: {log_error}")
+            
             return {
                 "status": "error",
-                "error": f"Error creating animation: {str(e)}",
+                "error": error_msg,
+                "traceback": traceback_str,
                 "code": code if 'code' in locals() else None,
-                "video_path": None
+                "video_path": None,
+                "error_type": "exception",
+                "error_log": error_log if 'error_log' in locals() else None
             }
     
+    def _validate_animation_code(self, code: str) -> Optional[str]:
+        """
+        Pre-validate animation code for common errors.
+        
+        Args:
+            code: Manim Python code
+            
+        Returns:
+            Error message if validation fails, None otherwise
+        """
+        # Check for required imports
+        if "from manim import" not in code:
+            return "Missing required import: 'from manim import *'"
+        
+        # Check for required class
+        if "class ConceptAnimation" not in code:
+            return "Missing required class: 'class ConceptAnimation'"
+        
+        # Check for construct method
+        if "def construct(self)" not in code:
+            return "Missing required method: 'def construct(self)'"
+        
+        # Check for common syntax errors
+        try:
+            compile(code, '<string>', 'exec')
+        except SyntaxError as e:
+            return f"Syntax error: {e}"
+        
+        # Check for common Manim errors
+        common_errors = [
+            # Wrong method names
+            {"pattern": r"\.to_center\(", "message": "Method .to_center() doesn't exist, use .move_to(ORIGIN) instead"},
+            {"pattern": r"\.center_on_screen\(", "message": "Method .center_on_screen() doesn't exist, use .move_to(ORIGIN) instead"},
+            
+            # Constructor parameter errors
+            {"pattern": r"Text\([^)]*rotation\s*=", "message": "Text() doesn't accept 'rotation' parameter, use .rotate() method after creation"},
+            {"pattern": r"Text\([^)]*angle\s*=", "message": "Text() doesn't accept 'angle' parameter, use .rotate() method after creation"},
+            
+            # Missing parentheses
+            {"pattern": r"self\.play\s+[A-Za-z]", "message": "Missing parentheses in self.play call"},
+            
+            # Incorrect animation names
+            {"pattern": r"self\.play\(Show\(", "message": "Animation 'Show' doesn't exist, use 'Write', 'Create', or 'FadeIn' instead"},
+            {"pattern": r"self\.play\(Hide\(", "message": "Animation 'Hide' doesn't exist, use 'FadeOut' instead"},
+            
+            # Incorrect color format
+            {"pattern": r"color\s*=\s*['\"]#[^'\"]{1,5}['\"]", "message": "Invalid hex color format, should be #RRGGBB"},
+        ]
+        
+        for error in common_errors:
+            if re.search(error["pattern"], code):
+                return error["message"]
+        
+        return None
+    
+    def _parse_manim_error(self, error_message: str) -> str:
+        """
+        Parse Manim error message to provide more helpful feedback.
+        
+        Args:
+            error_message: Raw error message from Manim
+            
+        Returns:
+            User-friendly error message
+        """
+        # Common error patterns and friendly messages
+        error_patterns = [
+            # AttributeError patterns
+            {
+                "pattern": r"AttributeError: 'Text' object has no attribute 'to_center'",
+                "message": "Error: The Text object doesn't have a 'to_center' method. Use .move_to(ORIGIN) instead."
+            },
+            {
+                "pattern": r"AttributeError: 'Text' object has no attribute 'center_on_screen'",
+                "message": "Error: The Text object doesn't have a 'center_on_screen' method. Use .move_to(ORIGIN) instead."
+            },
+            {
+                "pattern": r"AttributeError: module 'manim' has no attribute '(\w+)'",
+                "message": "Error: Manim doesn't have an attribute '{}'."
+            },
+            
+            # TypeError patterns
+            {
+                "pattern": r"TypeError: Text.__init__\(\) got an unexpected keyword argument '(\w+)'",
+                "message": "Error: Text() doesn't accept '{}' as a parameter."
+            },
+            {
+                "pattern": r"TypeError: (\w+)\.__init__\(\) got an unexpected keyword argument '(\w+)'",
+                "message": "Error: {}() doesn't accept '{}' as a parameter."
+            },
+            
+            # ImportError patterns
+            {
+                "pattern": r"ImportError: cannot import name '(\w+)' from 'manim'",
+                "message": "Error: '{}' is not available in manim."
+            },
+            
+            # NameError patterns
+            {
+                "pattern": r"NameError: name '(\w+)' is not defined",
+                "message": "Error: '{}' is not defined. Check for typos or missing imports."
+            }
+        ]
+        
+        # Check each pattern
+        for pattern in error_patterns:
+            match = re.search(pattern["pattern"], error_message)
+            if match:
+                # Format the message with captured groups
+                if match.groups():
+                    return pattern["message"].format(*match.groups())
+                else:
+                    return pattern["message"]
+        
+        # If no specific pattern matches, extract the most relevant part
+        # Look for the first traceback line with an error
+        error_lines = error_message.split('\n')
+        for line in error_lines:
+            if "Error:" in line:
+                return f"Manim error: {line.strip()}"
+        
+        # If all else fails, return a generic message with the first few lines
+        short_error = '\n'.join(error_lines[:5]) if len(error_lines) > 5 else error_message
+        return f"Manim rendering failed: {short_error}"
+        
     def generate_code_only(self, topic: str, custom_context: str = "") -> str:
         """
         Generate Manim code without rendering (for preview/editing).
@@ -1454,6 +1799,12 @@ class ManimAnimationManager:
             print(f"{'='*60}\n")
             print(code)
             print(f"\n{'='*60}\n")
+            
+            # Validate code
+            validation_error = self._validate_animation_code(code)
+            if validation_error:
+                print(f"⚠️  Code validation warning: {validation_error}")
+                print("   The code may still work, but could have issues.")
         
         return code
 
