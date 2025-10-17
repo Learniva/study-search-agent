@@ -432,8 +432,26 @@ Provide a complete answer."""
                 conversation_history = " ".join(reversed(user_messages))
                 print(f"📝 [DOC QA CONTEXT] Conversation history: {conversation_history[:150]}...")
             
-            # Retrieve relevant document chunks with context awareness
-            raw_results = tool.func(state.get("question", ""), conversation_history=conversation_history)
+            # Determine chunk limit based on query type
+            question_lower = state.get("question", "").lower()
+            
+            # For chapter/section overviews and structured notes, retrieve MORE chunks for comprehensive coverage
+            if any(keyword in question_lower for keyword in [
+                'chapter', 'section', 'structured notes', 'generate notes', 
+                'all about', 'overview', 'entire', 'whole', 'complete'
+            ]):
+                chunk_limit = 60  # Retrieve up to 60 chunks for comprehensive chapter coverage
+                print(f"📚 [COMPREHENSIVE RETRIEVAL] Chapter/overview request detected - retrieving {chunk_limit} chunks")
+            else:
+                chunk_limit = 15  # Standard retrieval for specific questions
+                print(f"📄 [STANDARD RETRIEVAL] Specific question - retrieving {chunk_limit} chunks")
+            
+            # Retrieve relevant document chunks with context awareness and appropriate limit
+            raw_results = tool.func(
+                state.get("question", ""), 
+                limit=chunk_limit,
+                conversation_history=conversation_history
+            )
             
             # Check if retrieval failed
             failed = any(p in raw_results.lower() for p in [

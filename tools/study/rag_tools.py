@@ -372,8 +372,12 @@ def retrieve_from_vector_store(
                     
                     # Boost chunks with [Page X] markers when chapter is specified
                     # These are likely substantive content from the chapter
-                    # (not all chunks say "Chapter 9", but chapter pages are continuous)
+                    # (not all chunks say "Chapter 12", but chapter pages are continuous)
                     if re.search(r'\[page\s+\d+\]', content_lower):
+                        # STRONG boost for ANY page when chapter is requested
+                        # This ensures we capture the entire chapter, not just the first page
+                        boost += 3.0  # Strong boost for pages (assumes they're part of the chapter)
+                        
                         # Additional boost if the chunk has substantive content indicators
                         # (works for technical, humanities, and general academic content)
                         substantive_indicators = [
@@ -385,7 +389,7 @@ def retrieve_from_vector_store(
                             'event', 'period', 'century', 'era', 'movement'
                         ]
                         if any(indicator in content_lower for indicator in substantive_indicators):
-                            boost += 0.25  # Boost for substantive content with page marker
+                            boost += 0.5  # Extra boost for substantive content with page marker
                 
                 if section_match:
                     section_num = section_match.group(1)
