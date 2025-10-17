@@ -556,6 +556,133 @@ Answer:"""
             
             return state
     
+    def _extract_main_topic_from_conversation(self, messages: list) -> str:
+        """
+        Advanced topic extraction from conversation history.
+        Uses multiple strategies to identify the main subject being discussed.
+        """
+        import re
+        
+        # Strategy 1: Look for explicit topic declarations in recent messages
+        for msg in reversed(messages[-8:]):  # Look at last 8 messages (4 Q&A pairs)
+            if not hasattr(msg, 'type') or not hasattr(msg, 'content'):
+                continue
+                
+            if msg.type == 'human':
+                content = msg.content.lower()
+                
+                # Pattern 1: "What is/are [TOPIC]?"
+                match = re.search(r'what\s+(?:is|are)\s+(?:a|an|the)?\s*([^?,.!]+?)(?:\?|$)', content)
+                if match:
+                    topic = match.group(1).strip()
+                    # Filter out too-short or generic topics
+                    if len(topic.split()) >= 2 or len(topic) > 5:
+                        return self._clean_topic(topic)
+                
+                # Pattern 2: "Tell me about [TOPIC]"
+                match = re.search(r'tell\s+me\s+(?:about|more about)\s+([^?,.!]+)', content)
+                if match:
+                    return self._clean_topic(match.group(1))
+                
+                # Pattern 3: "Explain [TOPIC]"
+                match = re.search(r'explain\s+(?:the\s+)?([^?,.!]+)', content)
+                if match:
+                    topic = match.group(1).strip()
+                    if len(topic.split()) >= 2:
+                        return self._clean_topic(topic)
+                
+                # Pattern 4: "How do/does [TOPIC] work?"
+                match = re.search(r'how\s+(?:do|does)\s+([^?,.!]+?)\s+work', content)
+                if match:
+                    return self._clean_topic(match.group(1))
+                
+                # Pattern 5: Extract capitalized terms (might be proper nouns)
+                capitalized = re.findall(r'\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\b', msg.content)
+                if capitalized and len(capitalized[0].split()) >= 2:
+                    return self._clean_topic(capitalized[0].lower())
+        
+        # Strategy 2: Look for recurring keywords (mentioned multiple times)
+        word_freq = {}
+        stop_words = {'what', 'is', 'are', 'the', 'a', 'an', 'how', 'why', 'when', 'where', 'who',
+                      'do', 'does', 'did', 'can', 'could', 'should', 'would', 'will', 'about',
+                      'tell', 'me', 'explain', 'please', 'help', 'thanks', 'thank', 'you'}
+        
+        for msg in reversed(messages[-8:]):
+            if hasattr(msg, 'type') and msg.type == 'human' and hasattr(msg, 'content'):
+                words = msg.content.lower().split()
+                for word in words:
+                    cleaned = re.sub(r'[^a-z\s]', '', word)
+                    if cleaned and len(cleaned) > 3 and cleaned not in stop_words:
+                        word_freq[cleaned] = word_freq.get(cleaned, 0) + 1
+        
+        # Get most frequent non-stop word
+        if word_freq:
+            most_common = max(word_freq.items(), key=lambda x: x[1])
+            if most_common[1] >= 2:  # Mentioned at least twice
+                return most_common[0]
+        
+        return ""
+    
+    def _clean_topic(self, topic: str) -> str:
+        """Clean and normalize extracted topic."""
+        import re
+        # Remove leading/trailing punctuation
+        topic = topic.strip(' ,.!?:;-')
+        # Remove filler phrases
+        topic = re.sub(r'\b(to be|to do|to have|to make)\b', '', topic)
+        topic = re.sub(r'\s+', ' ', topic)  # Normalize spaces
+        return topic.strip()
+    
+    def _reformulate_query_intelligently(self, question: str, topic: str) -> str:
+        """
+        Intelligently reformulate query based on question type and context.
+        """
+        import re
+        question_lower = question.lower()
+        
+        # Question type detection and reformulation
+        reformulation_patterns = [
+            # Company/Organization queries
+            (r'what\s+companies\s+(?:have|use|make|build|develop|own)', f"companies with {topic}"),
+            (r'which\s+companies\s+(?:have|use|make|build|develop|own)', f"companies with {topic}"),
+            (r'who\s+(?:makes|builds|develops|manufactures|produces)\s+(?:it|them|these|those)', f"companies that make {topic}"),
+            (r'who\s+has\s+(?:it|them|these|those)', f"companies and organizations with {topic}"),
+            (r'which\s+organizations\s+(?:have|use)', f"organizations using {topic}"),
+            
+            # Inventor/Creator queries
+            (r'who\s+(?:invented|created|discovered|founded)\s+(?:it|them|this|that)', f"who invented {topic}"),
+            (r'who\s+is\s+the\s+inventor\s+of\s+(?:it|them)', f"inventor of {topic}"),
+            
+            # How/Why/When queries with pronouns
+            (r'how\s+(?:does|do|did)\s+(?:it|they|this|that)\s+work', f"how {topic} works"),
+            (r'why\s+(?:is|are|was|were)\s+(?:it|they|this|that)\s+important', f"why {topic} is important"),
+            (r'when\s+(?:was|were)\s+(?:it|they|this|that)\s+(?:invented|created|discovered)', f"when was {topic} invented"),
+            (r'where\s+(?:is|are|was|were)\s+(?:it|they|this|that)', f"where is {topic}"),
+            
+            # Benefits/Advantages queries
+            (r'what\s+(?:are|is)\s+the\s+(?:benefits|advantages|pros)\s+of\s+(?:it|them)', f"benefits of {topic}"),
+            (r'why\s+(?:should|would)\s+(?:we|i|people)\s+use\s+(?:it|them)', f"advantages of using {topic}"),
+            
+            # Applications/Use cases
+            (r'what\s+(?:can|could)\s+(?:it|they)\s+(?:be used for|do)', f"applications of {topic}"),
+            (r'where\s+(?:is|are)\s+(?:it|they)\s+used', f"applications and uses of {topic}"),
+        ]
+        
+        # Try each pattern
+        for pattern, replacement in reformulation_patterns:
+            if re.search(pattern, question_lower):
+                return replacement
+        
+        # Generic pronoun replacement if no specific pattern matches
+        pronouns = ['it', 'them', 'this', 'that', 'these', 'those']
+        for pronoun in pronouns:
+            if f' {pronoun} ' in f' {question_lower} ':
+                question = re.sub(rf'\b{pronoun}\b', topic, question, flags=re.IGNORECASE)
+                return question
+        
+        # If no reformulation, append topic as context
+        return f"{question} {topic}"
+    
     async def _execute_web_search(self, state: StreamingState) -> StreamingState:
         """
         Execute Web Search tool with streaming.
@@ -578,56 +705,56 @@ Answer:"""
                 "Searching the web..."
             )
             
-            # Build conversation context for better understanding of follow-up questions
+            # Advanced context-aware search
             messages = state.get("messages", [])
-            context = ""
-            
-            # Include last 2-3 Q&A pairs for context
-            if messages:
-                recent_messages = []
-                for msg in messages[-6:]:  # Last 6 messages = ~3 Q&A pairs
-                    if hasattr(msg, 'content'):
-                        role = "User" if hasattr(msg, 'type') and msg.type == 'human' else "Assistant"
-                        recent_messages.append(f"{role}: {msg.content[:200]}")  # Limit to 200 chars
-                
-                if recent_messages:
-                    context = f"\n\nConversation History:\n" + "\n".join(recent_messages)
-            
-            # Build search query with context if needed
             search_query = state.get("question", "")
             question_lower = search_query.lower()
             
-            # For ambiguous follow-up questions (pronouns, "it", "that", etc.), 
-            # enhance query with context from conversation
-            has_pronoun = any(word in question_lower for word in [' it ', ' this ', ' that ', ' them ', ' these ', ' those '])
-            has_ambiguous_phrase = any(phrase in question_lower for phrase in ['where is', 'how is', 'how does', 'who discovered', 'who invented', 'who created'])
+            print(f"\n{'='*70}")
+            print(f"🔍 INTELLIGENT WEB SEARCH (STREAMING)")
+            print(f"{'='*70}")
+            print(f"📝 Original question: '{search_query}'")
             
-            if has_pronoun or has_ambiguous_phrase:
-                # Extract topic from recent messages
-                if messages:
-                    import re
-                    for msg in reversed(messages[-4:]):
-                        if hasattr(msg, 'type') and msg.type == 'human' and hasattr(msg, 'content'):
-                            prev_question = msg.content.lower()
-                            # Look for "what is X" pattern to extract topic
-                            topic_match = re.search(r'what\s+(?:is|are)\s+([^?]+)', prev_question)
-                            if topic_match:
-                                topic = topic_match.group(1).strip()
-                                
-                                # For specific question types, replace pronoun with topic directly
-                                if any(q in question_lower for q in ['who discovered', 'who invented', 'who created', 'who found', 
-                                                                     'how does', 'how is', 'where is', 'when was']):
-                                    # Replace "it" with the actual topic
-                                    search_query = re.sub(r'\bit\b', topic, search_query, flags=re.IGNORECASE)
-                                elif has_pronoun:
-                                    # For questions with pronouns but not specific patterns
-                                    search_query = re.sub(r'\bit\b', topic, search_query, flags=re.IGNORECASE)
-                                else:
-                                    # For other questions, add as context
-                                    search_query = f"{search_query} {topic}"
-                                break
+            # Advanced context detection
+            has_pronoun = any(f' {word} ' in f' {question_lower} ' for word in 
+                            ['it', 'this', 'that', 'them', 'these', 'those', 'they'])
             
-            # Execute search
+            has_contextual_query = any(phrase in question_lower for phrase in [
+                'what companies', 'which companies', 'who makes', 'who has', 'who discovered',
+                'who invented', 'who created', 'how does', 'how did', 'why is', 'why are',
+                'when was', 'when were', 'where is', 'where are', 'what are the benefits',
+                'what are the advantages', 'what can', 'where is it used'
+            ])
+            
+            # Check if this is a short follow-up question (likely needs context)
+            is_short_followup = len(search_query.split()) <= 6 and (has_pronoun or has_contextual_query)
+            
+            print(f"🎯 Context needed: {has_pronoun or has_contextual_query or is_short_followup}")
+            
+            if (has_pronoun or has_contextual_query or is_short_followup) and messages:
+                # Extract main topic using advanced strategies
+                extracted_topic = self._extract_main_topic_from_conversation(messages)
+                
+                if extracted_topic:
+                    print(f"💡 Extracted topic: '{extracted_topic}'")
+                    
+                    # Intelligently reformulate the query
+                    search_query = self._reformulate_query_intelligently(search_query, extracted_topic)
+                    
+                    print(f"✨ Reformulated query: '{search_query}'")
+                    
+                    await state.add_indicator(
+                        StreamingIndicator.PROCESSING,
+                        f"Reformulated: {search_query}"
+                    )
+                else:
+                    print(f"⚠️  Could not extract topic from conversation")
+            else:
+                print(f"✅ Direct question - no reformulation needed")
+            
+            print(f"{'='*70}\n")
+            
+            # Execute search with reformulated query
             await state.add_indicator(
                 StreamingIndicator.PROCESSING,
                 f"Searching for: {search_query}"
@@ -655,7 +782,7 @@ Answer:"""
             
             synthesis_prompt = f"""Answer the question concisely and directly using the search results.
 
-Question: {state.get("question", "")}{context}
+Question: {state.get("question", "")}
 
 Search Results:
 {raw_results}{time_disclaimer}
