@@ -67,6 +67,12 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         if not self.enabled:
             return await call_next(request)
         
+        # Exempt static file downloads from rate limiting
+        # (animations, videos, PDFs, etc.)
+        exempt_paths = ['/downloads/', '/animations/', '/static/', '/media/']
+        if any(request.url.path.startswith(path) for path in exempt_paths):
+            return await call_next(request)
+        
         # Get client identifier
         client_id = self._get_client_identifier(request)
         
