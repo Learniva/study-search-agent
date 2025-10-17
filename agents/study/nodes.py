@@ -267,24 +267,30 @@ Your synthesized answer:"""
     
     def _execute_document_qa(self, state: StudyAgentState) -> StudyAgentState:
         """Execute Document QA tool."""
+        print(f"📚 [TOOL EXECUTION] Executing Document_QA for: '{state['question'][:60]}...'")
         tool = self.tool_map.get("Document_QA")
         if not tool:
+            print("❌ [TOOL EXECUTION] Document_QA tool not found in tool_map!")
             return {
                 **state,
                 "tool_result": "Document QA not available",
                 "tried_document_qa": True,
                 "document_qa_failed": True
             }
+        print(f"✅ [TOOL EXECUTION] Document_QA tool found, calling it now...")
         
         try:
             # Retrieve relevant document chunks
             raw_results = tool.func(state["question"])
+            print(f"📄 [TOOL EXECUTION] Document_QA returned {len(raw_results)} chars")
+            print(f"📄 [TOOL EXECUTION] First 200 chars: {raw_results[:200]}")
             
             # Check if retrieval failed
             failed = any(p in raw_results.lower() for p in [
                 "no relevant content", "no documents found", "not found", "❌",
                 "no documents", "please upload", "vector store"
             ])
+            print(f"🔍 [TOOL EXECUTION] Failure check result: {failed}")
             
             if failed:
                 # Check if this is a "no documents available" situation
@@ -313,8 +319,15 @@ Your synthesized answer:"""
                     "document_qa_failed": True
                 }
             
-            # Detect if this is a study material generation request
+            # Detect request type
             question_lower = state["question"].lower()
+            
+            # Check if this is a chapter/section overview request
+            is_chapter_overview = any(keyword in question_lower for keyword in [
+                'chapter', 'section', 'all about', 'overview', 'covers', 'discusses'
+            ])
+            
+            # Check if this is a study material generation request
             is_study_material = any(keyword in question_lower for keyword in [
                 'flashcard', 'study guide', 'summary', 'summarize', 'mcq', 
                 'multiple choice', 'quiz', 'practice questions'
@@ -340,6 +353,26 @@ Instructions:
 8. For MCQs: Include question, options, and correct answer
 
 Answer:"""
+            elif is_chapter_overview:
+                synthesis_prompt = f"""You are a helpful study assistant providing comprehensive chapter/section summaries.
+
+Question: {state["question"]}
+
+Retrieved Content:
+{raw_results}
+
+Instructions:
+1. Provide a COMPREHENSIVE summary (1-2 paragraphs minimum, 4-8 sentences)
+2. Include the main topic/theme of the chapter/section
+3. List the key concepts, subtopics, or techniques covered
+4. Mention specific examples, algorithms, or applications if present in the content
+5. Use ONLY information from the retrieved content above
+6. Cite page numbers naturally when available: "(p. 42)" or "(pp. 42-45)"
+7. Use clear paragraph structure with good flow
+8. Do NOT say "the retrieved content" or "according to the document" - just present the information directly
+9. Make it comprehensive enough that the reader gets a solid understanding of what the chapter/section covers
+
+Answer:"""
             else:
                 synthesis_prompt = f"""You are a helpful study assistant. Answer the question concisely and clearly.
 
@@ -360,6 +393,8 @@ Instructions:
 Answer:"""
             
             response = self.llm.invoke([HumanMessage(content=synthesis_prompt)])
+            print(f"🤖 [LLM SYNTHESIS] LLM response ({len(response.content)} chars):")
+            print(f"   First 300 chars: {response.content[:300]}...")
             
             # Check if LLM indicated content was insufficient/irrelevant
             response_lower = response.content.lower()
@@ -369,6 +404,7 @@ Answer:"""
                 "provided content does not", "cannot answer",
                 "not available about", "nothing about"
             ])
+            print(f"🔍 [LLM SYNTHESIS] Insufficient content check: {insufficient}")
             
             # Also check for negative statements at the start of response
             if response_lower.strip().startswith(("based on the retrieved content, there is no", 

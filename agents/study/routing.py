@@ -20,9 +20,11 @@ class StudyAgentRouter:
         
         # Try pattern-based routing first (fast, no LLM call)
         quick_route = fast_study_route(question)
+        print(f"🔍 [ROUTING DEBUG] Initial route for '{question[:60]}...': {quick_route}")
         
         # If Document_QA was suggested, verify documents exist first
         if quick_route == "Document_QA":
+            print("📚 [ROUTING DEBUG] Document_QA selected - checking database...")
             try:
                 from database.core import get_db
                 from sqlalchemy import text
@@ -30,12 +32,15 @@ class StudyAgentRouter:
                 with get_db() as db:
                     count_result = db.execute(text("SELECT COUNT(*) as count FROM document_vectors"))
                     total_docs = count_result.fetchone().count
+                    print(f"📊 [ROUTING DEBUG] Found {total_docs} document vectors in DB")
                     
                     if total_docs == 0:
                         print("⚠️  No documents in vector store - routing to Web Search instead")
                         quick_route = "Web_Search"
+                    else:
+                        print(f"✅ [ROUTING DEBUG] Documents available - proceeding with Document_QA")
             except Exception as e:
-                print(f"⚠️  Database unavailable - continuing with Document_QA route (will fallback if needed)")
+                print(f"⚠️  Database check error: {e} - continuing with Document_QA route (will fallback if needed)")
                 # Continue with original route - fallback mechanism will handle it
         
         if quick_route:
