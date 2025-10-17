@@ -3,6 +3,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from typing import Optional
+import asyncio
 
 from api.models import QueryRequest, QueryResponse, ConversationHistoryResponse
 from api.dependencies import get_supervisor, get_or_create_correlation_id
@@ -39,17 +40,14 @@ async def query_supervisor(
         correlation_id=correlation_id
     )
     
-    # Track query
-    track_query(request.question, request.user_role)
-    
     # Query supervisor
     try:
-        answer = await supervisor.aquery(
+        answer = await asyncio.to_thread(
+            supervisor.query,
             question=request.question,
             thread_id=request.thread_id,
             user_role=request.user_role,
             user_id=request.user_id,
-            professor_id=request.professor_id,
             student_id=request.student_id,
             student_name=request.student_name,
             course_id=request.course_id,
@@ -66,9 +64,14 @@ async def query_supervisor(
             duration=0.0  # Would need to track actual duration
         )
         
+        # Extract answer from response dict
+        answer_text = answer.get("answer", str(answer)) if isinstance(answer, dict) else str(answer)
+        agent_used = answer.get("agent", None) if isinstance(answer, dict) else None
+        
         return QueryResponse(
-            answer=answer,
+            answer=answer_text,
             thread_id=request.thread_id,
+            agent_used=agent_used,
             metadata={"correlation_id": correlation_id}
         )
         

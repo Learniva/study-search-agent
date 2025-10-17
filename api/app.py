@@ -14,7 +14,9 @@ Production-grade Multi-Agent Study & Grading System with:
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from api.lifespan import lifespan
 from api.routers import (
@@ -173,6 +175,44 @@ app.include_router(ml_router)
 
 # Video Downloads (available to all roles)
 app.include_router(videos_router)
+
+# Learniva Integration (optional - for Learniva frontend compatibility)
+try:
+    from api.routers.learniva_auth import router as learniva_auth_router
+    from api.routers.learniva_workspaces import router as learniva_workspaces_router
+    app.include_router(learniva_auth_router)
+    app.include_router(learniva_workspaces_router)
+    logger.info("✅ Learniva integration endpoints enabled")
+except ImportError:
+    logger.info("ℹ️  Learniva integration endpoints not available (optional)")
+
+
+# ============================================================================
+# Static File Serving (for animations, videos, etc.)
+# ============================================================================
+
+# Mount static directories for direct file access (video streaming, animations, etc.)
+# These are exempt from rate limiting (handled in middleware)
+
+# Create directories if they don't exist
+Path("downloads/animations").mkdir(parents=True, exist_ok=True)
+Path("animations").mkdir(parents=True, exist_ok=True)
+
+# Mount downloads directory at /downloads
+app.mount(
+    "/downloads",
+    StaticFiles(directory="downloads"),
+    name="downloads"
+)
+
+# Mount animations directory at /animations (for backwards compatibility)
+app.mount(
+    "/animations",
+    StaticFiles(directory="animations"),
+    name="animations"
+)
+
+logger.info("✅ Static file serving enabled for /downloads and /animations")
 
 
 # ============================================================================

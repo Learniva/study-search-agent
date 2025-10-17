@@ -83,12 +83,14 @@ async def download_video(filename: str):
     if not video_path.is_file():
         raise HTTPException(status_code=400, detail="Invalid file")
     
+    # Use 'inline' for browser playback, not 'attachment' (which forces download)
     return FileResponse(
         path=str(video_path),
         media_type="video/mp4",
         filename=filename,
         headers={
-            "Content-Disposition": f'attachment; filename="{filename}"'
+            "Content-Disposition": f'inline; filename="{filename}"',
+            "Accept-Ranges": "bytes"  # Enable seeking in video
         }
     )
 
@@ -113,12 +115,14 @@ async def get_latest_video():
     
     latest = video_files[0]
     
+    # Use 'inline' for browser playback
     return FileResponse(
         path=str(latest),
         media_type="video/mp4",
         filename=latest.name,
         headers={
-            "Content-Disposition": f'attachment; filename="{latest.name}"'
+            "Content-Disposition": f'inline; filename="{latest.name}"',
+            "Accept-Ranges": "bytes"  # Enable seeking in video
         }
     )
 

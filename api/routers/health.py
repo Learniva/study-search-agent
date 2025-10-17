@@ -59,6 +59,16 @@ async def health_check(
         database_available = async_db_engine is not None
     except ImportError:
         pass
+    
+    return HealthResponse(
+        status="healthy",
+        supervisor_ready=supervisor is not None,
+        database_available=database_available,
+        ml_features_available=ml_available,
+        documents_loaded=documents_loaded,
+        timestamp=datetime.utcnow(),
+        version="2.0.0"
+    )
 
 
 @router.get("/health/database", tags=["Monitoring"])
@@ -109,19 +119,6 @@ async def database_health():
             "message": f"Failed to check database health: {str(e)}",
             "timestamp": datetime.utcnow().isoformat()
         }
-    except Exception:
-        # Database module exists but has issues
-        database_available = False
-    
-    return HealthResponse(
-        status="healthy",
-        supervisor_ready=supervisor is not None,
-        database_available=database_available,
-        ml_features_available=ml_available,
-        documents_loaded=documents_loaded,
-        timestamp=datetime.utcnow(),
-        version="2.0.0"
-    )
 
 
 @router.get("/metrics")
