@@ -509,35 +509,85 @@ Provide a complete answer."""
             
             # Prepare prompt based on request type
             if is_structured_notes:
-                synthesis_prompt = f"""You are an expert note-taker creating WELL-STRUCTURED, PROFESSIONAL study notes from retrieved content.
+                synthesis_prompt = f"""You are an expert note-taker creating HIGHLY STRUCTURED, PROFESSIONAL study notes from retrieved content.
 
 Question: {state.get("question", "")}
 
 Retrieved Content:
 {raw_results}
 
-Instructions for STRUCTURED NOTES:
-1. Use proper markdown formatting with clear hierarchy:
-   - # Main heading (chapter/topic title)
-   - ## Subheadings (major sections)
-   - ### Sub-subheadings (subsections)
-2. Highlight KEY CONCEPTS using **bold** formatting
-3. Include definitions prominently:
-   - **Term**: Definition (p. XX)
-4. Organize information logically:
-   - Overview/Introduction
-   - Core Concepts
-   - Key Techniques/Methods
-   - Examples/Applications
-   - Summary/Takeaways
-5. Use bullet points (•) for lists and key points
-6. Include page references throughout: (p. 42) or (pp. 42-45)
-7. Highlight important formulas, algorithms, or procedures
-8. Add section summaries where appropriate
-9. Make it visually scannable with good spacing
-10. Use ONLY information from the retrieved content above
+MANDATORY STRUCTURE - Follow this EXACT order:
 
-Format the notes as if you're creating a professional study guide that will be used for exam preparation.
+# [Chapter/Topic Title]
+
+## 📋 BRIEF SUMMARY
+[MUST BE FIRST - 2-3 sentences explaining what this chapter/document is about overall]
+
+## 🎯 KEY TOPICS AND CONCEPTS
+[List the main topics covered, using bullet points with **bold** formatting]
+• **Topic 1**: Brief description (p. XX)
+• **Topic 2**: Brief description (p. XX)
+• **Topic 3**: Brief description (p. XX)
+
+## 💻 CODE & ALGORITHMS
+[ONLY include if code or algorithms are present in the content]
+### Algorithm/Code Name (p. XX)
+• **Purpose**: What it does
+• **Key Steps**: 
+  1. Step 1
+  2. Step 2
+• **Code Example** (if available):
+  ```language
+  code here
+  ```
+
+## 📚 DETAILED CONTENT
+
+### Section 1: [Name] (p. XX)
+[Detailed explanation with **bold key concepts**]
+
+**Key Points:**
+• Point 1 (p. XX)
+• Point 2 (p. XX)
+
+**Important Definitions:**
+• **Term**: Definition (p. XX)
+
+### Section 2: [Name] (p. XX)
+[Continue with clear subsections...]
+
+## 🔧 CONCEPTS AND USE CASES
+
+### Concept: [Name]
+• **What it is**: Definition/explanation (p. XX)
+• **Why it matters**: Practical significance
+• **Use Cases**:
+  - Use case 1 (p. XX)
+  - Use case 2 (p. XX)
+• **Real-world Applications**: [If mentioned]
+
+## 💡 KEY TAKEAWAYS
+[3-5 bullet points summarizing the most important lessons]
+• Key takeaway 1
+• Key takeaway 2
+• Key takeaway 3
+
+## 📖 PAGE REFERENCES
+[List all page numbers covered: pp. XX-XX]
+
+---
+
+FORMATTING RULES:
+1. Use markdown hierarchy: # ## ### for headings
+2. **Bold** all key terms and concepts
+3. Include page citations after every major point: (p. XX)
+4. Use bullet points (•) for lists
+5. Use numbered lists (1. 2. 3.) for sequential steps
+6. Format code in ```language``` blocks
+7. Use clear spacing between sections
+8. Make it visually scannable
+9. Use ONLY information from the retrieved content
+10. Be comprehensive but organized
 
 Answer:"""
             elif is_study_material:
