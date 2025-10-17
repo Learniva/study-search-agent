@@ -463,8 +463,21 @@ Provide a complete answer."""
                 await state.update("document_qa_failed", True, stream=False)
                 return state
             
-            # Detect if this is a study material generation request
+            # Detect request type
             question_lower = state.get("question", "").lower()
+            
+            # Check if this is a STRUCTURED NOTES generation request
+            is_structured_notes = any(keyword in question_lower for keyword in [
+                'structured notes', 'generate notes', 'create notes', 'make notes',
+                'note-taking', 'organize notes', 'format notes'
+            ])
+            
+            # Check if this is a chapter/section overview request
+            is_chapter_overview = any(keyword in question_lower for keyword in [
+                'chapter', 'section', 'all about', 'overview', 'covers', 'discusses'
+            ]) and not is_structured_notes  # Don't overlap with structured notes
+            
+            # Check if this is a study material generation request
             is_study_material = any(keyword in question_lower for keyword in [
                 'flashcard', 'study guide', 'summary', 'summarize', 'mcq', 
                 'multiple choice', 'quiz', 'practice questions'
@@ -477,7 +490,39 @@ Provide a complete answer."""
             )
             
             # Prepare prompt based on request type
-            if is_study_material:
+            if is_structured_notes:
+                synthesis_prompt = f"""You are an expert note-taker creating WELL-STRUCTURED, PROFESSIONAL study notes from retrieved content.
+
+Question: {state.get("question", "")}
+
+Retrieved Content:
+{raw_results}
+
+Instructions for STRUCTURED NOTES:
+1. Use proper markdown formatting with clear hierarchy:
+   - # Main heading (chapter/topic title)
+   - ## Subheadings (major sections)
+   - ### Sub-subheadings (subsections)
+2. Highlight KEY CONCEPTS using **bold** formatting
+3. Include definitions prominently:
+   - **Term**: Definition (p. XX)
+4. Organize information logically:
+   - Overview/Introduction
+   - Core Concepts
+   - Key Techniques/Methods
+   - Examples/Applications
+   - Summary/Takeaways
+5. Use bullet points (•) for lists and key points
+6. Include page references throughout: (p. 42) or (pp. 42-45)
+7. Highlight important formulas, algorithms, or procedures
+8. Add section summaries where appropriate
+9. Make it visually scannable with good spacing
+10. Use ONLY information from the retrieved content above
+
+Format the notes as if you're creating a professional study guide that will be used for exam preparation.
+
+Answer:"""
+            elif is_study_material:
                 synthesis_prompt = f"""You are a study assistant creating educational materials from retrieved content.
 
 Question: {state.get("question", "")}
@@ -494,6 +539,26 @@ Instructions:
 6. For flashcards: Format as "**Front:**" and "**Back:**" pairs
 7. For study guides: Use clear headings and bullet points
 8. For MCQs: Include question, options, and correct answer
+
+Answer:"""
+            elif is_chapter_overview:
+                synthesis_prompt = f"""You are a helpful study assistant providing comprehensive chapter/section summaries.
+
+Question: {state.get("question", "")}
+
+Retrieved Content:
+{raw_results}
+
+Instructions:
+1. Provide a COMPREHENSIVE summary (1-2 paragraphs minimum, 4-8 sentences)
+2. Include the main topic/theme of the chapter/section
+3. List the key concepts, subtopics, or techniques covered
+4. Mention specific examples, algorithms, or applications if present in the content
+5. Use ONLY information from the retrieved content above
+6. Cite page numbers naturally when available: "(p. 42)" or "(pp. 42-45)"
+7. Use clear paragraph structure with good flow
+8. Do NOT say "the retrieved content" or "according to the document" - just present the information directly
+9. Make it comprehensive enough that the reader gets a solid understanding of what the chapter/section covers
 
 Answer:"""
             else:

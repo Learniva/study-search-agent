@@ -339,10 +339,16 @@ Your synthesized answer:"""
             # Detect request type
             question_lower = state["question"].lower()
             
+            # Check if this is a STRUCTURED NOTES generation request
+            is_structured_notes = any(keyword in question_lower for keyword in [
+                'structured notes', 'generate notes', 'create notes', 'make notes',
+                'note-taking', 'organize notes', 'format notes'
+            ])
+            
             # Check if this is a chapter/section overview request
             is_chapter_overview = any(keyword in question_lower for keyword in [
                 'chapter', 'section', 'all about', 'overview', 'covers', 'discusses'
-            ])
+            ]) and not is_structured_notes  # Don't overlap with structured notes
             
             # Check if this is a study material generation request
             is_study_material = any(keyword in question_lower for keyword in [
@@ -351,7 +357,39 @@ Your synthesized answer:"""
             ])
             
             # Synthesize answer using LLM
-            if is_study_material:
+            if is_structured_notes:
+                synthesis_prompt = f"""You are an expert note-taker creating WELL-STRUCTURED, PROFESSIONAL study notes from retrieved content.
+
+Question: {state["question"]}
+
+Retrieved Content:
+{raw_results}
+
+Instructions for STRUCTURED NOTES:
+1. Use proper markdown formatting with clear hierarchy:
+   - # Main heading (chapter/topic title)
+   - ## Subheadings (major sections)
+   - ### Sub-subheadings (subsections)
+2. Highlight KEY CONCEPTS using **bold** formatting
+3. Include definitions prominently:
+   - **Term**: Definition (p. XX)
+4. Organize information logically:
+   - Overview/Introduction
+   - Core Concepts
+   - Key Techniques/Methods
+   - Examples/Applications
+   - Summary/Takeaways
+5. Use bullet points (•) for lists and key points
+6. Include page references throughout: (p. 42) or (pp. 42-45)
+7. Highlight important formulas, algorithms, or procedures
+8. Add section summaries where appropriate
+9. Make it visually scannable with good spacing
+10. Use ONLY information from the retrieved content above
+
+Format the notes as if you're creating a professional study guide that will be used for exam preparation.
+
+Answer:"""
+            elif is_study_material:
                 synthesis_prompt = f"""You are a study assistant creating educational materials from retrieved content.
 
 Question: {state["question"]}
