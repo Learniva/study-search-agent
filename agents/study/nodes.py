@@ -280,8 +280,25 @@ Your synthesized answer:"""
         print(f"✅ [TOOL EXECUTION] Document_QA tool found, calling it now...")
         
         try:
-            # Retrieve relevant document chunks
-            raw_results = tool.func(state["question"])
+            # Build conversation history for context-aware document queries
+            messages = state.get("messages", [])
+            conversation_history = ""
+            
+            if messages:
+                # Include last 3-4 user messages for context
+                user_messages = []
+                for msg in reversed(messages[-8:]):  # Last 8 messages
+                    if hasattr(msg, 'type') and msg.type == 'human' and hasattr(msg, 'content'):
+                        user_messages.append(msg.content)
+                        if len(user_messages) >= 4:  # Keep last 4 user questions
+                            break
+                
+                # Reverse to chronological order
+                conversation_history = " ".join(reversed(user_messages))
+                print(f"📝 [DOC QA CONTEXT] Conversation history: {conversation_history[:150]}...")
+            
+            # Retrieve relevant document chunks with context awareness
+            raw_results = tool.func(state["question"], conversation_history=conversation_history)
             print(f"📄 [TOOL EXECUTION] Document_QA returned {len(raw_results)} chars")
             print(f"📄 [TOOL EXECUTION] First 200 chars: {raw_results[:200]}")
             

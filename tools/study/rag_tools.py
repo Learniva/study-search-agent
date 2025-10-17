@@ -48,35 +48,159 @@ except ImportError as e:
     print(f"⚠️  RAG Tools: Web search not available ({e})")
 
 
+def _extract_topic_from_document_context(conversation_history: Optional[str] = None) -> str:
+    """
+    Extract main topic from conversation history for document QA.
+    Similar to web search but optimized for document queries.
+    """
+    if not conversation_history:
+        return ""
+    
+    import re
+    
+    # Strategy 1: Look for document references in recent messages
+    # "What does chapter 12 say?" → extract "chapter 12"
+    patterns = [
+        (r'(?:chapter|ch\.?)\s*(\d+)', lambda m: f"chapter {m.group(1)}"),
+        (r'(?:section|sec\.?)\s*(\d+(?:\.\d+)?)', lambda m: f"section {m.group(1)}"),
+        (r'(?:page|p\.?)\s*(\d+)', lambda m: f"page {m.group(1)}"),
+        (r'what\s+(?:is|are)\s+(?:a|an|the)?\s*([^?,.!]+?)(?:\?|$)', lambda m: m.group(1).strip()),
+        (r'tell\s+me\s+about\s+([^?,.!]+)', lambda m: m.group(1).strip()),
+        (r'explain\s+(?:the\s+)?([^?,.!]+)', lambda m: m.group(1).strip()),
+    ]
+    
+    for pattern, extractor in patterns:
+        match = re.search(pattern, conversation_history.lower())
+        if match:
+            topic = extractor(match)
+            if len(topic) > 3:  # Valid topic
+                return topic.strip(' ,.!?:;')
+    
+    return ""
+
+
+def _reformulate_document_query(query: str, extracted_topic: str) -> str:
+    """
+    Intelligently reformulate document queries based on context.
+    Handles pronouns and contextual references for document QA.
+    """
+    import re
+    query_lower = query.lower()
+    
+    # Document-specific reformulation patterns
+    doc_patterns = [
+        # Chapter/Section queries with pronouns
+        (r'what\s+(?:is|are)\s+(?:it|this|that)\s+about', f"what is {extracted_topic} about"),
+        (r'what\s+does\s+(?:it|this|that)\s+say', f"what does {extracted_topic} say"),
+        (r'what\s+does\s+(?:it|this|that)\s+cover', f"what does {extracted_topic} cover"),
+        (r'what\s+(?:is|are)\s+(?:the\s+)?(?:main|key)\s+(?:points|topics|ideas)', f"main points in {extracted_topic}"),
+        
+        # Summary queries
+        (r'summarize\s+(?:it|this|that)', f"summarize {extracted_topic}"),
+        (r'give\s+me\s+a\s+summary', f"summary of {extracted_topic}"),
+        
+        # Content queries
+        (r'what\s+(?:topics|subjects)\s+(?:does\s+)?(?:it|this|that)\s+discuss', f"topics in {extracted_topic}"),
+        (r'what\s+information\s+(?:does\s+)?(?:it|this|that)\s+(?:have|contain)', f"information in {extracted_topic}"),
+        
+        # Specific entity queries
+        (r'what\s+companies\s+(?:does\s+)?(?:it|this|that)\s+mention', f"companies mentioned in {extracted_topic}"),
+        (r'what\s+(?:people|authors|researchers)\s+(?:does\s+)?(?:it|this|that)\s+mention', f"people mentioned in {extracted_topic}"),
+        (r'what\s+examples\s+(?:does\s+)?(?:it|this|that)\s+(?:give|provide)', f"examples in {extracted_topic}"),
+    ]
+    
+    # Try each pattern
+    for pattern, replacement in doc_patterns:
+        if re.search(pattern, query_lower):
+            print(f"🔍 [DOC QA] Reformulated: '{query}' → '{replacement}'")
+            return replacement
+    
+    # Generic pronoun replacement for document queries
+    pronouns = ['it', 'this', 'that', 'them', 'these', 'those']
+    for pronoun in pronouns:
+        if f' {pronoun} ' in f' {query_lower} ':
+            reformulated = re.sub(rf'\b{pronoun}\b', extracted_topic, query, flags=re.IGNORECASE)
+            print(f"🔍 [DOC QA] Pronoun replaced: '{query}' → '{reformulated}'")
+            return reformulated
+    
+    # If query contains chapter/section but is vague, add context
+    if any(word in query_lower for word in ['chapter', 'section', 'page']) and len(query.split()) <= 5:
+        enhanced = f"{query} content and main topics"
+        print(f"🔍 [DOC QA] Enhanced vague query: '{query}' → '{enhanced}'")
+        return enhanced
+    
+    return query
+
+
 @tool("Document_QA")
 def retrieve_from_vector_store(
     query: str,
     limit: int = 15,  # Increased default for better coverage
     user_id: Optional[str] = None,
-    course_id: Optional[str] = None
+    course_id: Optional[str] = None,
+    conversation_history: Optional[str] = None  # NEW: For context-aware queries
 ) -> str:
     """
-    Retrieve relevant documents from L2 Vector Store (pgvector).
+    Retrieve relevant documents from L2 Vector Store (pgvector) with INTELLIGENT CONTEXT AWARENESS.
     
-    This tool performs semantic similarity search on uploaded documents using pgvector.
-    Use this when the user asks about "my notes", "uploaded documents", or specific content.
+    This tool performs semantic similarity search on uploaded documents using pgvector,
+    with advanced query reformulation for natural follow-up questions.
+    
+    🧠 Context-Aware Features:
+    - Extracts topic from conversation history
+    - Handles pronouns (it, this, that, them)
+    - Reformulates vague follow-up questions
+    - Understands chapter/section references
     
     Args:
         query: The search query
-        limit: Maximum number of results (default: 5)
+        limit: Maximum number of results (default: 15)
         user_id: Filter by user ID
         course_id: Filter by course ID
+        conversation_history: Recent conversation for context extraction
     
     Returns:
         Formatted string with relevant document chunks
     
     Examples:
+        Direct queries:
         - "What does chapter 3 say about machine learning?"
         - "Find information about neural networks in my notes"
-        - "Search my documents for quantum computing"
+        
+        Follow-up queries (context-aware):
+        - "What is it about?" → "What is chapter 3 about?"
+        - "What companies does it mention?" → "companies mentioned in chapter 3"
+        - "Summarize it" → "summarize chapter 3"
     """
     if not DATABASE_AVAILABLE:
         return "❌ Vector store not available. Database not configured. Please set DATABASE_URL in .env"
+    
+    # INTELLIGENT CONTEXT-AWARE QUERY REFORMULATION
+    original_query = query
+    has_pronoun = any(f' {word} ' in f' {query.lower()} ' for word in ['it', 'this', 'that', 'them', 'these', 'those'])
+    is_vague = len(query.split()) <= 5 and has_pronoun
+    
+    print(f"\n{'='*70}")
+    print(f"🔍 INTELLIGENT DOCUMENT QA")
+    print(f"{'='*70}")
+    print(f"📝 Original query: '{query}'")
+    print(f"🎯 Has pronoun: {has_pronoun}, Is vague: {is_vague}")
+    
+    if (has_pronoun or is_vague) and conversation_history:
+        # Extract topic from conversation history
+        extracted_topic = _extract_topic_from_document_context(conversation_history)
+        
+        if extracted_topic:
+            print(f"💡 Extracted topic: '{extracted_topic}'")
+            # Reformulate query with context
+            query = _reformulate_document_query(query, extracted_topic)
+            print(f"✨ Reformulated query: '{query}'")
+        else:
+            print(f"⚠️  No topic extracted from conversation history")
+    else:
+        print(f"✅ Direct question - no reformulation needed")
+    
+    print(f"{'='*70}\n")
     
     try:
         # First, check if any documents exist in the vector store
@@ -102,6 +226,12 @@ def retrieve_from_vector_store(
         chapter_match = re.search(r'\b(?:chapter|ch\.?)\s*(\d+)', query_lower)
         section_match = re.search(r'\b(?:section|sec\.?)\s*(\d+(?:\.\d+)?)', query_lower)
         page_match = re.search(r'\b(?:page|p\.?)\s*(\d+)', query_lower)
+        
+        # CRITICAL FIX: If user asks for a specific chapter, use HYBRID search
+        # Semantic search alone fails to retrieve the right chapter
+        if chapter_match:
+            chapter_num = chapter_match.group(1)
+            print(f"🔍 [HYBRID SEARCH] User requested Chapter {chapter_num} - using keyword + semantic hybrid search")
         
         # Remove filler phrases using word boundaries to avoid breaking words
         query_clean = query_lower
@@ -161,6 +291,13 @@ def retrieve_from_vector_store(
             if course_id:
                 filters.append(f"course_id = '{course_id}'")
             
+            # HYBRID SEARCH: Add chapter filter for chapter-specific queries
+            if chapter_match:
+                chapter_num = chapter_match.group(1)
+                # Filter for chunks that contain the chapter number
+                filters.append(f"(LOWER(content) LIKE '%chapter {chapter_num}%' OR LOWER(content) LIKE '%chapter{chapter_num}%')")
+                print(f"🔍 [HYBRID SEARCH] Added keyword filter for Chapter {chapter_num}")
+            
             if filters:
                 filter_sql = " AND " + " AND ".join(filters)
             
@@ -185,6 +322,30 @@ def retrieve_from_vector_store(
             result = db.execute(text(sql))
             results = result.fetchall()
             
+            print(f"📊 [RETRIEVAL DEBUG] Retrieved {len(results)} chunks from vector search")
+            if results and len(results) > 0:
+                print(f"📊 [RETRIEVAL DEBUG] Sample of first 5 chunks:")
+                for i, row in enumerate(results[:5]):
+                    try:
+                        content_preview = str(row[2])[:150] if len(row) > 2 and row[2] else "No content"
+                        distance = row[5] if len(row) > 5 else "N/A"
+                        print(f"   {i+1}. Dist={distance}: {content_preview}...")
+                    except Exception as e:
+                        print(f"   {i+1}. Error: {e}")
+                
+                # Check if Chapter 12 is in ANY of the retrieved chunks
+                if chapter_match:
+                    chapter_num = chapter_match.group(1)
+                    found_chapter = False
+                    for i, row in enumerate(results):
+                        if len(row) > 2 and row[2] and f"chapter {chapter_num}" in str(row[2]).lower():
+                            found_chapter = True
+                            print(f"✅ [RETRIEVAL DEBUG] Chapter {chapter_num} found at position {i+1}/{len(results)}")
+                            break
+                    if not found_chapter:
+                        print(f"❌ [RETRIEVAL DEBUG] Chapter {chapter_num} NOT in top {len(results)} chunks!")
+                        print(f"   This means semantic search completely missed the target chapter.")
+            
             if not results:
                 return f"📚 No relevant documents found for query: '{query}'\n\nTip: Make sure documents are uploaded and indexed in the vector store."
             
@@ -198,16 +359,16 @@ def retrieve_from_vector_store(
                 content_lower = content.lower()
                 boost = 0.0
                 
-                # PRIORITY: Boost chunks from requested chapter/section (very strong signal)
+                # PRIORITY: Boost chunks from requested chapter/section (CRITICAL signal)
                 if chapter_match:
                     chapter_num = chapter_match.group(1)
                     # Check if this chunk is from the requested chapter
                     if re.search(rf'\b(?:chapter|ch\.?)\s*{chapter_num}\b', content_lower):
-                        boost += 0.50  # Very strong boost for matching chapter
+                        boost += 5.0  # MASSIVE boost for matching chapter (overrides semantic similarity)
                     # Also check for page markers that indicate chapter start
                     # e.g., "Chapter 9: Advanced architectures"
                     if re.search(rf'chapter\s*{chapter_num}:', content_lower):
-                        boost += 0.60  # Even stronger for chapter titles
+                        boost += 6.0  # Even stronger for chapter titles
                     
                     # Boost chunks with [Page X] markers when chapter is specified
                     # These are likely substantive content from the chapter
