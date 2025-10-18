@@ -50,6 +50,7 @@ gTTS>=2.5.0
 # Authentication & LMS Integration (Optional)
 python-jose[cryptography]>=3.3.0
 passlib[bcrypt]>=1.7.4
+bcrypt>=4.0.0,<5.0.0  # Pin to 4.x for passlib compatibility
 pylti1p3>=2.0.0
 canvasapi>=3.2.0
 google-auth>=2.23.0
