@@ -25,7 +25,12 @@ from api.routers import (
     grading_router,
     ml_router,
     health_router,
-    videos_router
+    videos_router,
+    profile_router,
+    settings_router,
+    help_router,
+    integrations_router,
+    billing_router,
 )
 from utils.rate_limiting import RateLimitMiddleware
 from utils.monitoring import TracingMiddleware, get_logger, get_correlation_id
@@ -81,6 +86,7 @@ app = FastAPI(
     lifespan=lifespan,
     docs_url="/docs",
     redoc_url="/redoc",
+    redirect_slashes=False,  # Disable automatic redirect for trailing slashes
 )
 
 
@@ -175,6 +181,13 @@ app.include_router(ml_router)
 
 # Video Downloads (available to all roles)
 app.include_router(videos_router)
+
+# User Management & Settings
+app.include_router(profile_router)
+app.include_router(settings_router)
+app.include_router(help_router)
+app.include_router(integrations_router)
+app.include_router(billing_router)
 
 # Learniva Integration (optional - for Learniva frontend compatibility)
 try:
