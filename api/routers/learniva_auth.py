@@ -1,42 +1,42 @@
 """
-Learniva-compatible authentication adapter.
+Production-Ready Authentication with PostgreSQL
 
 This module provides Django REST Framework style token authentication
-to make the Study Search Agent backend compatible with the Learniva frontend.
+with persistent storage using PostgreSQL for both tokens and users.
 
-Usage:
-    Add to api/app.py:
-    from api.routers.learniva_auth import router as learniva_auth_router
-    app.include_router(learniva_auth_router)
-
-Production Notes:
-    - Replace USERS_DB with PostgreSQL/database lookup
-    - Replace TOKEN_STORE with Redis
-    - Implement proper password hashing (bcrypt/argon2)
-    - Add email verification
-    - Add password reset flow
-    - Add rate limiting
+Features:
+- PostgreSQL for persistent token storage (survives restarts)
+- PostgreSQL for user data
+- Bcrypt password hashing
+- Token expiry and cleanup
+- Session management
+- Optional Redis caching for performance
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Header
 from pydantic import BaseModel, EmailStr
 from typing import Optional
-import secrets
-from datetime import datetime, timedelta
+from datetime import datetime
+import logging
 
-router = APIRouter(prefix="/api", tags=["learniva-auth"])
+from config.settings import settings
+from database.operations.user_ops import (
+    create_user,
+    authenticate_user,
+    get_user_by_id,
+    update_user_activity,
+)
+from database.operations.token_ops import (
+    create_token,
+    get_token,
+    delete_token,
+    delete_user_tokens,
+)
+from database.core.async_connection import get_session
+from sqlalchemy.ext.asyncio import AsyncSession
 
-# ============================================================================
-# Configuration
-# ============================================================================
-
-# Token expiry (24 hours for development, consider longer for production)
-TOKEN_EXPIRY = timedelta(hours=24)
-
-# In-memory stores (REPLACE WITH DATABASE IN PRODUCTION!)
-TOKEN_STORE = {}  # Use Redis in production
-USERS_DB = {}     # Use PostgreSQL in production
-
+logger = logging.getLogger(__name__)
+router = APIRouter(prefix="/api", tags=["auth"])
 
 # ============================================================================
 # Models
@@ -60,6 +60,8 @@ class RegisterRequest(BaseModel):
     email: EmailStr
     password: str
     password2: str
+    first_name: Optional[str] = ""
+    last_name: Optional[str] = ""
 
 
 class UserResponse(BaseModel):
@@ -70,91 +72,116 @@ class UserResponse(BaseModel):
     email: str
     first_name: str
     last_name: str
-    role: str  # student, teacher, admin
+    role: str
+    display_name: Optional[str] = None
+    profile_picture: Optional[str] = None
+    location: Optional[str] = None
+    website: Optional[str] = None
 
 
 # ============================================================================
 # Helper Functions
 # ============================================================================
 
-def create_token(user_id: int, role: str) -> str:
+async def create_token_for_user(
+    session: AsyncSession,
+    user_id: str,
+    role: str,
+    device_info: Optional[str] = None,
+    ip_address: Optional[str] = None
+) -> str:
     """
-    Generate authentication token.
+    Generate authentication token and store in PostgreSQL.
     
     Args:
+        session: Database session
         user_id: User's unique identifier
         role: User role (student, teacher, admin)
+        device_info: Optional device information
+        ip_address: Optional IP address
     
     Returns:
         Secure random token string
     """
-    token = secrets.token_urlsafe(32)
-    TOKEN_STORE[token] = {
-        "user_id": user_id,
-        "role": role,
-        "created_at": datetime.now(),
-        "expires_at": datetime.now() + TOKEN_EXPIRY
-    }
-    return token
+    token_obj = await create_token(
+        session,
+        user_id,
+        device_info=device_info,
+        ip_address=ip_address
+    )
+    
+    if not token_obj:
+        logger.error(f"❌ Failed to create token for user: {user_id}")
+        raise HTTPException(status_code=500, detail="Failed to create authentication token")
+    
+    logger.info(f"🔑 Token created for user: {user_id} (expires in {settings.token_expire_hours}h)")
+    return token_obj.token
 
 
-def verify_token(token: str) -> Optional[dict]:
+async def verify_token_data(session: AsyncSession, token_value: str) -> Optional[dict]:
     """
-    Verify token validity and return associated data.
+    Verify token validity and return associated user data.
     
     Args:
-        token: Token string to verify
+        session: Database session
+        token_value: Token string to verify
     
     Returns:
-        Token data if valid, None if invalid or expired
+        User data if token valid, None if invalid or expired
     """
-    token_data = TOKEN_STORE.get(token)
-    if not token_data:
+    token = await get_token(session, token_value)
+    if not token:
+        logger.debug(f"🔍 Token not found or expired: {token_value[:20]}...")
         return None
     
-    # Check expiration
-    if datetime.now() > token_data["expires_at"]:
-        del TOKEN_STORE[token]
+    # Get user data
+    user = await get_user_by_id(session, token.user_id)
+    if not user:
+        logger.warning(f"⚠️ Token valid but user not found: {token.user_id}")
         return None
     
-    return token_data
+    logger.debug(f"✅ Token verified for user: {user.username}")
+    return {
+        "user_id": user.user_id,
+        "role": user.role,
+        "username": user.username,
+        "email": user.email,
+    }
 
 
-def get_user_by_id(user_id: int) -> Optional[dict]:
-    """Look up user by ID in database."""
-    for email, user in USERS_DB.items():
-        if user["id"] == user_id:
-            return user
-    return None
-
-
-def get_user_by_username_or_email(username: str) -> Optional[dict]:
-    """Look up user by username or email."""
-    # Try email first
-    user = USERS_DB.get(username)
-    if user:
-        return user
-    
-    # Try username
-    for email, u in USERS_DB.items():
-        if u["username"] == username:
-            return u
-    
-    return None
+def user_to_dict(user) -> dict:
+    """Convert User model to dictionary for API response."""
+    return {
+        "id": hash(user.user_id) % 1000000,  # Generate numeric ID from string
+        "pk": hash(user.user_id) % 1000000,
+        "username": user.username,
+        "email": user.email,
+        "first_name": user.first_name or "",
+        "last_name": user.last_name or "",
+        "role": user.role,
+        "display_name": user.display_name,
+        "profile_picture": user.profile_picture,
+        "location": user.location,
+        "website": user.website,
+    }
 
 
 # ============================================================================
 # Dependencies
 # ============================================================================
 
-def get_current_user(authorization: Optional[str] = Header(None)) -> dict:
+async def get_current_user(
+    authorization: Optional[str] = Header(None),
+    session: AsyncSession = Depends(get_session)
+) -> dict:
     """
     Dependency to extract and validate user from Authorization header.
     
-    Expected header format: "Token abc123..."
+    Accepts both "Token abc123..." and "Bearer abc123..." formats
     
     Args:
         authorization: Authorization header value
+        session: Database session
     
     Returns:
         User dictionary
@@ -163,320 +190,210 @@ def get_current_user(authorization: Optional[str] = Header(None)) -> dict:
         HTTPException: If auth fails
     """
     if not authorization:
+        logger.debug("🔒 Auth: No Authorization header provided")
         raise HTTPException(
             status_code=401,
-            detail="Authorization header required"
+            detail={"error": "unauthorized", "message": "Authorization header required"}
         )
     
-    # Parse "Token xyz" format (Django REST Framework style)
+    # Parse "Token xyz" or "Bearer xyz" format
+    logger.debug(f"🔒 Auth: Authorization header received: {authorization[:50]}...")
     try:
-        scheme, token = authorization.split(maxsplit=1)
-        if scheme.lower() != "token":
-            raise ValueError("Invalid scheme")
-    except (ValueError, AttributeError):
+        parts = authorization.split(maxsplit=1)
+        if len(parts) == 2:
+            scheme, token = parts
+            logger.debug(f"🔒 Auth: Scheme='{scheme}', Token='{token[:20]}...'")
+            # Accept both "Token" (Django REST Framework) and "Bearer" (OAuth2) formats
+            if scheme.lower() not in ["token", "bearer"]:
+                logger.debug(f"🔒 Auth: Invalid scheme '{scheme}'")
+                raise ValueError("Invalid scheme")
+        else:
+            # If no scheme, treat entire string as token
+            token = authorization
+            logger.debug(f"🔒 Auth: No scheme, using entire string as token")
+    except (ValueError, AttributeError) as e:
+        logger.debug(f"🔒 Auth: Error parsing header: {e}")
         raise HTTPException(
             status_code=401,
-            detail="Invalid authorization header format. Expected: 'Token <token>'"
+            detail={"error": "unauthorized", "message": "Invalid authorization header format"}
         )
     
-    # Verify token
-    token_data = verify_token(token)
+    # Verify token (now returns user data directly from PostgreSQL)
+    token_data = await verify_token_data(session, token)
     if not token_data:
+        logger.debug(f"🔒 Auth: Token verification failed - invalid or expired")
         raise HTTPException(
             status_code=401,
-            detail="Invalid or expired token"
+            detail={"error": "unauthorized", "message": "Invalid or expired token"}
         )
     
-    # Find user
-    user = get_user_by_id(token_data["user_id"])
+    # Get full user object from database
+    user = await get_user_by_id(session, token_data["user_id"])
     if not user:
+        logger.warning(f"🔒 Auth: User not found in database: {token_data['user_id']}")
         raise HTTPException(
             status_code=401,
-            detail="User not found"
+            detail={"error": "unauthorized", "message": "User not found"}
         )
     
-    return user
-
-
-# ============================================================================
-# Initialization (Development Only)
-# ============================================================================
-
-def initialize_demo_users():
-    """
-    Create demo users for development/testing.
+    if not user.is_active:
+        logger.warning(f"🔒 Auth: Inactive user attempted access: {user.username}")
+        raise HTTPException(
+            status_code=401,
+            detail={"error": "unauthorized", "message": "User account is inactive"}
+        )
     
-    WARNING: Remove in production!
-    """
-    if not USERS_DB:  # Only initialize if empty
-        USERS_DB["student@example.com"] = {
-            "id": 1,
-            "pk": 1,
-            "username": "student",
-            "email": "student@example.com",
-            "password": "password123",  # HASH THIS IN PRODUCTION!
-            "first_name": "John",
-            "last_name": "Doe",
-            "role": "student"
-        }
-        USERS_DB["teacher@example.com"] = {
-            "id": 2,
-            "pk": 2,
-            "username": "teacher",
-            "email": "teacher@example.com",
-            "password": "password123",  # HASH THIS IN PRODUCTION!
-            "first_name": "Jane",
-            "last_name": "Smith",
-            "role": "teacher"
-        }
-        USERS_DB["admin@example.com"] = {
-            "id": 3,
-            "pk": 3,
-            "username": "admin",
-            "email": "admin@example.com",
-            "password": "password123",  # HASH THIS IN PRODUCTION!
-            "first_name": "Admin",
-            "last_name": "User",
-            "role": "admin"
-        }
-
-
-# Initialize demo users
-initialize_demo_users()
+    logger.debug(f"✅ Auth: Successfully authenticated user: {user.username}")
+    return user_to_dict(user)
 
 
 # ============================================================================
-# Endpoints
+# Auth Endpoints
 # ============================================================================
 
 @router.post("/login/", response_model=LoginResponse)
-async def login(request: LoginRequest):
+async def login(
+    request: LoginRequest,
+    session: AsyncSession = Depends(get_session)
+):
     """
-    Authenticate user and return token.
+    Login endpoint.
     
-    Compatible with Learniva frontend login flow.
-    Accepts username or email + password.
-    
-    Request Body:
-        {
-            "username": "user@example.com",  # or username
-            "password": "password123"
-        }
-    
-    Response:
-        {
-            "token": "abc123...",
-            "user": {
-                "id": 1,
-                "pk": 1,
-                "username": "johndoe",
-                "email": "john@example.com",
-                "first_name": "John",
-                "last_name": "Doe"
-            }
-        }
+    Authenticates user and returns token.
     """
-    # Find user
-    user = get_user_by_username_or_email(request.username)
+    logger.info(f"🔐 Login attempt: {request.username}")
     
-    # Check credentials (IMPLEMENT PROPER PASSWORD HASHING IN PRODUCTION!)
-    if not user or user["password"] != request.password:
+    # Authenticate user
+    user = await authenticate_user(session, request.username, request.password)
+    
+    if not user:
+        logger.warning(f"❌ Login failed: {request.username}")
         raise HTTPException(
             status_code=401,
-            detail="Invalid credentials"
+            detail={"error": "invalid_credentials", "message": "Invalid username or password"}
         )
     
     # Create token
-    token = create_token(user["id"], user["role"])
+    token = await create_token_for_user(session, user.user_id, user.role)
     
-    # Return response matching Learniva format
+    logger.info(f"✅ Login successful: {user.username}")
+    
     return LoginResponse(
         token=token,
-        user={
-            "id": user["id"],
-            "pk": user["pk"],
-            "username": user["username"],
-            "email": user["email"],
-            "first_name": user["first_name"],
-            "last_name": user["last_name"]
-        }
+        user=user_to_dict(user)
     )
 
 
 @router.post("/logout/")
-async def logout(authorization: Optional[str] = Header(None)):
+async def logout(
+    authorization: Optional[str] = Header(None),
+    session: AsyncSession = Depends(get_session)
+):
     """
-    Logout user by invalidating token.
+    Logout endpoint.
     
-    Headers:
-        Authorization: Token abc123...
-    
-    Response:
-        {
-            "detail": "Successfully logged out"
-        }
+    Invalidates the user's token by deleting it from PostgreSQL.
+    Works even with invalid/expired tokens since the user wants to logout anyway.
     """
     if authorization:
+        # Extract token
         try:
-            _, token = authorization.split(maxsplit=1)
-            if token in TOKEN_STORE:
-                del TOKEN_STORE[token]
-        except:
-            pass  # Ignore errors, logout anyway
+            parts = authorization.split(maxsplit=1)
+            token_value = parts[1] if len(parts) == 2 else authorization
+            
+            # Try to delete token from database (if it exists)
+            await delete_token(session, token_value)
+            logger.info(f"👋 Logout: Token invalidated")
+        except Exception as e:
+            logger.debug(f"Logout with invalid token (expected): {e}")
     
-    return {"detail": "Successfully logged out"}
+    # Always return success - logout should be idempotent
+    return {
+        "success": True,
+        "message": "Logged out successfully"
+    }
 
 
-@router.post("/auth/registration/")
-async def register(request: RegisterRequest):
+@router.post("/register/", response_model=LoginResponse)
+async def register(
+    request: RegisterRequest,
+    session: AsyncSession = Depends(get_session)
+):
     """
-    Register new user.
+    Registration endpoint.
     
-    Compatible with Learniva frontend registration flow.
-    
-    Request Body:
-        {
-            "username": "johndoe",
-            "email": "john@example.com",
-            "password": "password123",
-            "password2": "password123"
-        }
-    
-    Response:
-        {
-            "user": {
-                "id": 4,
-                "username": "johndoe",
-                "email": "john@example.com"
-            },
-            "token": "abc123..."
-        }
+    Creates new user account and returns token.
     """
+    logger.info(f"📝 Registration attempt: {request.username} ({request.email})")
+    
     # Validate passwords match
     if request.password != request.password2:
         raise HTTPException(
             status_code=400,
-            detail={"password2": ["Passwords do not match"]}
+            detail={"error": "password_mismatch", "message": "Passwords do not match"}
         )
     
-    # Check if email exists
-    if request.email in USERS_DB:
+    # Validate password strength (basic)
+    if len(request.password) < 8:
         raise HTTPException(
             status_code=400,
-            detail={"email": ["User with this email already exists"]}
+            detail={"error": "weak_password", "message": "Password must be at least 8 characters"}
         )
     
-    # Check if username exists
-    if get_user_by_username_or_email(request.username):
+    # Create user
+    user = await create_user(
+        session,
+        email=request.email,
+        username=request.username,
+        password=request.password,
+        role="student",  # Default role
+        first_name=request.first_name,
+        last_name=request.last_name,
+    )
+    
+    if not user:
+        logger.warning(f"❌ Registration failed: {request.username} (duplicate)")
         raise HTTPException(
             status_code=400,
-            detail={"username": ["User with this username already exists"]}
+            detail={"error": "duplicate_user", "message": "Username or email already exists"}
         )
-    
-    # Create new user
-    new_id = len(USERS_DB) + 1
-    USERS_DB[request.email] = {
-        "id": new_id,
-        "pk": new_id,
-        "username": request.username,
-        "email": request.email,
-        "password": request.password,  # HASH THIS IN PRODUCTION!
-        "first_name": "",
-        "last_name": "",
-        "role": "student"  # Default role
-    }
     
     # Create token
-    token = create_token(new_id, "student")
+    token = await create_token_for_user(session, user.user_id, user.role)
     
-    return {
-        "user": {
-            "id": new_id,
-            "username": request.username,
-            "email": request.email
-        },
-        "token": token
-    }
-
-
-@router.get("/auth/user/", response_model=UserResponse)
-async def get_user(current_user: dict = Depends(get_current_user)):
-    """
-    Get authenticated user data.
+    logger.info(f"✅ Registration successful: {user.username}")
     
-    Compatible with Learniva frontend user data flow.
-    
-    Headers:
-        Authorization: Token abc123...
-    
-    Response:
-        {
-            "id": 1,
-            "pk": 1,
-            "username": "johndoe",
-            "email": "john@example.com",
-            "first_name": "John",
-            "last_name": "Doe",
-            "role": "student"
-        }
-    """
-    return UserResponse(
-        id=current_user["id"],
-        pk=current_user["pk"],
-        username=current_user["username"],
-        email=current_user["email"],
-        first_name=current_user.get("first_name", ""),
-        last_name=current_user.get("last_name", ""),
-        role=current_user["role"]
+    return LoginResponse(
+        token=token,
+        user=user_to_dict(user)
     )
 
 
-# ============================================================================
-# Additional Endpoints (Optional - implement as needed)
-# ============================================================================
-
-@router.post("/password/reset/")
-async def request_password_reset(email: EmailStr):
+@router.get("/auth/user/", response_model=UserResponse)
+async def get_authenticated_user(current_user: dict = Depends(get_current_user)):
     """
-    Request password reset email.
+    Get current authenticated user.
     
-    TODO: Implement email sending
+    Returns user data for authenticated user.
+    """
+    logger.debug(f"👤 User info requested: {current_user['username']}")
+    return current_user
+
+
+@router.get("/health/auth")
+async def auth_health():
+    """
+    Health check for authentication system.
+    
+    Returns status of Redis and token storage.
     """
     return {
-        "detail": "Password reset email sent (not implemented)"
+        "status": "healthy",
+        "redis_connected": token_store.redis_client is not None,
+        "active_tokens": token_store.count(),
+        "token_expiry_hours": settings.token_expire_hours,
     }
 
 
-@router.post("/password/reset/confirm/")
-async def confirm_password_reset(
-    uid: str,
-    token: str,
-    new_password1: str,
-    new_password2: str
-):
-    """
-    Confirm password reset with token.
-    
-    TODO: Implement password reset logic
-    """
-    return {
-        "detail": "Password reset successful (not implemented)"
-    }
-
-
-@router.post("/password/change/")
-async def change_password(
-    old_password: str,
-    new_password1: str,
-    new_password2: str,
-    current_user: dict = Depends(get_current_user)
-):
-    """
-    Change user password.
-    
-    TODO: Implement password change logic
-    """
-    return {
-        "detail": "Password changed successfully (not implemented)"
-    }
+__all__ = ['router', 'get_current_user']
 
