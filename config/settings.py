@@ -45,7 +45,11 @@ class Settings(BaseSettings):
     cache_enabled: bool = Field(default=True, description="Enable result caching")
     cache_ttl: int = Field(default=300, ge=0, description="Cache TTL in seconds")
     cache_max_size: int = Field(default=1000, ge=10, description="Max cache entries")
-    redis_url: Optional[str] = Field(default=None, description="Redis URL for distributed cache")
+    redis_url: Optional[str] = Field(
+        default="redis://localhost:6379/0",
+        description="Redis URL for distributed cache and token storage"
+    )
+    redis_enabled: bool = Field(default=True, description="Enable Redis (falls back to in-memory if unavailable)")
     
     # ==================== API Configuration ====================
     api_host: str = Field(default="0.0.0.0", description="API host")
@@ -127,6 +131,11 @@ class Settings(BaseSettings):
         default=30,
         ge=1,
         description="Access token expiry (minutes)"
+    )
+    token_expire_hours: int = Field(
+        default=24,
+        ge=1,
+        description="Auth token expiry (hours)"
     )
     
     # ==================== Development ====================
