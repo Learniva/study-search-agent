@@ -130,6 +130,9 @@ def get_web_search_tool() -> Optional[Tool]:
     
     Uses LangChain's RunnableWithFallbacks for clean fallback logic.
     
+    Note: Context-aware reformulation is handled at the node level before
+    invoking this tool.
+    
     Returns:
         Tool object configured for web search
     """
@@ -151,6 +154,9 @@ def get_web_search_tool() -> Optional[Tool]:
         
         Uses LCEL (LangChain Expression Language) with RunnableWithFallbacks
         for clean, maintainable fallback logic.
+        
+        Note: Context-aware reformulation is handled at the node level before
+        calling this function.
         """
         # Create LangChain runnables for each search provider
         search_chain = None

@@ -715,11 +715,18 @@ Answer:"""
         
         # Strategy 1: Look for explicit topic declarations in recent messages
         for msg in reversed(messages[-8:]):  # Look at last 8 messages (4 Q&A pairs)
-            if not hasattr(msg, 'type') or not hasattr(msg, 'content'):
+            # Handle both dict format {'role': 'user'} and object format (msg.type)
+            if isinstance(msg, dict):
+                msg_role = msg.get('role', '')
+                msg_content = msg.get('content', '')
+            elif hasattr(msg, 'type') and hasattr(msg, 'content'):
+                msg_role = 'user' if msg.type == 'human' else msg.type
+                msg_content = msg.content
+            else:
                 continue
                 
-            if msg.type == 'human':
-                content = msg.content.lower()
+            if msg_role in ['user', 'human']:
+                content = msg_content.lower()
                 
                 # Pattern 1: "What is/are [TOPIC]?"
                 match = re.search(r'what\s+(?:is|are)\s+(?:a|an|the)?\s*([^?,.!]+?)(?:\?|$)', content)
@@ -792,6 +799,16 @@ Answer:"""
         
         # Question type detection and reformulation
         reformulation_patterns = [
+            # Possessive pronoun patterns (more specific, check first)
+            (r'(?:what|which)\s+(?:are|is)\s+(?:some\s+of\s+)?its\s+branches', f"branches of {topic}"),
+            (r'(?:what|which)\s+(?:are|is)\s+(?:some\s+of\s+)?its\s+types', f"types of {topic}"),
+            (r'(?:what|which)\s+(?:are|is)\s+(?:some\s+of\s+)?its\s+applications', f"applications of {topic}"),
+            (r'(?:what|which)\s+(?:are|is)\s+(?:some\s+of\s+)?its\s+uses', f"uses of {topic}"),
+            (r'(?:what|which)\s+(?:are|is)\s+(?:some\s+of\s+)?its\s+benefits', f"benefits of {topic}"),
+            (r'(?:what|which)\s+(?:are|is)\s+(?:some\s+of\s+)?its\s+features', f"features of {topic}"),
+            (r'(?:what|which)\s+(?:are|is)\s+(?:some\s+of\s+)?its\s+advantages', f"advantages of {topic}"),
+            (r'(?:what|which)\s+(?:are|is)\s+its\s+', f"aspects of {topic}"),
+            
             # Company/Organization queries
             (r'what\s+companies\s+(?:have|use|make|build|develop|own)', f"companies with {topic}"),
             (r'which\s+companies\s+(?:have|use|make|build|develop|own)', f"companies with {topic}"),
@@ -865,9 +882,9 @@ Answer:"""
             print(f"{'='*70}")
             print(f"📝 Original question: '{search_query}'")
             
-            # Advanced context detection
+            # Advanced context detection (include 'its' and other possessives)
             has_pronoun = any(f' {word} ' in f' {question_lower} ' for word in 
-                            ['it', 'this', 'that', 'them', 'these', 'those', 'they'])
+                            ['it', 'its', 'this', 'that', 'them', 'these', 'those', 'they', 'their'])
             
             has_contextual_query = any(phrase in question_lower for phrase in [
                 'what companies', 'which companies', 'who makes', 'who has', 'who discovered',
