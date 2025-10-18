@@ -230,3 +230,121 @@ class ErrorResponse(BaseModel):
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     correlation_id: Optional[str] = None
 
+
+# ============================================================================
+# Profile Models
+# ============================================================================
+
+class ProfileInformation(BaseModel):
+    """Profile information model."""
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    username: str
+    email: str
+    display_name: Optional[str] = None
+    location: Optional[str] = None
+    website: Optional[str] = None
+    profile_picture: Optional[str] = None
+
+
+class UpdateProfileRequest(BaseModel):
+    """Update profile request."""
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    display_name: Optional[str] = None
+    location: Optional[str] = None
+    website: Optional[str] = None
+
+
+class ProfileResponse(BaseModel):
+    """Profile response."""
+    id: int
+    username: str
+    email: str
+    first_name: Optional[str]
+    last_name: Optional[str]
+    display_name: Optional[str]
+    location: Optional[str]
+    website: Optional[str]
+    profile_picture: Optional[str]
+    role: str
+
+
+# ============================================================================
+# Settings Models
+# ============================================================================
+
+class NotificationSettings(BaseModel):
+    """Notification settings model."""
+    email_notifications: bool = True
+    push_notifications: bool = False
+    weekly_digest: bool = True
+    product_updates: bool = False
+    study_reminders: bool = True
+
+
+class PreferencesSettings(BaseModel):
+    """Preferences settings model."""
+    language: str = "English"
+    timezone: str = "UTC"
+    date_format: str = "MM/DD/YYYY"
+
+
+class AppearanceSettings(BaseModel):
+    """Appearance settings model."""
+    theme: str = "system"  # system, light, dark
+    compact_mode: bool = False
+    animations: bool = True
+
+
+class UserSettings(BaseModel):
+    """Complete user settings model."""
+    notifications: NotificationSettings
+    preferences: PreferencesSettings
+    appearance: AppearanceSettings
+
+
+class PasswordChangeRequest(BaseModel):
+    """Password change request."""
+    current_password: str
+    new_password: str
+    confirm_password: str
+
+
+# ============================================================================
+# Help & Support Models
+# ============================================================================
+
+class FAQItem(BaseModel):
+    """FAQ item model."""
+    id: int
+    question: str
+    answer: str
+    category: str
+    helpful_count: int = 0
+
+
+class SupportTicketRequest(BaseModel):
+    """Support ticket request."""
+    subject: str
+    message: str
+    category: str
+    priority: str = "normal"  # low, normal, high, urgent
+
+
+class SupportTicketResponse(BaseModel):
+    """Support ticket response."""
+    ticket_id: str
+    subject: str
+    status: str
+    created_at: datetime
+    last_updated: datetime
+
+
+class ContactRequest(BaseModel):
+    """Contact form request."""
+    name: str
+    email: str
+    subject: str
+    message: str
+
