@@ -8,6 +8,7 @@ from .base import (
     Base, Column, String, DateTime, Boolean, UUID, JSONB, Float, Integer,
     relationship, datetime, uuid, Index
 )
+from datetime import timezone
 
 
 class User(Base):
@@ -24,9 +25,21 @@ class User(Base):
     lms_type = Column(String(50))  # canvas, google_classroom, None
     course_id = Column(String(255), index=True)
     
+    # Profile information
+    username = Column(String(255), unique=True, index=True)
+    first_name = Column(String(255))
+    last_name = Column(String(255))
+    display_name = Column(String(255))
+    profile_picture = Column(String(512))
+    location = Column(String(255))
+    website = Column(String(512))
+    
+    # Settings (stored as JSONB for flexibility)
+    settings = Column(JSONB, default=dict)  # Notification, preference, and appearance settings
+    
     # Metadata
-    created_at = Column(DateTime, default=datetime.utcnow)
-    last_active = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    last_active = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     is_active = Column(Boolean, default=True)
     
     # Relationships
@@ -80,8 +93,8 @@ class UserLearningProfile(Base):
     context_window_preference = Column(Integer, default=2)  # Messages to include
     
     # Metadata
-    created_at = Column(DateTime, default=datetime.utcnow)
-    last_updated = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    last_updated = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     interactions_count = Column(Integer, default=0)
     
     # Indexes

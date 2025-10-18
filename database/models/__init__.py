@@ -13,6 +13,7 @@ from .base import Base
 
 # User models
 from .user import User, UserLearningProfile
+from .token import Token
 
 # Grading models
 from .grading import (
@@ -63,6 +64,7 @@ __all__ = [
     # User models
     'User',
     'UserLearningProfile',
+    'Token',
     
     # Grading models
     'GradingSession',
