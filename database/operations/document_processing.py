@@ -3,6 +3,12 @@ Document Processing for L2 Vector Store
 
 Handles document upload, text extraction, chunking, and indexing into pgvector.
 Supports PDF, DOCX, TXT, and MD files with intelligent chunking.
+
+Uses Docling for advanced document understanding:
+- Superior layout analysis
+- Table extraction and preservation
+- Structure-aware parsing
+- Better handling of complex PDFs
 """
 
 import os
@@ -11,13 +17,26 @@ from typing import List, Dict, Any, Optional
 from pathlib import Path
 import logging
 
-# Document processing imports
+# Docling - Advanced document understanding (Primary)
+try:
+    from docling.document_converter import DocumentConverter
+    from docling.datamodel.base_models import InputFormat
+    from docling.datamodel.pipeline_options import PdfPipelineOptions
+    from docling.backend.pypdfium2_backend import PyPdfiumDocumentBackend
+    from docling.chunking import HybridChunker  # Advanced chunking for RAG
+    from docling_core.types.doc import DoclingDocument
+    DOCLING_AVAILABLE = True
+except ImportError:
+    DOCLING_AVAILABLE = False
+    
+# PyMuPDF - Fallback for simple PDFs
 try:
     import fitz  # PyMuPDF
     PYMUPDF_AVAILABLE = True
 except ImportError:
     PYMUPDF_AVAILABLE = False
 
+# DOCX processing
 try:
     import docx2txt
     DOCX_AVAILABLE = True
@@ -46,7 +65,8 @@ class DocumentProcessor:
     Process documents for L2 Vector Store indexing.
     
     Handles:
-    - Text extraction from multiple formats
+    - Advanced text extraction using Docling (tables, layout, structure)
+    - Fallback to PyMuPDF for simple PDFs
     - Intelligent chunking with overlap
     - Embedding generation via Google Gemini
     - Storage in PostgreSQL + pgvector
@@ -54,21 +74,54 @@ class DocumentProcessor:
     
     def __init__(
         self,
-        chunk_size: int = 1000,
-        chunk_overlap: int = 200,
-        embedding_model: str = "models/embedding-001"
+        chunk_size: int = 800,  # Reduced from 1000 to create more chunks (40-70+)
+        chunk_overlap: int = 150,  # Reduced proportionally
+        embedding_model: str = "models/embedding-001",
+        use_docling: bool = True
     ):
         """
         Initialize document processor with Google Gemini 768D embeddings.
         
+        Configured for optimal RAG performance:
+        - chunk_size=800: Creates 40-70+ chunks for typical documents
+        - HybridChunker: Keeps tables intact, preserves context
+        - Automatic indexing: Triggered on upload
+        
         Args:
-            chunk_size: Size of text chunks in characters
+            chunk_size: Size of text chunks in characters (default: 800 for 40-70+ chunks)
             chunk_overlap: Overlap between chunks for context continuity
             embedding_model: Google Gemini embedding model (default: models/embedding-001, 768D)
+            use_docling: Whether to use Docling for advanced PDF parsing (default: True)
         """
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
         self.embedding_model = embedding_model
+        self.use_docling = use_docling and DOCLING_AVAILABLE
+        
+        # Initialize Docling converter if available
+        if self.use_docling:
+            try:
+                # Configure Docling for optimal performance
+                pipeline_options = PdfPipelineOptions()
+                pipeline_options.do_table_structure = True  # Enable table extraction
+                pipeline_options.do_ocr = False  # Disable OCR for speed (enable if needed)
+                
+                self.docling_converter = DocumentConverter(
+                    allowed_formats=[InputFormat.PDF],
+                    pipeline_options=pipeline_options
+                )
+                
+                # Initialize HybridChunker for intelligent document chunking
+                # This keeps tables intact, preserves headings with text, and respects paragraph boundaries
+                # Configured to create 40-70+ chunks for typical documents
+                self.hybrid_chunker = HybridChunker(
+                    tokenizer=None,  # Use default tokenizer
+                    max_tokens=self.chunk_size // 4,  # ~200 tokens per chunk (800/4)
+                )
+                logger.info("✅ Docling initialized with HybridChunker (chunk_size=800 for 40-70+ chunks)")
+            except Exception as e:
+                logger.warning(f"⚠️ Docling initialization failed: {e}, falling back to PyMuPDF")
+                self.use_docling = False
         
         # Initialize text splitter
         self.text_splitter = RecursiveCharacterTextSplitter(
@@ -103,7 +156,7 @@ class DocumentProcessor:
             logger.error(f"❌ Failed to initialize Google Gemini embeddings: {e}")
             raise
     
-    def extract_text(self, file_path: str) -> str:
+    def extract_text(self, file_path: str) -> tuple[str, Dict[str, Any]]:
         """
         Extract text from document based on file type.
         
@@ -111,7 +164,7 @@ class DocumentProcessor:
             file_path: Path to document file
             
         Returns:
-            Extracted text content
+            Tuple of (extracted text content, extraction metadata)
             
         Raises:
             ValueError: If file type is unsupported
@@ -120,24 +173,125 @@ class DocumentProcessor:
         extension = file_path.suffix.lower()
         
         try:
+            extraction_metadata = {
+                'file_type': extension.lstrip('.'),
+                'file_name': file_path.name,
+                'extraction_method': 'unknown',
+                'has_tables': False,
+                'table_count': 0
+            }
+            
             if extension == '.pdf':
-                return self._extract_pdf(file_path)
+                text, pdf_metadata = self._extract_pdf(file_path)
+                extraction_metadata.update(pdf_metadata)
+                return text, extraction_metadata
             elif extension == '.docx':
-                return self._extract_docx(file_path)
+                text = self._extract_docx(file_path)
+                extraction_metadata['extraction_method'] = 'docx2txt'
+                return text, extraction_metadata
             elif extension in ['.txt', '.md']:
-                return self._extract_text(file_path)
+                text = self._extract_text(file_path)
+                extraction_metadata['extraction_method'] = 'plain_text'
+                return text, extraction_metadata
             else:
                 raise ValueError(f"Unsupported file type: {extension}")
         except Exception as e:
             logger.error(f"Text extraction failed for {file_path}: {e}")
             raise
     
-    def _extract_pdf(self, file_path: Path) -> str:
-        """Extract text from PDF using PyMuPDF."""
+    def _extract_pdf(self, file_path: Path) -> tuple[str, Dict[str, Any]]:
+        """
+        Extract text from PDF using Docling (primary) or PyMuPDF (fallback).
+        
+        Docling provides:
+        - Better layout analysis
+        - Table extraction and preservation
+        - Structure-aware parsing
+        - Handling of complex multi-column layouts
+        
+        Returns:
+            Tuple of (extracted text, metadata about extraction)
+        """
+        # Try Docling first for advanced parsing
+        if self.use_docling:
+            try:
+                return self._extract_pdf_with_docling(file_path)
+            except Exception as e:
+                logger.warning(f"⚠️ Docling extraction failed: {e}, falling back to PyMuPDF")
+        
+        # Fallback to PyMuPDF for simple text extraction
+        return self._extract_pdf_with_pymupdf(file_path)
+    
+    def _extract_pdf_with_docling(self, file_path: Path) -> tuple[str, Dict[str, Any]]:
+        """
+        Extract text from PDF using Docling for advanced document understanding.
+        
+        Features:
+        - Layout-aware text extraction
+        - Table detection and formatting  
+        - Structure preservation (headings, lists, etc.)
+        - Multi-column handling
+        - Returns DoclingDocument for HybridChunker
+        
+        Returns:
+            Tuple of (extracted text, metadata about extraction)
+        """
+        try:
+            logger.info(f"📄 Using Docling with HybridChunker for advanced PDF parsing: {file_path.name}")
+            
+            # Convert document using Docling
+            result = self.docling_converter.convert(str(file_path))
+            
+            # Get the DoclingDocument object (needed for HybridChunker)
+            doc: DoclingDocument = result.document
+            
+            # Count tables
+            table_count = 0
+            if hasattr(doc, 'tables') and doc.tables:
+                table_count = len(doc.tables)
+                logger.info(f"📊 Detected {table_count} tables in PDF")
+            
+            # Export to markdown for storage
+            # HybridChunker will handle this document intelligently later
+            markdown_text = doc.export_to_markdown()
+            
+            if not markdown_text or not markdown_text.strip():
+                raise ValueError("Docling extracted empty content")
+            
+            # Store the DoclingDocument for chunking later
+            # We'll use it with HybridChunker instead of RecursiveCharacterTextSplitter
+            self._current_docling_doc = doc  # Cache for chunking
+            
+            # Build metadata
+            metadata = {
+                'extraction_method': 'docling_hybrid',
+                'has_tables': table_count > 0,
+                'table_count': table_count,
+                'char_count': len(markdown_text),
+                'structure_preserved': True,
+                'markdown_format': True,
+                'uses_hybrid_chunker': True
+            }
+            
+            logger.info(f"✅ Docling extraction successful: {len(markdown_text)} chars, {table_count} tables")
+            return markdown_text, metadata
+            
+        except Exception as e:
+            logger.error(f"Docling PDF extraction failed: {e}")
+            raise
+    
+    def _extract_pdf_with_pymupdf(self, file_path: Path) -> tuple[str, Dict[str, Any]]:
+        """
+        Extract text from PDF using PyMuPDF (fallback method).
+        
+        Returns:
+            Tuple of (extracted text, metadata about extraction)
+        """
         if not PYMUPDF_AVAILABLE:
             raise ImportError("PyMuPDF not available. Install with: pip install pymupdf")
         
         try:
+            logger.info(f"📄 Using PyMuPDF for PDF extraction: {file_path.name}")
             doc = fitz.open(file_path)
             text_parts = []
             
@@ -147,9 +301,22 @@ class DocumentProcessor:
                     text_parts.append(f"[Page {page_num}]\n{text}")
             
             doc.close()
-            return "\n\n".join(text_parts)
+            result = "\n\n".join(text_parts)
+            
+            # Build metadata
+            metadata = {
+                'extraction_method': 'pymupdf',
+                'has_tables': False,  # PyMuPDF doesn't do table detection
+                'table_count': 0,
+                'char_count': len(result),
+                'structure_preserved': False,
+                'markdown_format': False
+            }
+            
+            logger.info(f"✅ PyMuPDF extraction successful: {len(result)} chars")
+            return result, metadata
         except Exception as e:
-            logger.error(f"PDF extraction failed: {e}")
+            logger.error(f"PyMuPDF extraction failed: {e}")
             raise
     
     def _extract_docx(self, file_path: Path) -> str:
@@ -189,6 +356,9 @@ class DocumentProcessor:
         """
         Split text into chunks with metadata.
         
+        Uses HybridChunker for Docling documents (keeps tables intact, preserves structure).
+        Falls back to RecursiveCharacterTextSplitter for other formats.
+        
         Args:
             text: Full text to chunk
             metadata: Optional metadata to attach to each chunk
@@ -196,6 +366,65 @@ class DocumentProcessor:
         Returns:
             List of chunks with content and metadata
         """
+        # Check if we should use HybridChunker (for Docling documents)
+        use_hybrid = (
+            self.use_docling and 
+            metadata and 
+            metadata.get('extraction_method') == 'docling_hybrid' and
+            hasattr(self, '_current_docling_doc')
+        )
+        
+        if use_hybrid:
+            # Use HybridChunker for intelligent document-aware chunking
+            try:
+                logger.info("📝 Using HybridChunker for intelligent document chunking")
+                doc = self._current_docling_doc
+                
+                # Chunk the DoclingDocument
+                chunk_iter = self.hybrid_chunker.chunk(doc)
+                chunks_list = list(chunk_iter)
+                
+                result = []
+                for idx, chunk in enumerate(chunks_list):
+                    # Extract text from the chunk
+                    chunk_text = chunk.text if hasattr(chunk, 'text') else str(chunk)
+                    
+                    chunk_dict = {
+                        'content': chunk_text,
+                        'chunk_index': idx,
+                        'metadata': {
+                            **(metadata or {}),
+                            'chunk_number': idx + 1,
+                            'total_chunks': len(chunks_list),
+                            'char_count': len(chunk_text),
+                            'chunking_method': 'hybrid_chunker'
+                        }
+                    }
+                    result.append(chunk_dict)
+                
+                # Clean up cached document
+                delattr(self, '_current_docling_doc')
+                
+                chunk_count = len(result)
+                logger.info(f"✅ HybridChunker created {chunk_count} context-aware chunks")
+                
+                # Provide feedback on chunk count
+                if chunk_count < 40:
+                    logger.info(f"   ℹ️  Document is relatively short ({chunk_count} chunks)")
+                elif 40 <= chunk_count <= 70:
+                    logger.info(f"   ✅ Optimal chunk count for RAG ({chunk_count} chunks)")
+                elif chunk_count > 70:
+                    logger.info(f"   ℹ️  Large document with {chunk_count} chunks")
+                
+                return result
+                
+            except Exception as e:
+                logger.warning(f"⚠️ HybridChunker failed: {e}, falling back to RecursiveCharacterTextSplitter")
+                # Fall through to standard chunking
+                if hasattr(self, '_current_docling_doc'):
+                    delattr(self, '_current_docling_doc')
+        
+        # Standard chunking for non-Docling documents or fallback
         chunks = self.text_splitter.split_text(text)
         
         result = []
@@ -207,7 +436,8 @@ class DocumentProcessor:
                     **(metadata or {}),
                     'chunk_number': idx + 1,
                     'total_chunks': len(chunks),
-                    'char_count': len(chunk_text)
+                    'char_count': len(chunk_text),
+                    'chunking_method': 'recursive_text_splitter'
                 }
             }
             result.append(chunk)
@@ -280,6 +510,8 @@ class DocumentProcessor:
         """
         Complete pipeline: extract, chunk, embed, and index document.
         
+        Uses Docling for advanced PDF parsing with table extraction.
+        
         Args:
             db: Database session
             file_path: Path to document file
@@ -288,28 +520,30 @@ class DocumentProcessor:
             course_id: Optional course ID
             
         Returns:
-            Dictionary with indexing results
+            Dictionary with indexing results including extraction metadata
         """
         try:
             # Generate unique document ID
             document_id = str(uuid.uuid4())
             
-            # Extract text
+            # Extract text with Docling (returns text + metadata)
             logger.info(f"Extracting text from {document_name}...")
-            text = self.extract_text(file_path)
+            text, extraction_metadata = self.extract_text(file_path)
             
             if not text or len(text.strip()) < 10:
                 raise ValueError("Document is empty or too short")
             
-            # Chunk text
+            # Chunk text with extraction metadata
             file_type = Path(file_path).suffix.lstrip('.')
             metadata = {
                 'document_name': document_name,
                 'document_type': file_type,
-                'file_size': os.path.getsize(file_path)
+                'file_size': os.path.getsize(file_path),
+                **extraction_metadata  # Include Docling extraction info
             }
             
-            logger.info(f"Chunking text ({len(text)} chars)...")
+            logger.info(f"Chunking text ({len(text)} chars, method: {extraction_metadata.get('extraction_method')})...")
+            logger.info(f"Target: 40-70+ chunks (chunk_size={self.chunk_size}, overlap={self.chunk_overlap})")
             chunks = self.chunk_text(text, metadata)
             
             # Generate embeddings
@@ -333,15 +567,34 @@ class DocumentProcessor:
                 course_id=course_id
             )
             
-            logger.info(f"✅ Document indexed: {document_name} ({vectors_stored} vectors)")
+            # Log indexing results with chunk count analysis
+            chunk_count = len(chunks)
+            logger.info(f"✅ Document indexed: {document_name}")
+            logger.info(f"   📊 Chunks: {chunk_count} | Vectors: {vectors_stored}")
+            logger.info(f"   📝 Method: {extraction_metadata.get('extraction_method')}")
+            logger.info(f"   🔧 Chunking: {extraction_metadata.get('chunking_method', 'unknown')}")
+            
+            # Warn if chunk count is outside optimal range
+            if chunk_count < 40:
+                logger.warning(f"⚠️  Low chunk count ({chunk_count}). Expected 40-70+ for typical documents.")
+                logger.warning(f"   This might reduce RAG accuracy. Document may be too short.")
+            elif chunk_count > 200:
+                logger.warning(f"⚠️  High chunk count ({chunk_count}). Consider increasing chunk_size.")
+            else:
+                logger.info(f"✅ Chunk count in optimal range: {chunk_count}")
             
             return {
                 'success': True,
                 'document_id': document_id,
                 'document_name': document_name,
-                'chunks_created': len(chunks),
+                'chunks_created': chunk_count,
                 'vectors_stored': vectors_stored,
-                'total_chars': len(text)
+                'total_chars': len(text),
+                'extraction_info': {
+                    **extraction_metadata,
+                    'chunk_size_config': self.chunk_size,
+                    'chunk_overlap_config': self.chunk_overlap
+                }
             }
             
         except Exception as e:
@@ -363,6 +616,8 @@ class DocumentProcessor:
         """
         Synchronous version of process_and_index_document (for background tasks).
         
+        Uses Docling for advanced PDF parsing with table extraction.
+        
         Args:
             db: Database session
             file_path: Path to document file
@@ -371,28 +626,30 @@ class DocumentProcessor:
             course_id: Optional course ID
             
         Returns:
-            Dictionary with indexing results
+            Dictionary with indexing results including extraction metadata
         """
         try:
             # Generate unique document ID
             document_id = str(uuid.uuid4())
             
-            # Extract text
+            # Extract text with Docling (returns text + metadata)
             logger.info(f"Extracting text from {document_name}...")
-            text = self.extract_text(file_path)
+            text, extraction_metadata = self.extract_text(file_path)
             
             if not text or len(text.strip()) < 10:
                 raise ValueError("Document is empty or too short")
             
-            # Chunk text
+            # Chunk text with extraction metadata
             file_type = Path(file_path).suffix.lstrip('.')
             metadata = {
                 'document_name': document_name,
                 'document_type': file_type,
-                'file_size': os.path.getsize(file_path)
+                'file_size': os.path.getsize(file_path),
+                **extraction_metadata  # Include Docling extraction info
             }
             
-            logger.info(f"Chunking text ({len(text)} chars)...")
+            logger.info(f"Chunking text ({len(text)} chars, method: {extraction_metadata.get('extraction_method')})...")
+            logger.info(f"Target: 40-70+ chunks (chunk_size={self.chunk_size}, overlap={self.chunk_overlap})")
             chunks = self.chunk_text(text, metadata)
             
             # Generate embeddings (sync)
@@ -416,15 +673,34 @@ class DocumentProcessor:
                 course_id=course_id
             )
             
-            logger.info(f"✅ Document indexed: {document_name} ({vectors_stored} vectors)")
+            # Log indexing results with chunk count analysis
+            chunk_count = len(chunks)
+            logger.info(f"✅ Document indexed: {document_name}")
+            logger.info(f"   📊 Chunks: {chunk_count} | Vectors: {vectors_stored}")
+            logger.info(f"   📝 Method: {extraction_metadata.get('extraction_method')}")
+            logger.info(f"   🔧 Chunking: {extraction_metadata.get('chunking_method', 'unknown')}")
+            
+            # Warn if chunk count is outside optimal range
+            if chunk_count < 40:
+                logger.warning(f"⚠️  Low chunk count ({chunk_count}). Expected 40-70+ for typical documents.")
+                logger.warning(f"   This might reduce RAG accuracy. Document may be too short.")
+            elif chunk_count > 200:
+                logger.warning(f"⚠️  High chunk count ({chunk_count}). Consider increasing chunk_size.")
+            else:
+                logger.info(f"✅ Chunk count in optimal range: {chunk_count}")
             
             return {
                 'success': True,
                 'document_id': document_id,
                 'document_name': document_name,
-                'chunks_created': len(chunks),
+                'chunks_created': chunk_count,
                 'vectors_stored': vectors_stored,
-                'total_chars': len(text)
+                'total_chars': len(text),
+                'extraction_info': {
+                    **extraction_metadata,
+                    'chunk_size_config': self.chunk_size,
+                    'chunk_overlap_config': self.chunk_overlap
+                }
             }
             
         except Exception as e:
