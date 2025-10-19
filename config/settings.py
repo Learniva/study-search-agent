@@ -138,6 +138,32 @@ class Settings(BaseSettings):
         description="Auth token expiry (hours)"
     )
     
+    # ==================== Stripe Payment Configuration ====================
+    stripe_secret_key: Optional[str] = Field(
+        default=None,
+        description="Stripe secret key for payment processing"
+    )
+    stripe_publishable_key: Optional[str] = Field(
+        default=None,
+        description="Stripe publishable key for frontend"
+    )
+    stripe_webhook_secret: Optional[str] = Field(
+        default=None,
+        description="Stripe webhook signing secret"
+    )
+    stripe_price_id: Optional[str] = Field(
+        default=None,
+        description="Default Stripe Price ID for subscriptions"
+    )
+    stripe_success_url: str = Field(
+        default="http://localhost:3000/payment/success",
+        description="Payment success redirect URL"
+    )
+    stripe_cancel_url: str = Field(
+        default="http://localhost:3000/payment/cancel",
+        description="Payment cancel redirect URL"
+    )
+    
     # ==================== Development ====================
     debug: bool = Field(default=False, description="Debug mode")
     testing: bool = Field(default=False, description="Testing mode")
