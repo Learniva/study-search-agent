@@ -279,6 +279,49 @@ Your synthesized answer:"""
             }
         print(f"✅ [TOOL EXECUTION] Document_QA tool found, calling it now...")
         
+        # IMPORTANT: Check if documents exist on disk but not in vector store yet
+        # This prevents silent fallback to web search when indexing is in progress
+        try:
+            from database.core import get_db
+            from sqlalchemy import text
+            import os
+            
+            with get_db() as db:
+                count_result = db.execute(text("SELECT COUNT(*) as count FROM document_vectors"))
+                total_docs = count_result.fetchone().count
+                
+                if total_docs == 0:
+                    # Check for files on disk
+                    documents_dir = os.getenv("DOCUMENTS_DIR", "documents")
+                    files_on_disk = []
+                    if os.path.exists(documents_dir):
+                        files_on_disk = [f for f in os.listdir(documents_dir) 
+                                       if f.endswith(('.pdf', '.docx', '.txt', '.md'))]
+                    
+                    if files_on_disk:
+                        # Files exist but not indexed yet
+                        print(f"⚠️  [INDEXING IN PROGRESS] Found {len(files_on_disk)} file(s) on disk but not indexed yet")
+                        files_list = '\n'.join([f"  • {f}" for f in files_on_disk])
+                        return {
+                            **state,
+                            "tool_result": f"📄 **Document Indexing in Progress**\n\n"
+                                         f"I found the following document(s) that you've uploaded:\n\n{files_list}\n\n"
+                                         f"⏳ **Please wait a moment** - these documents are currently being processed and indexed. "
+                                         f"This usually takes 10-30 seconds depending on the document size.\n\n"
+                                         f"💡 **What's happening:** Your document is being:\n"
+                                         f"  1. Extracted (reading the PDF/document content)\n"
+                                         f"  2. Chunked (breaking into searchable sections)\n"
+                                         f"  3. Embedded (converting to semantic vectors)\n"
+                                         f"  4. Indexed (storing in the vector database)\n\n"
+                                         f"Please try your question again in a moment!",
+                            "tried_document_qa": True,
+                            "document_qa_failed": True,
+                            "needs_clarification": True,
+                            "awaiting_user_choice": False  # Don't ask for web search - they should wait
+                        }
+        except Exception as e:
+            print(f"⚠️  Pre-check error: {e}")
+        
         try:
             # Build conversation history for context-aware document queries
             messages = state.get("messages", [])
@@ -330,14 +373,41 @@ Your synthesized answer:"""
             if failed:
                 # Check if this is a "no documents available" situation
                 if "no documents found" in raw_results.lower() or "please upload" in raw_results.lower():
-                    print("💡 No documents available - asking user for next action")
-                    clarification_message = (
-                        "📚 No documents found in your library.\n\n"
-                        "Would you like me to:\n"
-                        "1. 🌐 Search the web for this information\n"
-                        "2. ⏸️  Wait while you upload a document first\n\n"
-                        "Please reply with 'search web' or 'upload document' (or just '1' or '2'):"
-                    )
+                    print("💡 No documents available - informing user")
+                    
+                    # Check if user explicitly referenced a document they thought they uploaded
+                    question_lower = state['question'].lower()
+                    explicit_doc_reference = any(indicator in question_lower for indicator in [
+                        "attached", "uploaded", "attachment", "the document", "the pdf", 
+                        "the file", "my document", "my file", "this document", "this pdf"
+                    ])
+                    
+                    if explicit_doc_reference:
+                        # User thinks they uploaded a document but we can't find it
+                        clarification_message = (
+                            "📚 **No Document Found**\n\n"
+                            "I couldn't find the document you're referring to. This could mean:\n\n"
+                            "1. ⏳ The document is still being processed and indexed (wait 10-30 seconds)\n"
+                            "2. 📤 The upload may have failed - please try uploading again\n"
+                            "3. 🗂️ The document might not have been uploaded yet\n\n"
+                            "**What would you like to do?**\n"
+                            "• If you just uploaded it, please wait a moment and try again\n"
+                            "• If you haven't uploaded it yet, please upload your document first\n"
+                            "• Or, I can search the web for general information instead\n\n"
+                            "Reply with:\n"
+                            "  **'1'** or **'search web'** - Search the web\n"
+                            "  **'2'** or **'wait'** - You'll upload/wait for indexing"
+                        )
+                    else:
+                        # No explicit document reference - offer web search
+                        clarification_message = (
+                            "📚 **No documents found in your library.**\n\n"
+                            "Would you like me to:\n"
+                            "1. 🌐 **Search the web** for this information\n"
+                            "2. ⏸️  **Wait** while you upload a document first\n\n"
+                            "Please reply with **'search web'** or **'upload document'** (or just **'1'** or **'2'**):"
+                        )
+                    
                     return {
                         **state,
                         "tool_result": clarification_message,
