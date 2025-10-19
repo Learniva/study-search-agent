@@ -13,8 +13,9 @@ google-api-python-client>=2.100.0  # Google Custom Search (Primary)
 tavily-python>=0.5.0  # Tavily search (Fallback)
 
 # Document Processing
+docling>=2.0.0  # IBM Docling - Advanced document understanding with table extraction
 pypdf>=4.0.0
-pymupdf>=1.23.0  # PyMuPDF (fitz) - Superior PDF text extraction
+pymupdf>=1.23.0  # PyMuPDF (fitz) - Fallback PDF text extraction
 python-docx>=1.1.0
 docx2txt>=0.9  # DOCX text extraction (reliable and maintained)
 
