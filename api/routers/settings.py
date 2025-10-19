@@ -14,7 +14,7 @@ from pydantic import BaseModel
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.routers.learniva_auth import get_current_user
+from utils.auth.jwt_handler import get_current_user  # Use Google OAuth JWT authentication
 from database.core.async_connection import get_session
 from database.operations.user_ops import (
     update_user_settings,

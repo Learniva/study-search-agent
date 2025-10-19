@@ -68,7 +68,7 @@ class GradingSession(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    professor = relationship("User", back_populates="grading_sessions", foreign_keys=[professor_id])
+    professor = relationship("User", foreign_keys=[professor_id])
     rubric = relationship("RubricTemplate", foreign_keys=[rubric_id])
     
     # Indexes for common queries
@@ -109,7 +109,7 @@ class RubricTemplate(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    professor = relationship("User", back_populates="rubric_templates")
+    professor = relationship("User")
     
     def __repr__(self):
         return f"<RubricTemplate(name={self.name}, type={self.rubric_type})>"
@@ -145,7 +145,7 @@ class ProfessorConfiguration(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    professor = relationship("User", back_populates="configurations")
+    professor = relationship("User")
     
     def __repr__(self):
         return f"<ProfessorConfiguration(professor_id={self.professor_id})>"

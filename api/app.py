@@ -11,6 +11,11 @@ Production-grade Multi-Agent Study & Grading System with:
 - Horizontal scaling ready
 """
 
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -31,6 +36,8 @@ from api.routers import (
     help_router,
     integrations_router,
     billing_router,
+    payments_router,
+    auth_router,
 )
 from utils.rate_limiting import RateLimitMiddleware
 from utils.monitoring import TracingMiddleware, get_logger, get_correlation_id
@@ -182,12 +189,16 @@ app.include_router(ml_router)
 # Video Downloads (available to all roles)
 app.include_router(videos_router)
 
+# Authentication (Public - no auth required)
+app.include_router(auth_router)
+
 # User Management & Settings
 app.include_router(profile_router)
 app.include_router(settings_router)
 app.include_router(help_router)
 app.include_router(integrations_router)
 app.include_router(billing_router)
+app.include_router(payments_router)
 
 # Learniva Integration (optional - for Learniva frontend compatibility)
 try:

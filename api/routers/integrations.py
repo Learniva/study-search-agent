@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from typing import Optional
 
-from api.routers.learniva_auth import get_current_user
+from utils.auth.jwt_handler import get_current_user  # Use Google OAuth JWT authentication
 
 router = APIRouter(prefix="/api/integrations", tags=["integrations"])
 

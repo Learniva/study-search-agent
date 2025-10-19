@@ -33,6 +33,9 @@ from .rag import (
 # Audit models
 from .audit import AuditLog
 
+# Payment models (Stripe)
+from .payment import Customer, Subscription, PaymentHistory, SubscriptionStatus
+
 
 # Helper functions
 def create_tables(engine):
@@ -79,6 +82,12 @@ __all__ = [
     
     # Audit models
     'AuditLog',
+    
+    # Payment models
+    'Customer',
+    'Subscription',
+    'PaymentHistory',
+    'SubscriptionStatus',
     
     # Helper functions
     'create_tables',
