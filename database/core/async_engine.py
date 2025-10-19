@@ -57,7 +57,8 @@ class AsyncDatabaseEngine:
             connect_args={"command_timeout": settings.db_command_timeout},
             # Connection pooling optimizations
             pool_use_lifo=True,  # Last In, First Out - better cache locality
-            reset_on_return="rollback",  # Auto-rollback on return to pool
+            # Note: reset_on_return is NOT supported for async engines (asyncpg)
+            # Async sessions handle connection state automatically via AsyncAdaptedQueuePool
         )
         
         # Register event listeners for monitoring
