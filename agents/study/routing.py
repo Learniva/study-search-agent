@@ -25,9 +25,18 @@ class StudyAgentRouter:
         # If Document_QA was suggested, verify documents exist first
         if quick_route == "Document_QA":
             print("📚 [ROUTING DEBUG] Document_QA selected - checking database...")
+            
+            # Check if user explicitly references uploaded document
+            question_lower = question.lower()
+            explicit_doc_reference = any(indicator in question_lower for indicator in [
+                "attached", "uploaded", "attachment", "the document", "the pdf", 
+                "the file", "my document", "my file", "this document", "this pdf"
+            ])
+            
             try:
                 from database.core import get_db
                 from sqlalchemy import text
+                import os
                 
                 with get_db() as db:
                     count_result = db.execute(text("SELECT COUNT(*) as count FROM document_vectors"))
@@ -35,8 +44,24 @@ class StudyAgentRouter:
                     print(f"📊 [ROUTING DEBUG] Found {total_docs} document vectors in DB")
                     
                     if total_docs == 0:
-                        print("⚠️  No documents in vector store - routing to Web Search instead")
-                        quick_route = "Web_Search"
+                        # Check if documents exist on disk but not yet indexed
+                        documents_dir = os.getenv("DOCUMENTS_DIR", "documents")
+                        files_on_disk = []
+                        if os.path.exists(documents_dir):
+                            files_on_disk = [f for f in os.listdir(documents_dir) 
+                                           if f.endswith(('.pdf', '.docx', '.txt', '.md'))]
+                        
+                        if files_on_disk:
+                            print(f"⚠️  Found {len(files_on_disk)} file(s) on disk but not indexed yet")
+                            print(f"📄 Files: {', '.join(files_on_disk)}")
+                            # Don't change route - let Document_QA handle the "indexing in progress" message
+                        elif explicit_doc_reference:
+                            print("⚠️  User explicitly referenced a document but none found")
+                            # Don't change route - let Document_QA explain that no document was found
+                        else:
+                            print("⚠️  No documents in vector store and no explicit document reference")
+                            # Only in this case, route to Web Search
+                            quick_route = "Web_Search"
                     else:
                         print(f"✅ [ROUTING DEBUG] Documents available - proceeding with Document_QA")
             except Exception as e:
