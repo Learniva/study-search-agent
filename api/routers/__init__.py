@@ -6,6 +6,11 @@ from .grading import router as grading_router
 from .ml_features import router as ml_router
 from .health import router as health_router
 from .videos import router as videos_router
+from .profile import router as profile_router
+from .settings import router as settings_router
+from .help import router as help_router
+from .integrations import router as integrations_router
+from .billing import router as billing_router
 
 __all__ = [
     "query_router",
@@ -14,6 +19,11 @@ __all__ = [
     "ml_router",
     "health_router",
     "videos_router",
+    "profile_router",
+    "settings_router",
+    "help_router",
+    "integrations_router",
+    "billing_router",
 ]
 
 
