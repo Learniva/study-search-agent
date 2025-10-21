@@ -40,8 +40,12 @@ async def create_user(
         Created user or None if email/username already exists
     """
     try:
-        # Hash password
+        # Hash password using bcrypt
         hashed_password = hash_password(password)
+        
+        # SECURITY: Password hash is stored in dedicated column, not in settings JSONB
+        # Settings JSONB should only contain user preferences, NOT sensitive data
+        user_settings = kwargs.get('settings', {})
         
         # Create user
         user = User(
@@ -55,12 +59,10 @@ async def create_user(
             profile_picture=kwargs.get('profile_picture'),
             location=kwargs.get('location'),
             website=kwargs.get('website'),
-            settings=kwargs.get('settings', {}),
+            password_hash=hashed_password,  # Dedicated password hash column
+            settings=user_settings,  # User preferences only (no sensitive data)
             is_active=True
         )
-        
-        # Store hashed password in settings (you may want a separate table)
-        user.settings['password_hash'] = hashed_password
         
         session.add(user)
         await session.commit()
@@ -175,11 +177,16 @@ async def authenticate_user(
             logger.warning(f"⚠️  Inactive user attempted login: {username}")
             return None
         
-        # Verify password
-        password_hash = user.settings.get('password_hash')
-        if not password_hash:
-            logger.error(f"❌ No password hash for user: {username}")
-            return None
+        # Verify password from dedicated column
+        # SECURITY: Password hash is in dedicated column, not settings JSONB
+        if not user.password_hash:
+            # Try fallback to settings for backward compatibility (migration period)
+            password_hash = user.settings.get('password_hash') if user.settings else None
+            if not password_hash:
+                logger.error(f"❌ No password hash for user: {username}")
+                return None
+        else:
+            password_hash = user.password_hash
         
         if not verify_password(password, password_hash):
             logger.debug(f"🔐 Invalid password for user: {username}")
@@ -332,8 +339,13 @@ async def change_user_password(
         if not user:
             return False
         
-        # Verify old password
-        password_hash = user.settings.get('password_hash')
+        # Verify old password from dedicated column
+        # SECURITY: Use dedicated password_hash column
+        password_hash = user.password_hash
+        if not password_hash:
+            # Fallback to settings for backward compatibility
+            password_hash = user.settings.get('password_hash') if user.settings else None
+        
         if not password_hash or not verify_password(old_password, password_hash):
             logger.warning(f"⚠️  Invalid old password for user: {user_id}")
             return False
@@ -341,14 +353,11 @@ async def change_user_password(
         # Hash new password
         new_hash = hash_password(new_password)
         
-        # Update settings
-        settings = user.settings or {}
-        settings['password_hash'] = new_hash
-        
+        # Update password in dedicated column
         await session.execute(
             update(User)
             .where(User.user_id == user_id)
-            .values(settings=settings)
+            .values(password_hash=new_hash)
         )
         await session.commit()
         

@@ -9,7 +9,7 @@ Provides:
 """
 
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any
 from functools import wraps
 
@@ -21,7 +21,13 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # JWT Configuration
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-secret-key-change-this-in-production")
+# SECURITY: Secret key is required and must be secure
+SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+if not SECRET_KEY or len(SECRET_KEY) < 32:
+    raise ValueError(
+        "JWT_SECRET_KEY environment variable is required and must be at least 32 characters long. "
+        "Generate a secure key with: python -c 'import secrets; print(secrets.token_urlsafe(32))'"
+    )
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
 
@@ -62,9 +68,9 @@ def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta]
     to_encode = data.copy()
     
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
@@ -220,61 +226,20 @@ def require_role(*allowed_roles: str):
     return decorator
 
 
-# Simple authentication functions (for development/testing)
-
-def authenticate_user(username: str, password: str) -> Optional[Dict[str, Any]]:
-    """
-    Authenticate a user with username/password (simple example).
-    
-    In production, this should:
-    - Check against a database
-    - Use hashed passwords (bcrypt, argon2)
-    - Implement rate limiting
-    - Add multi-factor authentication
-    
-    Args:
-        username: Username
-        password: Password (should be hashed in production!)
-        
-    Returns:
-        User data dict if authenticated, None otherwise
-    """
-    # EXAMPLE ONLY - DO NOT USE IN PRODUCTION
-    # In production, check against database with hashed passwords
-    
-    test_users = {
-        "student1": {"password": "student123", "role": "student", "user_id": "stu001", "email": "student@example.com"},
-        "teacher1": {"password": "teacher123", "role": "teacher", "user_id": "tea001", "email": "teacher@example.com"},
-        "admin": {"password": "admin123", "role": "admin", "user_id": "adm001", "email": "admin@example.com"}
-    }
-    
-    user = test_users.get(username)
-    if user and user["password"] == password:
-        return {
-            "user_id": user["user_id"],
-            "role": user["role"],
-            "email": user["email"],
-            "name": username
-        }
-    
-    return None
-
-
-def create_token_for_user(username: str, password: str) -> Optional[str]:
-    """
-    Authenticate and create token for a user.
-    
-    Args:
-        username: Username
-        password: Password
-        
-    Returns:
-        JWT token if authenticated, None otherwise
-    """
-    user_data = authenticate_user(username, password)
-    if user_data:
-        return create_access_token(user_data)
-    return None
+# =============================================================================
+# DEPRECATED: Test authentication functions removed for security
+# =============================================================================
+# 
+# The test authentication functions (authenticate_user, create_token_for_user)
+# have been REMOVED due to security concerns.
+#
+# For authentication, use:
+# - Production: database.operations.user_ops.authenticate_user() with hashed passwords
+# - Testing: Create proper test fixtures with hashed passwords
+# - OAuth: api/routers/auth.py for Google OAuth
+#
+# DO NOT re-add hardcoded credentials to this codebase.
+# =============================================================================
 
 
 # LMS Integration helpers
@@ -378,7 +343,7 @@ class RateLimiter:
         Returns:
             True if within limit, False if exceeded
         """
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         window_start = now - timedelta(minutes=window_minutes)
         
         # Get user's request history

@@ -104,12 +104,17 @@ async def upload_document(
                     processor = get_document_processor()
                     
                     with get_db() as db:
+                        # Extract user_id and course_id from request context if available
+                        # These are optional - documents can be uploaded without user context in development
+                        request_user_id = getattr(request.state, 'user_id', None) if hasattr(request, 'state') else None
+                        request_course_id = None  # Could be extracted from query params if needed
+                        
                         result = processor.process_and_index_document_sync(
                             db=db,
                             file_path=file_path,
                             document_name=file.filename,
-                            user_id=None,  # TODO: Extract from auth context
-                            course_id=None  # TODO: Extract from request
+                            user_id=request_user_id,  # From request state (set by auth middleware)
+                            course_id=request_course_id  # From request params or state
                         )
                         
                         if result['success']:

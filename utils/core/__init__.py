@@ -8,7 +8,18 @@ Essential system utilities used throughout the application:
 """
 
 from .llm import initialize_llm, initialize_grading_llm, DEFAULT_MODEL, TEMPERATURE_SETTINGS
-from .constants import *
+from .constants import (
+    DEFAULT_CACHE_TTL,
+    MAX_CONTEXT_TOKENS,
+    MAX_AGENT_ITERATIONS,
+    MAX_GRADING_ITERATIONS,
+    VAGUE_QUESTION_PATTERNS,
+    FOLLOW_UP_PRONOUNS,
+    GENERIC_SUBJECTS,
+    REALTIME_QUERY_PATTERNS,
+    GRADING_ERROR_INDICATORS,
+    GRADING_UNCERTAINTY_INDICATORS
+)
 from .cache import ResultCache
 
 __all__ = [
@@ -21,12 +32,16 @@ __all__ = [
     # Cache
     'ResultCache',
     
-    # Constants (all exported from constants module)
+    # Constants (explicitly exported)
     'DEFAULT_CACHE_TTL',
     'MAX_CONTEXT_TOKENS',
+    'MAX_AGENT_ITERATIONS',
+    'MAX_GRADING_ITERATIONS',
     'VAGUE_QUESTION_PATTERNS',
     'FOLLOW_UP_PRONOUNS',
     'GENERIC_SUBJECTS',
-    # ... (constants will be imported via *)
+    'REALTIME_QUERY_PATTERNS',
+    'GRADING_ERROR_INDICATORS',
+    'GRADING_UNCERTAINTY_INDICATORS',
 ]
 

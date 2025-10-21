@@ -12,7 +12,8 @@ from .help import router as help_router
 from .integrations import router as integrations_router
 from .billing import router as billing_router
 from .payments import router as payments_router
-from .auth import router as auth_router
+from .auth import router as auth_router, legacy_router as legacy_auth_router
+from .concurrent_query import router as concurrent_query_router
 
 __all__ = [
     "query_router",
@@ -28,6 +29,8 @@ __all__ = [
     "billing_router",
     "payments_router",
     "auth_router",
+    "legacy_auth_router",
+    "concurrent_query_router",
 ]
 
 

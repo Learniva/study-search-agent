@@ -42,10 +42,13 @@ def pattern_based_route(question: str, patterns: Dict[str, List[str]]) -> Option
 
 STUDY_AGENT_PATTERNS = {
     # Animation patterns first (higher priority)
+    # Only match when user REQUESTS to CREATE an animation, not when asking ABOUT animation tools
     'render_manim_video': [
-        r'\b(animate|animation|visualize|create\s+(a\s+)?video|generate\s+(a\s+)?video)\b',
+        r'\b(animate|create\s+(a\s+)?animation|generate\s+(a\s+)?animation)\b',
         r'\b(show\s+(me\s+)?(an?\s+)?animation)\b',
-        r'\b(manim|visual\s+explanation)\b',
+        r'\b(create|generate|make)\s+(a\s+)?(video|visual)',
+        r'\bvisualize\b.*(using|with)?\s*manim',  # "visualize using manim"
+        # DO NOT match "What is manim?" or "Tell me about manim" - those should use web search
     ],
     'Python_REPL': [
         # Only match when user wants to EXECUTE code, not when asking HOW to code
