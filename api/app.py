@@ -11,7 +11,13 @@ Production-grade Multi-Agent Study & Grading System with:
 - Horizontal scaling ready
 """
 
-from fastapi import FastAPI
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -31,10 +37,16 @@ from api.routers import (
     help_router,
     integrations_router,
     billing_router,
+    payments_router,
+    auth_router,
+    legacy_auth_router,
+    concurrent_query_router,
 )
 from utils.rate_limiting import RateLimitMiddleware
 from utils.monitoring import TracingMiddleware, get_logger, get_correlation_id
 from utils.errors import BaseApplicationError, get_error_handler
+from utils.auth import get_current_user
+from api.dependencies import require_admin_role
 from config import settings
 
 logger = get_logger(__name__)
@@ -94,13 +106,20 @@ app = FastAPI(
 # Middleware Stack
 # ============================================================================
 
-# CORS
+# CORS - Use environment variable for allowed origins
+# SECURITY: Never use ["*"] in production with allow_credentials=True
+ALLOWED_ORIGINS = os.getenv(
+    "CORS_ALLOWED_ORIGINS",
+    "http://localhost:3000,http://localhost:3001"
+).split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure for production
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH"],
+    allow_headers=["Content-Type", "Authorization", "X-Correlation-ID"],
+    max_age=600,  # Cache preflight requests for 10 minutes
 )
 
 # Rate Limiting
@@ -171,6 +190,7 @@ app.include_router(health_router)
 
 # Core Features
 app.include_router(query_router)
+app.include_router(concurrent_query_router)  # Concurrent execution support
 app.include_router(documents_router)
 
 # Grading Features (Teachers only)
@@ -182,12 +202,17 @@ app.include_router(ml_router)
 # Video Downloads (available to all roles)
 app.include_router(videos_router)
 
+# Authentication (Public - no auth required)
+app.include_router(auth_router)
+app.include_router(legacy_auth_router)  # Legacy /auth prefix for backward compatibility
+
 # User Management & Settings
 app.include_router(profile_router)
 app.include_router(settings_router)
 app.include_router(help_router)
 app.include_router(integrations_router)
 app.include_router(billing_router)
+app.include_router(payments_router)
 
 # Learniva Integration (optional - for Learniva frontend compatibility)
 try:
@@ -229,21 +254,34 @@ logger.info("✅ Static file serving enabled for /downloads and /animations")
 
 
 # ============================================================================
+# OAuth Test Page (for testing authentication)
+# ============================================================================
+
+from fastapi.responses import FileResponse
+
+@app.get("/test-oauth", include_in_schema=False)
+async def oauth_test_page():
+    """Serve OAuth test page for testing Google authentication."""
+    return FileResponse("test_oauth.html")
+
+
+# ============================================================================
 # Admin Endpoints
 # ============================================================================
 
 @app.post("/admin/reload", tags=["Admin"])
-async def reload_documents():
+async def reload_documents(
+    current_user: dict = Depends(get_current_user),
+    _: str = Depends(require_admin_role)
+):
     """
     Reload documents from disk (deprecated - use /documents/upload instead).
     
     Documents are now managed via the L2 Vector Store (pgvector).
     Use POST /documents/upload to index documents.
     
-    **Requires:** Admin role
+    **Requires:** Admin role (JWT authentication)
     """
-    import os
-    
     documents_dir = os.getenv("DOCUMENTS_DIR", "documents")
     
     try:
@@ -264,21 +302,48 @@ async def reload_documents():
 
 
 @app.get("/admin/cache/stats", tags=["Admin"])
-async def get_cache_stats():
+async def get_cache_stats(
+    current_user: dict = Depends(get_current_user),
+    _: str = Depends(require_admin_role)
+):
     """
     Get cache statistics.
     
-    **Requires:** Admin role
+    **Requires:** Admin role (JWT authentication)
     """
     try:
-        from utils.cache import get_cache_optimizer
+        stats = {}
         
-        optimizer = get_cache_optimizer()
-        stats = optimizer.get_stats()
+        # Query cache stats
+        try:
+            from utils.cache import get_cache_optimizer
+            optimizer = get_cache_optimizer()
+            stats["query_cache"] = optimizer.get_stats()
+            stats["query_cache_enabled"] = settings.cache_enabled
+        except Exception as e:
+            stats["query_cache_error"] = str(e)
+        
+        # Token cache stats
+        try:
+            from utils.auth.token_cache import get_token_cache
+            token_cache = get_token_cache()
+            stats["token_cache"] = token_cache.get_stats()
+            stats["token_cache_enabled"] = True
+        except Exception as e:
+            stats["token_cache_error"] = str(e)
+        
+        # Response cache stats
+        try:
+            from utils.api.response_cache import get_response_cache
+            response_cache = get_response_cache()
+            stats["response_cache"] = response_cache.get_stats()
+            stats["response_cache_enabled"] = True
+        except Exception as e:
+            stats["response_cache_error"] = str(e)
         
         return {
             "cache_stats": stats,
-            "enabled": settings.cache_enabled
+            "timestamp": get_correlation_id()
         }
     except Exception as e:
         logger.error(f"Failed to get cache stats: {e}")
@@ -289,13 +354,16 @@ async def get_cache_stats():
 
 
 @app.get("/admin/instances", tags=["Admin"])
-async def get_active_instances():
+async def get_active_instances(
+    current_user: dict = Depends(get_current_user),
+    _: str = Depends(require_admin_role)
+):
     """
     Get active service instances.
     
     Shows all running instances in distributed setup.
     
-    **Requires:** Admin role
+    **Requires:** Admin role (JWT authentication)
     """
     if not settings.redis_url:
         return {

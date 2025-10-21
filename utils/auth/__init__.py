@@ -1,8 +1,16 @@
-"""
-Authentication Utilities
-"""
+"""Authentication utilities."""
 
-from .password import hash_password, verify_password, needs_rehash
+from .jwt_handler import (
+    create_access_token,
+    verify_access_token,
+    get_current_user,
+)
+from .google_oauth import GoogleOAuth, google_oauth
 
-__all__ = ['hash_password', 'verify_password', 'needs_rehash']
-
+__all__ = [
+    "create_access_token",
+    "verify_access_token",
+    "get_current_user",
+    "GoogleOAuth",
+    "google_oauth",
+]

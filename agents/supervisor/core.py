@@ -5,12 +5,16 @@ import time
 
 from .state import SupervisorState
 from .workflow import build_supervisor_workflow
+from .concurrent_supervisor import ConcurrentSupervisorMixin
 from utils.patterns import StateManager
 from utils.config_integration import ConfigManager
 from utils import initialize_llm
+from utils.monitoring import get_logger
+
+logger = get_logger(__name__)
 
 
-class SupervisorAgent:
+class SupervisorAgent(ConcurrentSupervisorMixin):
     """
     Supervisor Agent with role-based routing.
     
@@ -34,7 +38,7 @@ class SupervisorAgent:
         llm_provider: str = "gemini",
         model_name: Optional[str] = None
     ):
-        """Initialize Supervisor Agent."""
+        """Initialize Supervisor Agent with concurrent execution support."""
         self.llm_provider = llm_provider.lower()
         self.model_name = model_name
         self.llm = initialize_llm(model_name=model_name, use_case="routing")
@@ -47,6 +51,18 @@ class SupervisorAgent:
         self._routing_history = []
         self._routing_patterns = {}
         self._max_history = 100
+        
+        # Initialize concurrent execution capabilities (from mixin)
+        # This sets up task_manager, duration_estimator, and _concurrent_mode_enabled
+        if hasattr(super(), '__init__'):
+            try:
+                super().__init__(llm_provider=llm_provider, model_name=model_name)
+            except TypeError:
+                # Mixin doesn't accept these params, initialize without them
+                from utils.concurrent_execution import get_task_manager, TaskDurationEstimator
+                self.task_manager = get_task_manager()
+                self.duration_estimator = TaskDurationEstimator()
+                self._concurrent_mode_enabled = True
         
         # Build workflow
         workflow, self.nodes = build_supervisor_workflow(
@@ -84,13 +100,15 @@ class SupervisorAgent:
         
     @property
     def streaming_study_agent(self):
-        """Lazy load streaming study agent."""
+        """Lazy load streaming study agent with concurrent support."""
         if not hasattr(self, "_streaming_study_agent") or self._streaming_study_agent is None:
-            from agents.study.streaming_agent import StreamingStudyAgent
-            self._streaming_study_agent = StreamingStudyAgent(
+            # Use the optimized fast streaming agent for better performance
+            from agents.study.fast_streaming_agent import FastStreamingStudyAgent
+            self._streaming_study_agent = FastStreamingStudyAgent(
                 llm_provider=self.llm_provider,
                 model_name=self.model_name
             )
+            logger.info("⚡ Fast streaming study agent initialized (<100ms first response)")
         return self._streaming_study_agent
     
     @property
@@ -262,10 +280,10 @@ class SupervisorAgent:
                 "streaming": True  # Flag to indicate streaming mode
             }
             
-            # Determine intent and route to appropriate agent
-            state = await self.nodes.enrich_context(initial_state)
-            state = await self.nodes.classify_intent(state)
-            state = await self.nodes.check_access(state)
+            # ⚡ OPTIMIZED: Use async methods for non-blocking routing
+            state = await self.nodes.aenrich_context(initial_state)
+            state = await self.nodes.aclassify_intent(state)
+            state = await self.nodes.acheck_access(state)
             
             # If access denied, return error
             if state["access_denied"]:

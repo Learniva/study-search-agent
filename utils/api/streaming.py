@@ -278,3 +278,50 @@ async def stream_with_metadata(
         yield chunk_data
         chunk_index += 1
 
+
+async def format_supervisor_sse_stream(
+    chunk_generator: AsyncGenerator[str, None],
+    logger: Any,
+    stream_type: str = "regular"
+) -> AsyncGenerator[str, None]:
+    """
+    Format supervisor agent stream as SSE with consistent error handling.
+    
+    This utility eliminates duplication between regular and concurrent streaming
+    by providing a shared formatting layer.
+    
+    Args:
+        chunk_generator: Async generator yielding chunks from supervisor
+        logger: Logger instance for error tracking
+        stream_type: Type of stream for logging (regular/concurrent)
+        
+    Yields:
+        SSE-formatted strings ready for streaming response
+    """
+    try:
+        async for chunk in chunk_generator:
+            if chunk == "[DONE]":
+                yield "data: [DONE]\n\n"
+            elif chunk.startswith("[ERROR]"):
+                logger.error(f"{stream_type.capitalize()} streaming error: {chunk}")
+                yield f"data: {chunk}\n\n"
+            else:
+                yield f"data: {chunk}\n\n"
+    except Exception as e:
+        logger.error(f"{stream_type.capitalize()} streaming error: {e}")
+        yield f"data: [ERROR] {str(e)}\n\n"
+
+
+def get_sse_headers() -> Dict[str, str]:
+    """
+    Get standard SSE headers for streaming responses.
+    
+    Returns:
+        Dictionary of HTTP headers for SSE
+    """
+    return {
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+        "X-Accel-Buffering": "no"  # Disable nginx buffering
+    }
+

@@ -13,7 +13,7 @@ from pydantic import BaseModel, EmailStr
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.routers.learniva_auth import get_current_user
+from utils.auth.jwt_handler import get_current_user  # Use Google OAuth JWT authentication
 from database.core.async_connection import get_session
 from database.operations.user_ops import (
     get_user_by_id,
@@ -84,7 +84,7 @@ async def get_profile(current_user: dict = Depends(get_current_user)):
     Get current user's profile information.
     
     Headers:
-        Authorization: Token abc123...
+        Authorization: Bearer <jwt_token>
     
     Response:
         {
@@ -100,17 +100,22 @@ async def get_profile(current_user: dict = Depends(get_current_user)):
             "role": "student"
         }
     """
+    # Handle Google OAuth user structure
+    user_id = int(current_user.get("user_id", 0))
+    name = current_user.get("name", "")
+    name_parts = name.split(" ", 1) if name else ["", ""]
+    
     return ProfileResponse(
-        id=current_user["id"],
-        username=current_user["username"],
-        email=current_user["email"],
-        first_name=current_user.get("first_name", ""),
-        last_name=current_user.get("last_name", ""),
-        display_name=current_user.get("display_name", ""),
-        location=current_user.get("location", ""),
-        website=current_user.get("website", ""),
-        profile_picture=current_user.get("profile_picture", ""),
-        role=current_user["role"]
+        id=user_id,
+        username=current_user.get("email", "").split("@")[0],  # Use email prefix as username
+        email=current_user.get("email", ""),
+        first_name=name_parts[0] if len(name_parts) > 0 else "",
+        last_name=name_parts[1] if len(name_parts) > 1 else "",
+        display_name=current_user.get("name", ""),
+        location="",
+        website="",
+        profile_picture="",
+        role=current_user.get("role", "student")
     )
 
 
@@ -313,20 +318,21 @@ async def delete_profile_picture(
 @router.get("/preferences/")
 async def get_profile_preferences(current_user: dict = Depends(get_current_user)):
     """
-    Get user preferences (redirects to settings).
+    Get user preferences (default settings).
     
     Headers:
-        Authorization: Token abc123...
+        Authorization: Bearer <jwt_token>
     
     Response:
         User preferences
     """
-    settings = current_user.get("settings", {})
+    # Return default preferences (can be enhanced later with database storage)
     return {
-        "language": settings.get("language", "English"),
-        "timezone": settings.get("timezone", "UTC"),
-        "date_format": settings.get("date_format", "MM/DD/YYYY"),
-        "theme": settings.get("theme", "system")
+        "language": "English",
+        "timezone": "UTC",
+        "date_format": "MM/DD/YYYY",
+        "theme": "system",
+        "email": current_user.get("email", "")
     }
 
 
@@ -337,11 +343,12 @@ async def get_profile_statistics(current_user: dict = Depends(get_current_user))
     Get user statistics and activity.
     
     Headers:
-        Authorization: Token abc123...
+        Authorization: Bearer <jwt_token>
     
     Response:
         User activity statistics
     """
+    # Return placeholder statistics (can be enhanced later with actual data)
     return {
         "total_queries": 0,
         "documents_uploaded": 0,
@@ -349,8 +356,9 @@ async def get_profile_statistics(current_user: dict = Depends(get_current_user))
         "flashcards_created": 0,
         "study_sessions": 0,
         "total_time_spent": 0,
-        "joined_date": "2025-10-17",
-        "last_active": "2025-10-17"
+        "joined_date": "2025-10-19",
+        "last_active": "2025-10-19",
+        "user_email": current_user.get("email", "")
     }
 
 

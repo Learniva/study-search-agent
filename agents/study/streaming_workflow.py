@@ -13,12 +13,12 @@ from utils.patterns.streaming import (
     END
 )
 from .state import StudyAgentState
-from .streaming_nodes import StreamingStudyNodes
+from .concurrent_streaming_nodes import ConcurrentStreamingStudyNodes
 
 
 def build_streaming_workflow(llm, streaming_llm, tool_map: Dict[str, Any]) -> StreamingStateGraph:
     """
-    Build streaming-enabled workflow for Study Agent.
+    Build streaming-enabled workflow for Study Agent with concurrent execution support.
     
     Args:
         llm: Regular LLM for non-streaming operations
@@ -31,8 +31,9 @@ def build_streaming_workflow(llm, streaming_llm, tool_map: Dict[str, Any]) -> St
     # Create streaming graph
     workflow = StreamingStateGraph(StudyAgentState)
     
-    # Initialize streaming nodes
-    nodes = StreamingStudyNodes(llm, streaming_llm, tool_map)
+    # Initialize concurrent streaming nodes (inherits from StreamingStudyNodes)
+    # This enables background execution for long-running tasks like Manim animations
+    nodes = ConcurrentStreamingStudyNodes(llm, streaming_llm, tool_map)
     
     # Add streaming-enabled nodes
     workflow.add_node("detect_complexity", nodes.detect_complexity, streaming=True)
@@ -66,7 +67,7 @@ def build_streaming_workflow(llm, streaming_llm, tool_map: Dict[str, Any]) -> St
             return "document_qa"
         elif "code" in question or "calculate" in question or "compute" in question:
             return "python_repl"
-        elif "animate" in question or "animation" in question or "visualize" in question:
+        elif any(keyword in question for keyword in ["animate ", "create animation", "generate animation", "show animation", "create video", "generate video", "make video"]):
             return "manim_animation"
         else:
             return "web_search"  # Default
