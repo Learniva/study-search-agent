@@ -52,37 +52,18 @@ class StudySearchAgent(BaseAgent):
         existing_messages: List[Any] = None,
         **kwargs
     ) -> Dict[str, Any]:
-        """Build initial state for study workflow."""
+        """
+        Build initial state for study workflow.
+        
+        Uses shared StateManager.create_study_agent_state() to eliminate duplication.
+        """
         existing_messages = existing_messages or []
         max_iterations = ConfigManager.get_max_iterations("study")
         
-        # Build comprehensive study agent state
-        state = StateManager.create_base_state(
+        return StateManager.create_study_agent_state(
             question=question,
             existing_messages=existing_messages,
+            max_iterations=max_iterations,
             **kwargs
         )
-        
-        # Add study-specific fields
-        study_fields = {
-            "tried_document_qa": False,
-            "document_qa_failed": False,
-            "is_complex_task": False,
-            "task_plan": None,
-            "current_step": 0,
-            "completed_steps": [],
-            "intermediate_answers": [],
-            "response_confidence": None,
-            "quality_issues": [],
-            "needs_clarification": False,
-            "clarification_question": None,
-            "fallback_attempts": 0,
-            "max_iterations": max_iterations,
-            "suggested_followups": [],
-            "alternative_approaches": [],
-            "error_context": None,
-            "needs_retry": False
-        }
-        
-        return {**state, **study_fields}
 

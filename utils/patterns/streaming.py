@@ -36,9 +36,11 @@ class StreamingIndicator(Enum):
     PLANNING = "planning"              # 📋 Multi-step planning
     SEARCHING = "searching"            # 🔎 Tool search/retrieval
     EXECUTING = "executing"            # ⚙️ Tool execution
+    PROCESSING = "processing"          # ⚙️ Processing (alias for executing)
     SYNTHESIZING = "synthesizing"      # ✨ Combining results
     GENERATING = "generating"          # 📝 Final response generation
     COMPLETE = "complete"              # ✅ Task complete
+    ERROR = "error"                    # ❌ Error occurred
 
 
 class StreamingState(Generic[T]):

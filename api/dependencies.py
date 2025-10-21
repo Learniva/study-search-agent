@@ -43,50 +43,59 @@ async def get_or_create_correlation_id(
 
 
 # ============================================================================
-# User Role Dependencies
+# User Role Dependencies (JWT-Based - SECURE)
 # ============================================================================
 
 async def get_current_user_role(
-    x_user_role: Optional[str] = Header(None, alias="X-User-Role")
+    authorization: Optional[str] = Header(None)
 ) -> str:
     """
-    Get user role from header.
+    Get user role from JWT token (SECURE).
+    
+    SECURITY NOTE: This function extracts the role from the JWT token,
+    NOT from headers. This prevents role escalation attacks.
     
     Args:
-        x_user_role: User role from X-User-Role header
+        authorization: Authorization header with JWT token
         
     Returns:
-        User role (student, teacher, professor, instructor, or admin)
+        User role from JWT token
+        
+    Raises:
+        HTTPException: If token is invalid or missing
     """
-    if not x_user_role:
-        return "student"  # Default to student
+    from utils.auth import get_current_user
     
-    role = x_user_role.lower()
+    # Get authenticated user from JWT token
+    user = await get_current_user(authorization)
+    
+    # Extract role from JWT token payload
+    role = user.role.lower() if hasattr(user, 'role') else "student"
+    
     valid_roles = ["student", "teacher", "professor", "instructor", "admin"]
     if role not in valid_roles:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Invalid user role. Must be one of: {', '.join(valid_roles)}"
-        )
+        role = "student"  # Fallback to student for invalid roles
     
     return role
 
 
 async def require_teacher_role(
-    role: str = Depends(get_current_user_role)
+    authorization: Optional[str] = Header(None)
 ) -> str:
     """
-    Require teacher or admin role.
+    Require teacher or admin role (JWT-based authentication).
     
     Args:
-        role: User role from dependency
+        authorization: Authorization header with JWT token
         
     Returns:
-        User role
+        User role from JWT
         
     Raises:
         HTTPException: If user is not teacher or admin
     """
+    role = await get_current_user_role(authorization)
+    
     if role not in ["teacher", "professor", "instructor", "admin"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -96,20 +105,22 @@ async def require_teacher_role(
 
 
 async def require_admin_role(
-    role: str = Depends(get_current_user_role)
+    authorization: Optional[str] = Header(None)
 ) -> str:
     """
-    Require admin role.
+    Require admin role (JWT-based authentication).
     
     Args:
-        role: User role from dependency
+        authorization: Authorization header with JWT token
         
     Returns:
-        User role
+        User role from JWT
         
     Raises:
         HTTPException: If user is not admin
     """
+    role = await get_current_user_role(authorization)
+    
     if role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

@@ -39,6 +39,19 @@ async def lifespan(app: FastAPI):
     # Setup logging
     setup_logging()
     
+    # Validate security configuration (SECRET_KEY, etc.)
+    try:
+        from utils.security import validate_production_secrets
+        
+        logger.info("🔒 Validating security configuration...")
+        validate_production_secrets(debug=settings.debug)
+        logger.info("✅ Security validation passed")
+    except ValueError as e:
+        logger.error(f"❌ Security validation failed:\n{str(e)}")
+        raise
+    except ImportError:
+        logger.warning("⚠️  Security validation module not available")
+    
     # Initialize database if available
     try:
         from database.core.async_engine import async_db_engine

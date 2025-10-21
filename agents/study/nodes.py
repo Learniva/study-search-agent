@@ -579,7 +579,7 @@ Instructions:
 2. Use ONLY information from the retrieved content above
 3. Do NOT include chunk references like "[Chunk X]" - cite page numbers instead when available
 4. If page numbers appear in the content (e.g., "[Page 42]"), cite them naturally: "(p. 42)"
-5. Keep it concise - answer the question without extra elaboration
+5. Provide a comprehensive answer with at least 2-3 sentences. Explain concepts thoroughly with relevant context
 6. If the user wants more details, they can ask follow-up questions
 7. Use clear, simple language and good formatting
 
@@ -833,6 +833,13 @@ Answer:"""
             
             raw_results = tool.func(search_query)
             
+            # Debug: Print raw search results to verify URLs are present
+            print(f"\n{'='*70}")
+            print(f"📋 RAW SEARCH RESULTS (for debugging URL extraction):")
+            print(f"{'='*70}")
+            print(raw_results[:1000] if len(raw_results) > 1000 else raw_results)
+            print(f"{'='*70}\n")
+            
             # Detect time-sensitive queries that need disclaimers
             is_time_sensitive = any(phrase in question_lower for phrase in [
                 'current time', 'what time', 'time now', 'time in',
@@ -865,7 +872,7 @@ Answer:"""
    - Provide a brief explanation before and after the code
 """
             
-            synthesis_prompt = f"""Answer the question concisely and directly using the search results.
+            synthesis_prompt = f"""Answer the question comprehensively and informatively using the search results.
 
 Question: {state["question"]}
 
@@ -874,18 +881,57 @@ Search Results:
 
 Instructions:
 1. Use conversation history to understand follow-up questions and pronouns (it, this, that)
-2. Answer ONLY what was asked - no extra sections or elaboration
-3. Be direct and concise (2-4 sentences max for definitions)
-4. Use simple, clear language - avoid complex formatting
-5. Cite ONLY high-quality, authoritative sources:
+2. Provide a DETAILED, comprehensive answer (minimum 4-6 sentences, ideally 6-10 sentences for complex topics)
+3. Cover multiple aspects of the topic and include relevant context, examples, and explanations
+4. Make the response educational and informative - help the user truly understand the subject
+5. Use clear, engaging language with good paragraph structure - write naturally without inline citation numbers
+6. **CRITICAL - NO INLINE CITATION NUMBERS:**
+   - DO NOT use inline citations like [1], [2], [1, 3] anywhere in your answer text
+   - Write naturally and continuously without interrupting the flow with numbers
+   - Present information as a cohesive, well-structured explanation
    - Prioritize: Wikipedia, .edu (universities), .gov (government), .org (established organizations)
    - Avoid: blogs, forums, random websites
    - Include MAXIMUM 4-6 sources
-6. Format sources EXACTLY as: Sources: [1] Title - https://full-url.com, [2] Title - https://full-url.com
-   - ALWAYS include the complete URL for each source
-   - DO NOT write just titles without URLs
-7. DO NOT include HTML tags or markdown links (use plain text URLs){code_instructions}
-8. If the user wants more details, they will ask a follow-up question
+7. **SOURCES SECTION (REQUIRED AT THE END):**
+   
+   After your answer, add a "**Sources**" section with clean, readable citations.
+   
+   The search results above are formatted like this:
+   ```
+   1. Computer Science - Wikipedia
+      Computer science is the study of...
+      Source: https://en.wikipedia.org/wiki/Computer_science
+   ```
+   
+   **Format your sources cleanly without showing URLs:**
+   
+   Example citations:
+   ```
+   **Sources**
+   
+   * Computer Science – Wikipedia
+   * Fundamentals of Algorithms – GeeksforGeeks
+   * Machine Learning Explained – MIT Sloan
+   ```
+   
+   - Use asterisk (*) before each source
+   - Include source title and website name ONLY (no URLs)
+   - Use an en-dash (–) to separate title from website
+   - One source per line (no blank lines between sources)
+   - Include ONLY high-quality sources (Wikipedia, .edu, .gov, .org - avoid blogs/forums)
+   - Maximum 4-6 sources
+   - Keep it clean and readable
+   
+8. DO NOT include URLs, HTML tags, or markdown links in the sources section{code_instructions}
+9. If relevant, mention related concepts, applications, or recent developments to enrich understanding
+
+Format:
+[Your comprehensive answer here - no citation numbers in the text]
+
+**Sources**
+
+* [Source 1 title] – [Website]
+* [Source 2 title] – [Website]
 
 Answer:"""
             

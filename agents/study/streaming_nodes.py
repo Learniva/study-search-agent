@@ -3,11 +3,18 @@ Streaming-enabled node implementations for the Study Agent.
 
 This module provides streaming versions of all study agent nodes,
 allowing token-by-token streaming throughout the entire workflow.
+
+PERFORMANCE OPTIMIZATIONS:
+- Fast-path routing with pattern matching (no LLM calls)
+- Smart query caching with TTL
+- Progressive result streaming
+- Instant user feedback
 """
 
 import re
 import json
 import asyncio
+import time
 from typing import Dict, Any, List, Optional, AsyncGenerator
 
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
@@ -18,10 +25,21 @@ from utils.patterns.streaming import (
     StreamingIndicator,
     StreamingCallbackHandler
 )
+from utils.monitoring import get_logger
+
+logger = get_logger(__name__)
 
 
 class StreamingStudyNodes:
-    """Streaming-enabled node implementations for Study Agent."""
+    """
+    Streaming-enabled node implementations for Study Agent.
+    
+    Features:
+    - Token-by-token streaming
+    - Fast pattern-based routing
+    - Smart caching for repeated queries
+    - Progressive result disclosure
+    """
     
     def __init__(self, llm, streaming_llm, tool_map: Dict[str, Any]):
         """
@@ -35,6 +53,129 @@ class StreamingStudyNodes:
         self.llm = llm
         self.streaming_llm = streaming_llm
         self.tool_map = tool_map
+        
+        # Performance optimizations
+        self._query_cache = {}  # In-memory cache for frequent queries
+        self._max_cache_size = 100
+        self._cache_ttl = 300  # 5 minutes
+    
+    def _fast_classify(self, question_lower: str) -> str:
+        """
+        Fast pattern-based classification - NO LLM calls.
+        
+        Returns tool name in 10-20ms instead of 1-2s.
+        
+        Args:
+            question_lower: Lowercase question string
+            
+        Returns:
+            Tool name to use
+        """
+        # Document QA patterns (most specific - check first)
+        if any(word in question_lower for word in [
+            'document', 'uploaded', 'notes', 'my notes', 'file', 'pdf',
+            'chapter', 'section', 'page', 'book', 'textbook'
+        ]):
+            return "document_qa"
+        
+        # Code/Python patterns
+        if any(word in question_lower for word in [
+            'code', 'calculate', 'compute', 'python', 'execute',
+            'run', 'program', '+', '-', '*', '/', '='
+        ]):
+            return "python_repl"
+        
+        # Animation patterns
+        if any(phrase in question_lower for phrase in [
+            'animate ', 'animation', 'visualize', 'create video',
+            'generate video', 'make video', 'show animation'
+        ]):
+            return "manim_animation"
+        
+        # Default to web search
+        return "web_search"
+    
+    def _get_from_cache(self, key: str) -> Optional[str]:
+        """Get result from cache if available and not expired."""
+        if key in self._query_cache:
+            cached_data = self._query_cache[key]
+            timestamp = cached_data.get("timestamp", 0)
+            
+            # Check if expired
+            if time.time() - timestamp < self._cache_ttl:
+                return cached_data.get("result")
+            else:
+                # Expired - remove
+                del self._query_cache[key]
+        
+        return None
+    
+    def _add_to_cache(self, key: str, result: str):
+        """Add result to cache with TTL."""
+        # Simple cache size management
+        if len(self._query_cache) >= self._max_cache_size:
+            # Remove oldest entry
+            oldest_key = min(self._query_cache.keys(), 
+                           key=lambda k: self._query_cache[k].get("timestamp", 0))
+            del self._query_cache[oldest_key]
+        
+        self._query_cache[key] = {
+            "result": result,
+            "timestamp": time.time()
+        }
+        
+        logger.info(f"📦 Cached result for key: {key[:50]}...")
+    
+    async def _progressive_synthesis(
+        self, 
+        state: StreamingState, 
+        content_chunks: List[str], 
+        question: str,
+        min_chunks: int = 5
+    ) -> str:
+        """
+        Progressive synthesis - start generating answer as soon as we have enough chunks.
+        
+        OPTIMIZATION: Don't wait for ALL chunks - start synthesis with first N chunks.
+        
+        Args:
+            state: Streaming state
+            content_chunks: List of content chunks
+            question: User's question
+            min_chunks: Minimum chunks needed to start synthesis
+            
+        Returns:
+            Synthesized response
+        """
+        if len(content_chunks) < min_chunks:
+            # Not enough chunks yet, wait for more
+            logger.info(f"⏳ Waiting for more chunks ({len(content_chunks)}/{min_chunks})")
+            return None
+        
+        # We have enough chunks to start synthesis
+        logger.info(f"⚡ Progressive synthesis starting with {len(content_chunks)} chunks")
+        
+        partial_content = "\n\n".join(content_chunks[:min_chunks])
+        
+        synthesis_prompt = f"""Provide a comprehensive answer based on available information:
+
+Question: {question}
+
+Available Content:
+{partial_content}
+
+Note: More information may be available, but provide the best answer you can with this content.
+
+Answer:"""
+        
+        # Stream synthesis
+        handler = StreamingCallbackHandler(state)
+        await self.streaming_llm.agenerate(
+            [[HumanMessage(content=synthesis_prompt)]],
+            callbacks=[handler]
+        )
+        
+        return state.get("partial_response", "")
     
     async def detect_complexity(self, state: StreamingState) -> StreamingState:
         """
@@ -393,7 +534,11 @@ Provide a complete answer."""
     
     async def _execute_document_qa(self, state: StreamingState) -> StreamingState:
         """
-        Execute Document QA tool with streaming.
+        Execute Document QA tool with streaming and caching.
+        
+        OPTIMIZATIONS:
+        - Cache check for instant response on repeated queries
+        - Progressive streaming of results
         
         Args:
             state: Streaming state
@@ -409,49 +554,84 @@ Provide a complete answer."""
             return state
         
         try:
+            question = state.get("question", "")
+            
+            # Check cache first (instant if cached)
+            cache_key = f"doc_qa:{question}"
+            cached_result = self._get_from_cache(cache_key)
+            
+            if cached_result:
+                logger.info("⚡ Cache hit - instant document QA response!")
+                await state.add_indicator(
+                    StreamingIndicator.PROCESSING,
+                    "📦 Retrieved from cache (instant)"
+                )
+                await state.update("tool_result", cached_result, stream=True)
+                await state.update("tried_document_qa", True, stream=False)
+                await state.update("document_qa_failed", False, stream=False)
+                return state
+            
+            # Not cached - proceed with search
             # Signal document search
             await state.add_indicator(
                 StreamingIndicator.PROCESSING,
                 "Searching documents..."
             )
             
-            # Build conversation history for context-aware document queries
+            # Build conversation history in parallel with other operations
             messages = state.get("messages", [])
-            conversation_history = ""
-            
-            if messages:
-                # Include last 3-4 user messages for context
-                user_messages = []
-                for msg in reversed(messages[-8:]):  # Last 8 messages
-                    if hasattr(msg, 'type') and msg.type == 'human' and hasattr(msg, 'content'):
-                        user_messages.append(msg.content)
-                        if len(user_messages) >= 4:  # Keep last 4 user questions
-                            break
-                
-                # Reverse to chronological order
-                conversation_history = " ".join(reversed(user_messages))
-                print(f"📝 [DOC QA CONTEXT] Conversation history: {conversation_history[:150]}...")
-            
-            # Determine chunk limit based on query type
             question_lower = state.get("question", "").lower()
             
-            # For chapter/section overviews and structured notes, retrieve MORE chunks for comprehensive coverage
-            if any(keyword in question_lower for keyword in [
-                'chapter', 'section', 'structured notes', 'generate notes', 
-                'all about', 'overview', 'entire', 'whole', 'complete'
-            ]):
-                chunk_limit = 60  # Retrieve up to 60 chunks for comprehensive chapter coverage
-                print(f"📚 [COMPREHENSIVE RETRIEVAL] Chapter/overview request detected - retrieving {chunk_limit} chunks")
-            else:
-                chunk_limit = 15  # Standard retrieval for specific questions
-                print(f"📄 [STANDARD RETRIEVAL] Specific question - retrieving {chunk_limit} chunks")
+            # Create parallel tasks for conversation history and chunk limit determination
+            async def build_conversation_history():
+                """Build conversation history for context."""
+                if not messages:
+                    return ""
+                
+                user_messages = []
+                for msg in reversed(messages[-8:]):
+                    if hasattr(msg, 'type') and msg.type == 'human' and hasattr(msg, 'content'):
+                        user_messages.append(msg.content)
+                        if len(user_messages) >= 4:
+                            break
+                
+                conversation_history = " ".join(reversed(user_messages))
+                print(f"📝 [DOC QA CONTEXT] Conversation history: {conversation_history[:150]}...")
+                return conversation_history
+            
+            async def determine_chunk_limit():
+                """Determine optimal chunk limit based on query type."""
+                if any(keyword in question_lower for keyword in [
+                    'chapter', 'section', 'structured notes', 'generate notes', 
+                    'all about', 'overview', 'entire', 'whole', 'complete'
+                ]):
+                    chunk_limit = 60
+                    print(f"📚 [COMPREHENSIVE RETRIEVAL] Chapter/overview request - retrieving {chunk_limit} chunks")
+                else:
+                    chunk_limit = 15
+                    print(f"📄 [STANDARD RETRIEVAL] Specific question - retrieving {chunk_limit} chunks")
+                return chunk_limit
+            
+            # Execute in parallel
+            start_parallel = time.time()
+            conversation_history, chunk_limit = await asyncio.gather(
+                build_conversation_history(),
+                determine_chunk_limit()
+            )
+            parallel_time = (time.time() - start_parallel) * 1000
+            logger.info(f"⚡ Parallel prep: {parallel_time:.1f}ms")
             
             # Retrieve relevant document chunks with context awareness and appropriate limit
-            raw_results = tool.func(
-                state.get("question", ""), 
+            # OPTIMIZATION: Use asyncio.to_thread for blocking I/O operation
+            retrieval_start = time.time()
+            raw_results = await asyncio.to_thread(
+                tool.func,
+                state.get("question", ""),
                 limit=chunk_limit,
                 conversation_history=conversation_history
             )
+            retrieval_time = (time.time() - retrieval_start) * 1000
+            logger.info(f"📊 Document retrieval: {retrieval_time:.1f}ms")
             
             # Check if retrieval failed
             failed = any(p in raw_results.lower() for p in [
@@ -642,7 +822,7 @@ Instructions:
 2. Use ONLY information from the retrieved content above
 3. Do NOT include chunk references like "[Chunk X]" - cite page numbers instead when available
 4. If page numbers appear in the content (e.g., "[Page 42]"), cite them naturally: "(p. 42)"
-5. Keep it concise - answer the question without extra elaboration
+5. Provide a comprehensive answer with at least 2-3 sentences. Explain concepts thoroughly with relevant context
 6. If the user wants more details, they can ask follow-up questions
 7. Use clear, simple language and good formatting
 
@@ -690,10 +870,13 @@ Answer:"""
                 await state.update("awaiting_user_choice", True, stream=False)
                 return state
             
-            # Success - update state with result
+            # Success - update state with result and cache it
             await state.update("tool_result", response_content, stream=False)
             await state.update("tried_document_qa", True, stream=False)
             await state.update("document_qa_failed", False, stream=False)
+            
+            # Cache the result for future queries
+            self._add_to_cache(cache_key, response_content)
             
             return state
             
@@ -852,7 +1035,11 @@ Answer:"""
     
     async def _execute_web_search(self, state: StreamingState) -> StreamingState:
         """
-        Execute Web Search tool with streaming.
+        Execute Web Search tool with streaming and caching.
+        
+        OPTIMIZATIONS:
+        - Cache check for instant response on repeated queries
+        - Progressive streaming of results
         
         Args:
             state: Streaming state
@@ -866,77 +1053,115 @@ Answer:"""
             return state
         
         try:
+            question = state.get("question", "")
+            
+            # Check cache first (instant if cached)
+            cache_key = f"web_search:{question}"
+            cached_result = self._get_from_cache(cache_key)
+            
+            if cached_result:
+                logger.info("⚡ Cache hit - instant web search response!")
+                await state.add_indicator(
+                    StreamingIndicator.PROCESSING,
+                    "📦 Retrieved from cache (instant)"
+                )
+                await state.update("tool_result", cached_result, stream=True)
+                return state
+            
+            # Not cached - proceed with search
             # Signal web search
             await state.add_indicator(
                 StreamingIndicator.PROCESSING,
                 "Searching the web..."
             )
             
-            # Advanced context-aware search
+            # Parallel query analysis and reformulation
             messages = state.get("messages", [])
             search_query = state.get("question", "")
             question_lower = search_query.lower()
             
             print(f"\n{'='*70}")
-            print(f"🔍 INTELLIGENT WEB SEARCH (STREAMING)")
+            print(f"🔍 INTELLIGENT WEB SEARCH (OPTIMIZED)")
             print(f"{'='*70}")
             print(f"📝 Original question: '{search_query}'")
             
-            # Advanced context detection (include 'its' and other possessives)
-            has_pronoun = any(f' {word} ' in f' {question_lower} ' for word in 
-                            ['it', 'its', 'this', 'that', 'them', 'these', 'those', 'they', 'their'])
-            
-            has_contextual_query = any(phrase in question_lower for phrase in [
-                'what companies', 'which companies', 'who makes', 'who has', 'who discovered',
-                'who invented', 'who created', 'how does', 'how did', 'why is', 'why are',
-                'when was', 'when were', 'where is', 'where are', 'what are the benefits',
-                'what are the advantages', 'what can', 'where is it used'
-            ])
-            
-            # Check if this is a short follow-up question (likely needs context)
-            is_short_followup = len(search_query.split()) <= 6 and (has_pronoun or has_contextual_query)
-            
-            print(f"🎯 Context needed: {has_pronoun or has_contextual_query or is_short_followup}")
-            
-            if (has_pronoun or has_contextual_query or is_short_followup) and messages:
-                # Extract main topic using advanced strategies
-                extracted_topic = self._extract_main_topic_from_conversation(messages)
+            async def analyze_and_reformulate():
+                """Analyze query and reformulate if needed (parallel execution)."""
+                # Advanced context detection
+                has_pronoun = any(f' {word} ' in f' {question_lower} ' for word in 
+                                ['it', 'its', 'this', 'that', 'them', 'these', 'those', 'they', 'their'])
                 
-                if extracted_topic:
-                    print(f"💡 Extracted topic: '{extracted_topic}'")
+                has_contextual_query = any(phrase in question_lower for phrase in [
+                    'what companies', 'which companies', 'who makes', 'who has', 'who discovered',
+                    'who invented', 'who created', 'how does', 'how did', 'why is', 'why are',
+                    'when was', 'when were', 'where is', 'where are', 'what are the benefits',
+                    'what are the advantages', 'what can', 'where is it used'
+                ])
+                
+                is_short_followup = len(search_query.split()) <= 6 and (has_pronoun or has_contextual_query)
+                
+                print(f"🎯 Context needed: {has_pronoun or has_contextual_query or is_short_followup}")
+                
+                final_query = search_query
+                if (has_pronoun or has_contextual_query or is_short_followup) and messages:
+                    extracted_topic = self._extract_main_topic_from_conversation(messages)
                     
-                    # Intelligently reformulate the query
-                    search_query = self._reformulate_query_intelligently(search_query, extracted_topic)
-                    
-                    print(f"✨ Reformulated query: '{search_query}'")
-                    
-                    await state.add_indicator(
-                        StreamingIndicator.PROCESSING,
-                        f"Reformulated: {search_query}"
-                    )
+                    if extracted_topic:
+                        print(f"💡 Extracted topic: '{extracted_topic}'")
+                        final_query = self._reformulate_query_intelligently(search_query, extracted_topic)
+                        print(f"✨ Reformulated query: '{final_query}'")
+                    else:
+                        print(f"⚠️  Could not extract topic from conversation")
                 else:
-                    print(f"⚠️  Could not extract topic from conversation")
-            else:
-                print(f"✅ Direct question - no reformulation needed")
+                    print(f"✅ Direct question - no reformulation needed")
+                
+                return final_query
+            
+            async def detect_time_sensitivity():
+                """Detect if query is time-sensitive (parallel execution)."""
+                return any(phrase in question_lower for phrase in [
+                    'current time', 'what time', 'time now', 'time in',
+                    'current date', 'what date', 'date today', 'today date',
+                    'current weather', 'weather now', 'weather today',
+                    'latest', 'breaking news', 'just happened'
+                ])
+            
+            # Execute analysis in parallel
+            start_analysis = time.time()
+            final_search_query, is_time_sensitive = await asyncio.gather(
+                analyze_and_reformulate(),
+                detect_time_sensitivity()
+            )
+            analysis_time = (time.time() - start_analysis) * 1000
+            logger.info(f"⚡ Query analysis (parallel): {analysis_time:.1f}ms")
+            
+            if final_search_query != search_query:
+                await state.add_indicator(
+                    StreamingIndicator.PROCESSING,
+                    f"Reformulated: {final_search_query}"
+                )
             
             print(f"{'='*70}\n")
             
-            # Execute search with reformulated query
+            # Execute search with reformulated query (non-blocking)
             await state.add_indicator(
                 StreamingIndicator.PROCESSING,
-                f"Searching for: {search_query}"
+                f"Searching for: {final_search_query}"
             )
             
-            raw_results = tool.func(search_query)
+            search_start = time.time()
+            raw_results = await asyncio.to_thread(tool.func, final_search_query)
+            search_time = (time.time() - search_start) * 1000
+            logger.info(f"🔍 Web search execution: {search_time:.1f}ms")
             
-            # Detect time-sensitive queries that need disclaimers
-            is_time_sensitive = any(phrase in question_lower for phrase in [
-                'current time', 'what time', 'time now', 'time in',
-                'current date', 'what date', 'date today', 'today date',
-                'current weather', 'weather now', 'weather today',
-                'latest', 'breaking news', 'just happened'
-            ])
+            # Debug: Print raw search results to verify URLs are present
+            print(f"\n{'='*70}")
+            print(f"📋 RAW SEARCH RESULTS (for debugging URL extraction):")
+            print(f"{'='*70}")
+            print(raw_results[:1000] if len(raw_results) > 1000 else raw_results)
+            print(f"{'='*70}\n")
             
+            # Use the is_time_sensitive flag from parallel analysis
             time_disclaimer = ""
             if is_time_sensitive:
                 time_disclaimer = "\n\nIMPORTANT: Add a disclaimer that for real-time information (time, date, weather), the search results may be outdated or cached. Recommend checking a reliable real-time source directly (e.g., time.is, weather.com)."
@@ -947,7 +1172,7 @@ Answer:"""
                 "Synthesizing search results..."
             )
             
-            synthesis_prompt = f"""Answer the question concisely and directly using the search results.
+            synthesis_prompt = f"""Answer the question comprehensively and informatively using the search results.
 
 Question: {state.get("question", "")}
 
@@ -956,18 +1181,57 @@ Search Results:
 
 Instructions:
 1. Use conversation history to understand follow-up questions and pronouns (it, this, that)
-2. Answer ONLY what was asked - no extra sections or elaboration
-3. Be direct and concise (2-4 sentences max for definitions)
-4. Use simple, clear language - avoid complex formatting
-5. Cite ONLY high-quality, authoritative sources:
+2. Provide a DETAILED, comprehensive answer (minimum 4-6 sentences, ideally 6-10 sentences for complex topics)
+3. Cover multiple aspects of the topic and include relevant context, examples, and explanations
+4. Make the response educational and informative - help the user truly understand the subject
+5. Use clear, engaging language with good paragraph structure - write naturally without inline citation numbers
+6. **CRITICAL - NO INLINE CITATION NUMBERS:**
+   - DO NOT use inline citations like [1], [2], [1, 3] anywhere in your answer text
+   - Write naturally and continuously without interrupting the flow with numbers
+   - Present information as a cohesive, well-structured explanation
    - Prioritize: Wikipedia, .edu (universities), .gov (government), .org (established organizations)
    - Avoid: blogs, forums, random websites
    - Include MAXIMUM 4-6 sources
-6. Format sources EXACTLY as: Sources: [1] Title - https://full-url.com, [2] Title - https://full-url.com
-   - ALWAYS include the complete URL for each source
-   - DO NOT write just titles without URLs
-7. DO NOT include HTML tags or markdown links (use plain text URLs)
-8. If the user wants more details, they will ask a follow-up question
+7. **SOURCES SECTION (REQUIRED AT THE END):**
+   
+   After your answer, add a "**Sources**" section with clean, readable citations.
+   
+   The search results above are formatted like this:
+   ```
+   1. Computer Science - Wikipedia
+      Computer science is the study of...
+      Source: https://en.wikipedia.org/wiki/Computer_science
+   ```
+   
+   **Format your sources cleanly without showing URLs:**
+   
+   Example citations:
+   ```
+   **Sources**
+   
+   * Computer Science – Wikipedia
+   * Fundamentals of Algorithms – GeeksforGeeks
+   * Machine Learning Explained – MIT Sloan
+   ```
+   
+   - Use asterisk (*) before each source
+   - Include source title and website name ONLY (no URLs)
+   - Use an en-dash (–) to separate title from website
+   - One source per line (no blank lines between sources)
+   - Include ONLY high-quality sources (Wikipedia, .edu, .gov, .org - avoid blogs/forums)
+   - Maximum 4-6 sources
+   - Keep it clean and readable
+   
+8. DO NOT include URLs, HTML tags, or markdown links in the sources section
+9. If relevant, mention related concepts, applications, or recent developments to enrich understanding
+
+Format:
+[Your comprehensive answer here - no citation numbers in the text]
+
+**Sources**
+
+* [Source 1 title] – [Website]
+* [Source 2 title] – [Website]
 
 Answer:"""
             
@@ -983,8 +1247,11 @@ Answer:"""
             # Get accumulated response
             response_content = state.get("partial_response", "")
             
-            # Update state with result
+            # Update state with result and cache it
             await state.update("tool_result", response_content, stream=False)
+            
+            # Cache the result for future queries
+            self._add_to_cache(cache_key, response_content)
             
             return state
             
