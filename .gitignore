@@ -46,3 +46,42 @@ Thumbs.db
 # Logs
 *.log
 
+# Docker & Container artifacts
+.dockerignore
+docker-compose.override.yml
+.docker/
+docker-data/
+volumes/
+
+# Production & deployment
+.env.prod
+.env.production
+k8s-secrets.yml
+deployment-secrets/
+
+# Test outputs & temporary files
+test-results/
+test-output/
+*.test.log
+temp/
+tmp/
+
+# Monitoring & metrics
+prometheus_data/
+grafana_data/
+logs/
+
+# Build artifacts
+node_modules/
+.next/
+.nuxt/
+coverage/
+.coverage
+htmlcov/
+
+# Database dumps & backups
+*.sql.gz
+*.dump
+backups/
+.sql
+

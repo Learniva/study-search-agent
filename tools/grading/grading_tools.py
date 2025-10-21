@@ -49,8 +49,11 @@ grading_llm = initialize_grading_llm()
 
 # Initialize rubric store for RAG
 if RUBRIC_RAG_AVAILABLE:
-    print("🔄 Initializing Rubric RAG store...")
-    initialize_rubric_store()
+    try:
+        print("Initializing Rubric RAG store...")
+        initialize_rubric_store()
+    except Exception as e:
+        print(f"Rubric RAG store initialization failed: {e}")
 
 
 @tool
