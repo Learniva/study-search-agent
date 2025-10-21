@@ -6,6 +6,12 @@ Search Strategy:
 2. Tavily Search (Fallback) - AI-optimized search as backup
 
 Built on LangChain's RunnableWithFallbacks for clean, maintainable fallback logic.
+
+Enhanced Features:
+- HTML entity decoding (&amp; -> &)
+- Unicode normalization
+- Whitespace cleanup
+- Optional spam filtering
 """
 
 import os
@@ -14,13 +20,34 @@ from langchain.tools import Tool
 from langchain_core.runnables import RunnableLambda
 from langchain_core.output_parsers import StrOutputParser
 
+# Import text cleaning utilities (optional - graceful fallback if not available)
+try:
+    from utils.text_processing import (
+        clean_web_search_text,
+        clean_url,
+        format_citation,
+        is_spam_content
+    )
+    TEXT_CLEANING_AVAILABLE = True
+except ImportError:
+    TEXT_CLEANING_AVAILABLE = False
+    print("⚠️  Text cleaning utilities not available. Install for enhanced results.")
 
-def format_search_results(results: List[Dict[str, Any]]) -> str:
+
+def format_search_results(results: List[Dict[str, Any]], enable_spam_filter: bool = False) -> str:
     """
-    Format search results into human-readable text.
+    Format search results into human-readable text with optional text cleaning.
+    
+    Features:
+    - HTML entity decoding (&amp; -> &)
+    - Unicode normalization (\\u00e9 -> é)
+    - Whitespace cleanup
+    - Optional spam filtering
+    - Better citation format
     
     Args:
         results: List of search result dictionaries
+        enable_spam_filter: Whether to filter out spam content (default: False)
         
     Returns:
         Formatted string with search results
@@ -29,12 +56,42 @@ def format_search_results(results: List[Dict[str, Any]]) -> str:
         return "No search results found."
     
     formatted = []
+    valid_results = 0
+    
     for i, result in enumerate(results, 1):
-        title = result.get('title', 'No title')
-        snippet = result.get('snippet', result.get('content', 'No description'))
-        url = result.get('link', result.get('url', 'No URL'))
+        # Extract raw fields
+        title_raw = result.get('title', 'No title')
+        snippet_raw = result.get('snippet', result.get('content', 'No description'))
+        url_raw = result.get('link', result.get('url', 'No URL'))
         
-        formatted.append(f"{i}. {title}\n   {snippet}\n   Source: {url}")
+        # Apply text cleaning if available
+        if TEXT_CLEANING_AVAILABLE:
+            title = clean_web_search_text(title_raw)
+            snippet = clean_web_search_text(snippet_raw)
+            url = clean_url(url_raw)
+            
+            # Optional spam filtering (disabled by default to be conservative)
+            if enable_spam_filter and is_spam_content(snippet):
+                continue
+            
+            # Skip empty results
+            if not title or not snippet:
+                continue
+            
+            # Use enhanced citation format
+            citation = format_citation(title, url, i)
+            formatted.append(f"{citation}\n   {snippet}\n   Source: {url}")
+        else:
+            # Fallback to basic formatting if cleaning not available
+            title = title_raw
+            snippet = snippet_raw
+            url = url_raw
+            formatted.append(f"{i}. {title}\n   {snippet}\n   Source: {url}")
+        
+        valid_results += 1
+    
+    if valid_results == 0 and enable_spam_filter:
+        return "No valid search results found (possible spam filtered)."
     
     return "\n\n".join(formatted)
 
@@ -216,6 +273,8 @@ def get_web_search_tool() -> Optional[Tool]:
     
     print(f"🌐 Web search configured: {config_msg}")
     print(f"🔗 Built on LangChain's RunnableWithFallbacks for clean fallback logic")
+    if TEXT_CLEANING_AVAILABLE:
+        print(f"🧹 Enhanced text cleaning enabled (HTML entities, Unicode, whitespace)")
     
     return Tool(
         name="Web_Search",

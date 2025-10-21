@@ -124,8 +124,9 @@ class Settings(BaseSettings):
     
     # ==================== Security ====================
     secret_key: str = Field(
-        default="change-me-in-production",
-        description="Secret key for JWT tokens"
+        ...,  # Required field - no default
+        min_length=32,
+        description="Secret key for JWT tokens (must be at least 32 characters)"
     )
     access_token_expire_minutes: int = Field(
         default=30,
@@ -162,6 +163,34 @@ class Settings(BaseSettings):
     stripe_cancel_url: str = Field(
         default="http://localhost:3000/payment/cancel",
         description="Payment cancel redirect URL"
+    )
+    
+    # ==================== Email Configuration ====================
+    email_enabled: bool = Field(default=False, description="Enable email sending")
+    email_backend: str = Field(default="smtp", description="Email backend (smtp or console)")
+    email_host: str = Field(default="smtp.gmail.com", description="SMTP host")
+    email_port: int = Field(default=587, ge=1, le=65535, description="SMTP port")
+    email_use_tls: bool = Field(default=True, description="Use TLS for email")
+    email_use_ssl: bool = Field(default=False, description="Use SSL for email")
+    email_host_user: Optional[str] = Field(default=None, description="Email account username")
+    email_host_password: Optional[str] = Field(default=None, description="Email account password or app password")
+    email_from_address: str = Field(
+        default="noreply@learniva.ai",
+        description="Default FROM email address"
+    )
+    email_from_name: str = Field(
+        default="LearnivaAI",
+        description="Default FROM name"
+    )
+    password_reset_url: str = Field(
+        default="http://localhost:3000/reset-password",
+        description="Frontend password reset page URL"
+    )
+    password_reset_token_expire_hours: int = Field(
+        default=1,
+        ge=1,
+        le=24,
+        description="Password reset token expiry (hours)"
     )
     
     # ==================== Development ====================

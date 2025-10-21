@@ -65,6 +65,7 @@ class ABTestingFramework:
     - Metric tracking (accuracy, latency, satisfaction)
     - Statistical analysis
     - Experiment management (start, pause, stop)
+    - Logging of routing decisions
     """
     
     def __init__(self, experiments_dir: str = "experiments"):

@@ -90,6 +90,12 @@ class PasswordChangeRequest(BaseModel):
     confirm_password: str
 
 
+class DeleteAccountRequest(BaseModel):
+    """Delete account request."""
+    password: str
+    confirmation_text: str = ""  # User must type "DELETE" to confirm
+
+
 # ============================================================================
 # Helper Functions
 # ============================================================================
@@ -396,6 +402,17 @@ async def change_password(
         }
     """
     user_id = current_user["email"]
+    user = await get_user_by_id(session, user_id)
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Check if user is OAuth-only (Google Sign-In)
+    if user.google_id and not user.settings.get('password_hash'):
+        raise HTTPException(
+            status_code=400,
+            detail="This account uses Google Sign-In. Password management is not available. You can set a password by contacting support."
+        )
     
     # Verify new passwords match
     if password_change.new_password != password_change.confirm_password:
@@ -404,11 +421,30 @@ async def change_password(
             detail="New passwords do not match"
         )
     
-    # Validate new password (add more validation in production)
+    # Validate new password strength
     if len(password_change.new_password) < 8:
         raise HTTPException(
             status_code=400,
             detail="Password must be at least 8 characters long"
+        )
+    
+    # Additional password strength checks
+    if not any(c.isupper() for c in password_change.new_password):
+        raise HTTPException(
+            status_code=400,
+            detail="Password must contain at least one uppercase letter"
+        )
+    
+    if not any(c.islower() for c in password_change.new_password):
+        raise HTTPException(
+            status_code=400,
+            detail="Password must contain at least one lowercase letter"
+        )
+    
+    if not any(c.isdigit() for c in password_change.new_password):
+        raise HTTPException(
+            status_code=400,
+            detail="Password must contain at least one number"
         )
     
     # Change password using database operation (includes current password verification)
@@ -432,61 +468,188 @@ async def change_password(
 
 @router.delete("/account")
 async def delete_account(
-    password: str,
+    delete_request: DeleteAccountRequest,
     current_user: dict = Depends(get_current_user),
     session: AsyncSession = Depends(get_session)
 ):
     """
     Delete user account permanently.
     
-    WARNING: This action is irreversible!
+    WARNING: This action is irreversible! All data will be permanently deleted.
     
     Headers:
         Authorization: Token abc123...
     
     Request Body:
         {
-            "password": "password123"
+            "password": "password123",
+            "confirmation_text": "DELETE"
         }
     
     Response:
         {
-            "message": "Account deleted successfully"
+            "message": "Account deleted successfully",
+            "deleted_items": {...}
         }
     """
+    import logging
+    from sqlalchemy import delete as sql_delete
+    from database.models.user import User
+    from database.models.token import Token
+    from database.models.payment import Customer, Subscription, PaymentHistory
+    from database.models.grading import GradingSession
+    from database.models.rag import DocumentVector, RAGQueryLog
+    from database.models.audit import AuditLog
+    from utils.auth.password import verify_password
+    
+    logger = logging.getLogger(__name__)
+    
     user_id = current_user["email"]
     user = await get_user_by_id(session, user_id)
     
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    # Verify password
-    from utils.auth.password import verify_password
-    password_hash = user.settings.get('password_hash')
-    if not password_hash or not verify_password(password, password_hash):
+    # Verify confirmation text
+    if delete_request.confirmation_text.upper() != "DELETE":
         raise HTTPException(
             status_code=400,
-            detail="Password is incorrect"
+            detail="Please type 'DELETE' to confirm account deletion"
         )
     
-    # Mark user as inactive (safer than deleting)
-    # In production, you might want to completely delete or anonymize data
-    from sqlalchemy import update
-    from database.models.user import User
-    await session.execute(
-        update(User)
-        .where(User.user_id == user_id)
-        .values(is_active=False)
-    )
-    await session.commit()
+    # Verify password (skip for OAuth-only users)
+    if user.settings and user.settings.get('password_hash'):
+        password_hash = user.settings.get('password_hash')
+        if not verify_password(delete_request.password, password_hash):
+            raise HTTPException(
+                status_code=400,
+                detail="Password is incorrect"
+            )
+    elif user.google_id:
+        # For OAuth users without password, require them to re-authenticate
+        # For now, we'll skip password check but this could be enhanced
+        logger.info(f"OAuth user {user_id} deleting account without password check")
+    else:
+        raise HTTPException(
+            status_code=400,
+            detail="Unable to verify account ownership"
+        )
     
-    # Note: Token invalidation would require iterating through Redis keys
-    # For now, tokens will expire naturally
-    # TODO: Implement proper token blacklist or invalidation strategy
-    
-    return {
-        "message": "Account deleted successfully"
+    # Track what we delete for audit purposes
+    deleted_items = {
+        "tokens": 0,
+        "documents": 0,
+        "grading_sessions": 0,
+        "query_logs": 0,
+        "audit_logs": 0,
+        "payment_records": 0,
+        "subscriptions_canceled": 0
     }
+    
+    try:
+        # 1. Cancel Stripe subscriptions if any
+        try:
+            # Get user's Stripe customer record
+            from sqlalchemy import select
+            customer_result = await session.execute(
+                select(Customer).where(Customer.user_id == user_id)
+            )
+            customer = customer_result.scalars().first()
+            
+            if customer:
+                # Cancel all active subscriptions in Stripe
+                try:
+                    from utils.payment.stripe_client import stripe_client
+                    import stripe
+                    
+                    # Get all subscriptions for this customer
+                    subscriptions_result = await session.execute(
+                        select(Subscription).where(Subscription.user_id == user_id)
+                    )
+                    subscriptions = subscriptions_result.scalars().all()
+                    
+                    for sub in subscriptions:
+                        try:
+                            # Cancel in Stripe
+                            stripe.Subscription.delete(sub.stripe_subscription_id)
+                            deleted_items["subscriptions_canceled"] += 1
+                            logger.info(f"Canceled Stripe subscription: {sub.stripe_subscription_id}")
+                        except Exception as stripe_err:
+                            logger.warning(f"Failed to cancel Stripe subscription: {stripe_err}")
+                    
+                except Exception as stripe_err:
+                    logger.warning(f"Stripe cancellation warning: {stripe_err}")
+        except Exception as e:
+            logger.warning(f"Error processing Stripe cleanup: {e}")
+        
+        # 2. Delete all user tokens (invalidate sessions)
+        token_result = await session.execute(
+            sql_delete(Token).where(Token.user_id == user_id)
+        )
+        deleted_items["tokens"] = token_result.rowcount
+        
+        # 3. Delete or anonymize user documents
+        doc_result = await session.execute(
+            sql_delete(DocumentVector).where(DocumentVector.user_id == user_id)
+        )
+        deleted_items["documents"] = doc_result.rowcount
+        
+        # 4. Delete grading sessions (or keep for institutional records)
+        # Option 1: Delete completely
+        grading_result = await session.execute(
+            sql_delete(GradingSession).where(GradingSession.professor_id == user.id)
+        )
+        deleted_items["grading_sessions"] = grading_result.rowcount
+        
+        # 5. Delete RAG query logs
+        query_result = await session.execute(
+            sql_delete(RAGQueryLog).where(RAGQueryLog.user_id == user_id)
+        )
+        deleted_items["query_logs"] = query_result.rowcount
+        
+        # 6. Keep audit logs for compliance but anonymize
+        # (Don't delete audit logs - they're needed for compliance)
+        # Instead, we could anonymize them
+        # For now, we'll keep them as-is
+        
+        # 7. Delete payment records (or keep for financial compliance)
+        payment_result = await session.execute(
+            sql_delete(PaymentHistory).where(PaymentHistory.user_id == user_id)
+        )
+        deleted_items["payment_records"] = payment_result.rowcount
+        
+        # 8. Delete subscription records
+        sub_result = await session.execute(
+            sql_delete(Subscription).where(Subscription.user_id == user_id)
+        )
+        
+        # 9. Delete customer record
+        customer_result = await session.execute(
+            sql_delete(Customer).where(Customer.user_id == user_id)
+        )
+        
+        # 10. Finally, delete the user account
+        await session.execute(
+            sql_delete(User).where(User.user_id == user_id)
+        )
+        
+        # Commit all deletions
+        await session.commit()
+        
+        logger.info(f"✅ Account deleted: {user_id}, Items: {deleted_items}")
+        
+        return {
+            "message": "Account deleted successfully. All your data has been permanently removed.",
+            "deleted_items": deleted_items
+        }
+        
+    except Exception as e:
+        await session.rollback()
+        logger.error(f"❌ Account deletion failed for {user_id}: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Account deletion failed. Please contact support. Error: {str(e)}"
+        )
 
 
 # ============================================================================

@@ -13,7 +13,7 @@ from pydantic import BaseModel, EmailStr
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from utils.auth.jwt_handler import get_current_user  # Use Google OAuth JWT authentication
+from utils.auth.jwt_handler import get_current_user, get_optional_current_user  # Use Google OAuth JWT authentication
 from database.core.async_connection import get_session
 from database.operations.user_ops import (
     get_user_by_id,

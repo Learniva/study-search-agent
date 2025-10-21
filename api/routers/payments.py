@@ -13,6 +13,7 @@ from utils.payment import (
     create_customer,
     verify_webhook_signature,
 )
+from utils.auth import get_current_user
 from database.core.async_engine import get_async_db
 from database.models.payment import Customer, Subscription, PaymentHistory, SubscriptionStatus
 from sqlalchemy import select
@@ -69,17 +70,27 @@ class SubscriptionResponse(BaseModel):
 async def create_checkout(
     request: CheckoutSessionRequest,
     db: AsyncSession = Depends(get_async_db),
+    current_user: dict = Depends(get_current_user),
 ):
     """
     Create a Stripe Checkout Session for subscription.
     
+    **Authentication Required:** User must be authenticated with JWT token.
+    
     Args:
         request: Checkout session request with user info
         db: Database session
+        current_user: Authenticated user from JWT token
         
     Returns:
         Checkout session with URL and publishable key
     """
+    # Verify user_id matches authenticated user
+    if request.user_id != current_user.user_id:
+        raise HTTPException(
+            status_code=403,
+            detail="You can only create checkout sessions for your own account"
+        )
     try:
         # Validate Stripe configuration
         if not STRIPE_PUBLISHABLE_KEY or STRIPE_PUBLISHABLE_KEY == "":
@@ -143,17 +154,27 @@ async def create_checkout(
 async def create_portal(
     request: CustomerPortalRequest,
     db: AsyncSession = Depends(get_async_db),
+    current_user: dict = Depends(get_current_user),
 ):
     """
     Create a Stripe Customer Portal Session for managing subscriptions.
     
+    **Authentication Required:** User must be authenticated with JWT token.
+    
     Args:
         request: Customer portal request
         db: Database session
+        current_user: Authenticated user from JWT token
         
     Returns:
         Customer portal URL
     """
+    # Verify user_id matches authenticated user
+    if request.user_id != current_user.user_id:
+        raise HTTPException(
+            status_code=403,
+            detail="You can only access your own customer portal"
+        )
     try:
         # Get customer from database
         result = await db.execute(
@@ -196,17 +217,27 @@ async def create_portal(
 async def get_subscription_status(
     user_id: str,
     db: AsyncSession = Depends(get_async_db),
+    current_user: dict = Depends(get_current_user),
 ):
     """
     Get user's subscription status.
     
+    **Authentication Required:** User must be authenticated with JWT token.
+    
     Args:
         user_id: User ID
         db: Database session
+        current_user: Authenticated user from JWT token
         
     Returns:
         Subscription information
     """
+    # Verify user_id matches authenticated user (or admin)
+    if user_id != current_user.user_id and current_user.role != "admin":
+        raise HTTPException(
+            status_code=403,
+            detail="You can only view your own subscription status"
+        )
     try:
         # Get active subscription
         result = await db.execute(
@@ -240,6 +271,9 @@ async def stripe_webhook(
 ):
     """
     Handle Stripe webhook events.
+    
+    SECURITY: This endpoint is rate-limited by Stripe's webhook delivery.
+    Signature verification prevents replay attacks.
     
     Args:
         request: FastAPI request
@@ -420,8 +454,14 @@ async def handle_payment_failed(event: dict, db: AsyncSession):
 
 
 @router.get("/config")
-async def get_stripe_config():
-    """Get Stripe publishable key and configuration."""
+async def get_stripe_config(
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Get Stripe publishable key and configuration.
+    
+    **Authentication Required:** User must be authenticated with JWT token.
+    """
     return {
         "publishable_key": STRIPE_PUBLISHABLE_KEY,
         "price_id": STRIPE_PRICE_ID,

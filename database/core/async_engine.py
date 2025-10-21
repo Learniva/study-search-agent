@@ -13,6 +13,7 @@ from typing import AsyncGenerator, Optional
 from contextlib import asynccontextmanager
 import asyncio
 import random
+import logging
 
 from sqlalchemy.ext.asyncio import (
     create_async_engine,
@@ -24,6 +25,8 @@ from sqlalchemy.pool import NullPool, AsyncAdaptedQueuePool
 from sqlalchemy import text, event
 
 from config import settings
+
+logger = logging.getLogger(__name__)
 
 
 class AsyncDatabaseEngine:
@@ -73,19 +76,19 @@ class AsyncDatabaseEngine:
         def receive_connect(dbapi_conn, connection_record):
             """Track new connections."""
             if settings.debug:
-                print(f"📊 Database: New connection established")
+                logger.debug("📊 Database: New connection established")
         
         @event.listens_for(engine, "checkout")
         def receive_checkout(dbapi_conn, connection_record, connection_proxy):
             """Track connection checkout from pool."""
             if settings.debug:
-                print(f"📊 Database: Connection checked out from pool")
+                logger.debug("📊 Database: Connection checked out from pool")
         
         @event.listens_for(engine, "checkin")
         def receive_checkin(dbapi_conn, connection_record):
             """Track connection checkin to pool."""
             if settings.debug:
-                print(f"📊 Database: Connection returned to pool")
+                logger.debug("📊 Database: Connection returned to pool")
     
     @property
     def engine(self) -> AsyncEngine:
@@ -150,11 +153,11 @@ class AsyncDatabaseEngine:
                 if attempt < max_retries:
                     # Calculate exponential backoff with jitter
                     backoff = retry_backoff * (2 ** attempt) * (0.5 + 0.5 * random.random())
-                    print(f"Database connection error, retrying in {backoff:.2f}s: {e}")
+                    logger.warning(f"Database connection error, retrying in {backoff:.2f}s: {e}")
                     await asyncio.sleep(backoff)
                 else:
                     # Last attempt failed, re-raise
-                    print(f"Database connection failed after {max_retries} retries: {e}")
+                    logger.error(f"Database connection failed after {max_retries} retries: {e}")
                     raise
     
     async def health_check(self) -> bool:
@@ -164,7 +167,7 @@ class AsyncDatabaseEngine:
                 await session.execute(text("SELECT 1"))
             return True
         except Exception as e:
-            print(f"❌ Database health check failed: {e}")
+            logger.error(f"❌ Database health check failed: {e}")
             return False
     
     async def close(self):
@@ -173,7 +176,7 @@ class AsyncDatabaseEngine:
             await self._engine.dispose()
             self._engine = None
             self._session_factory = None
-            print("📊 Database: Engine closed and connections cleaned up")
+            logger.info("📊 Database: Engine closed and connections cleaned up")
 
 
 # Global async database engine

@@ -210,7 +210,101 @@ VOICEOVER USAGE (adds professional narration):
 - gTTS provides clear, fast narration (much faster than ElevenLabs!)
 
 CRITICAL CONSTRAINTS:
-0. ANIMATION SYNTAX (MOST COMMON ERROR - CHECK FIRST!):
+0. EMPTY ANIMATION LISTS (CRITICAL ERROR - ALWAYS CHECK!):
+   - NEVER call self.play() with an empty list of animations!
+   - This causes: ValueError: Called Scene.play with no animations
+   - ALWAYS check if list is non-empty before unpacking with *
+   
+   ❌ WRONG - Will crash if boxes is empty:
+   ```python
+   self.play(*[box.animate.set_color(GREEN) for box in boxes])
+   ```
+   
+   ✅ CORRECT - Check before playing:
+   ```python
+   animations = [box.animate.set_color(GREEN) for box in boxes]
+   if animations:  # Check if list is not empty
+       self.play(*animations)
+   ```
+   
+   ✅ CORRECT - Alternative with conditional:
+   ```python
+   if boxes:  # Check if boxes list has items
+       self.play(*[box.animate.set_color(GREEN) for box in boxes])
+   ```
+   
+   COMMON SCENARIOS WHERE THIS HAPPENS:
+   - At end of algorithms when all elements are processed
+   - After removing/fading out all objects
+   - When filtering lists that might become empty
+   - In loops where objects are consumed/removed
+   
+   BEST PRACTICE:
+   - Always validate lists before using * unpacking in self.play()
+   - Check both the container (boxes) and the animations list
+   - Add safety checks at the end of algorithms
+
+0.1. COLOR COMPARISON (CRITICAL ERROR - DO NOT USE np.allclose FOR COLORS!):
+   - Manim colors can be ManimColor objects, hex strings, or RGB arrays
+   - NEVER use np.allclose() to compare colors - causes DTypePromotionError!
+   - Colors returned by .get_color() are strings like "#00FF00"
+   - np.allclose() expects numeric arrays, NOT strings
+   
+   ❌ WRONG - Will crash with DTypePromotionError:
+   ```python
+   if not np.allclose(box.get_color(), COLOR_SORTED):  # CRASHES!
+       # This tries to compare strings with np.allclose()
+   ```
+   
+   ✅ CORRECT - Use direct equality or convert to arrays:
+   ```python
+   # Method 1: Track state instead of comparing colors
+   sorted_indices = set()  # Track which boxes are sorted
+   sorted_indices.add(i)  # Mark box i as sorted
+   
+   if i not in sorted_indices:
+       box.animate.set_color(ACTIVE_COLOR)
+   ```
+   
+   ✅ CORRECT - Alternative with ManimColor:
+   ```python
+   # Method 2: Convert to RGB arrays for comparison
+   from manim.utils.color import ManimColor
+   current_rgb = ManimColor(box.get_color()).to_rgb()
+   target_rgb = ManimColor(SORTED_COLOR).to_rgb()
+   
+   if not np.allclose(current_rgb, target_rgb):
+       box.animate.set_color(SORTED_COLOR)
+   ```
+   
+   ✅ CORRECT - Best practice for algorithms:
+   ```python
+   # Method 3: Use boolean flags/sets to track state
+   # Instead of checking colors, track algorithm state explicitly
+   is_sorted = [False] * n
+   
+   # When element is sorted:
+   is_sorted[i] = True
+   box.animate.set_color(SORTED_COLOR)
+   
+   # Later check:
+   if not is_sorted[i]:
+       # Do something with unsorted element
+   ```
+   
+   WHY THIS MATTERS:
+   - .get_color() returns hex string like "#00FF00" (StrDType)
+   - np.allclose(string, string) fails with DTypePromotionError
+   - Color constants (RED, GREEN, etc.) are ManimColor objects
+   - Comparing strings with floats causes type promotion error
+   
+   BEST PRACTICE FOR ALGORITHMS:
+   - Track state with boolean lists/sets, NOT by comparing colors
+   - Use color changes for visualization, not for logic
+   - If you MUST compare colors, convert to RGB arrays first
+   - Avoid np.allclose() for color comparison entirely
+
+0.5. ANIMATION SYNTAX (MOST COMMON ERROR - CHECK FIRST!):
    - Modern Manim uses .animate property for transformations
    - NEVER use ApplyMethod with .animate - this causes ValueError!
      * CORRECT: self.play(obj.animate.move_to(point))
@@ -223,7 +317,7 @@ CRITICAL CONSTRAINTS:
      * CORRECT: self.play(LaggedStart(*[d.animate.move_to(p) for d, p in zip(dots, positions)]))
    - BEST PRACTICE: Use .animate syntax (simpler and modern)
 
-0.5. TEXT STYLING PARAMETERS (CRITICAL ERROR - PREVENT TypeError!):
+1. TEXT STYLING PARAMETERS (CRITICAL ERROR - PREVENT TypeError!):
    
    ⚠️  CRITICAL: t2c, t2s, t2w ONLY work with Text() objects, NEVER with MathTex()! ⚠️
    
@@ -258,7 +352,7 @@ CRITICAL CONSTRAINTS:
    - MathTex() objects: NEVER use t2c, t2s, t2w ❌ Will cause TypeError!
    - If you need colored math: Use set_color_by_tex() after creation
 
-1. OPACITY PARAMETERS (PREVENT ERRORS - VERY IMPORTANT!):
+2. OPACITY PARAMETERS (PREVENT ERRORS - VERY IMPORTANT!):
    - NEVER EVER use 'opacity' parameter in ANY Manim constructor! ❌
    - The parameter 'opacity' does NOT exist in Manim v0.19.0!
    
@@ -281,7 +375,7 @@ CRITICAL CONSTRAINTS:
      * Use stroke_opacity for the border/outline transparency
      * NEVER use 'opacity' - it will cause TypeError!
 
-1.5. POSITIONING & ROTATION METHODS (PREVENT TypeError & AttributeError!):
+3. POSITIONING & ROTATION METHODS (PREVENT TypeError & AttributeError!):
    
    POSITIONING METHODS:
    - CORRECT centering methods:
@@ -290,6 +384,13 @@ CRITICAL CONSTRAINTS:
      * .to_edge(UP/DOWN/LEFT/RIGHT, buff=0.5) - Move to screen edge ✅
      * .shift(direction * distance) - Move by offset ✅
      * .next_to(other, direction, buff=1.0) - Position relative to another object ✅
+   
+   - ALIGNMENT (CRITICAL - COMMON ERROR!):
+     * .align_to(other, direction) - Align with another object ✅
+     * NEVER use 'about_edge' parameter - IT DOESN'T EXIST! ❌
+     * CORRECT: obj.align_to(other, UP) ✅
+     * WRONG: obj.align_to(other, UP, about_edge=ORIGIN) ❌ TypeError!
+     * The about_edge parameter was removed in modern Manim versions!
    
    - WRONG methods (will cause AttributeError):
      * .to_center() - Does NOT exist! ❌ AttributeError!
@@ -339,7 +440,7 @@ CRITICAL CONSTRAINTS:
    axes.to_center()  # AttributeError!
    ```
 
-2. ALGORITHMIC CORRECTNESS (HIGHEST PRIORITY - MOST IMPORTANT!):
+4. ALGORITHMIC CORRECTNESS (HIGHEST PRIORITY - MOST IMPORTANT!):
    - For algorithms: SHOW EVERY SINGLE STEP - do NOT skip any iterations!
    - Bubble Sort: Show ALL passes until array is fully sorted
    - Example: If array needs 3 passes to sort, animate ALL 3 passes
@@ -349,7 +450,7 @@ CRITICAL CONSTRAINTS:
    - ACCURACY > BREVITY - completeness is essential for education
    - If algorithm takes 10 steps, show all 10 steps (not just 1-2 examples)
 
-3. SPATIAL AWARENESS - FIT SCREEN & CENTER PERFECTLY (CRITICAL!):
+5. SPATIAL AWARENESS - FIT SCREEN & CENTER PERFECTLY (CRITICAL!):
    
    FRAME DIMENSIONS & SAFE ZONES:
    - Frame size: 14.2 units wide × 8 units tall (centered at ORIGIN)
@@ -488,7 +589,7 @@ CRITICAL CONSTRAINTS:
    - Scale down if needed, then re-center
    - Leave generous margins (0.5-1.0 buff minimum)
 
-4. TIMING & VOICEOVER - SMOOTH PACING (VERY IMPORTANT!):
+6. TIMING & VOICEOVER - SMOOTH PACING (VERY IMPORTANT!):
    - DO NOT use self.wait() inside voiceover blocks - it's automatic!
    - Voiceover blocks handle their own timing based on speech duration
    
@@ -518,12 +619,38 @@ CRITICAL CONSTRAINTS:
    - Use self.wait() only between voiceover blocks for transitions
    - Shorter voiceover text = faster, more engaging animations
    
-5. CODE STRUCTURE: Follow the plan steps exactly in order
+7. CODE STRUCTURE: Follow the plan steps exactly in order
 
-6. ULTRA-MODERN PROFESSIONAL AESTHETICS - USE VARIETY!:
+8. ULTRA-MODERN PROFESSIONAL AESTHETICS - USE VARIETY!:
    - MINIMALISTIC, clean design with plenty of negative space
    - USE MULTIPLE COLORS for visual interest and beauty!
    - Different objects should have different colors
+   
+   CRITICAL - COLOR AND OPACITY METHODS (PREVENT TypeError!):
+   - .set_color() ONLY accepts color value, NO opacity parameters! ❌
+   - NEVER use: obj.set_color(RED, fill_opacity=0.5) ❌ TypeError!
+   - NEVER use: obj.set_color(BLUE, stroke_opacity=0.8) ❌ TypeError!
+   
+   CORRECT ways to set color AND opacity:
+   ```python
+   # ✅ Option 1: Set separately
+   obj.set_color(RED)
+   obj.set_fill(RED, opacity=0.5)
+   obj.set_stroke(RED, opacity=0.8)
+   
+   # ✅ Option 2: Use animate property
+   obj.animate.set_color(BLUE)  # Just color, no opacity
+   obj.animate.set_fill(BLUE, opacity=0.3)
+   
+   # ✅ Option 3: Set during creation (BEST)
+   circle = Circle(color=RED, fill_opacity=0.5, stroke_opacity=1.0)
+   ```
+   
+   WHEN CHANGING COLORS IN ANIMATIONS:
+   - If you need to change BOTH color and opacity:
+     * CORRECT: obj.set_fill(color, opacity=value) ✅
+     * CORRECT: obj.set_stroke(color, opacity=value) ✅
+     * WRONG: obj.set_color(color, fill_opacity=value) ❌
    
    BEAUTIFUL COLOR PALETTE (Use variety - mix and match!):
    IMPORTANT: Use HEX CODES or valid Manim color constants only!
@@ -616,10 +743,20 @@ CRITICAL CONSTRAINTS:
    - Vary animation speeds: run_time=0.5 (fast), run_time=1.5 (smooth emphasis)
    - Mix animation types in same scene for visual interest
 
-7. OBJECTS: Use appropriate Manim primitives
+9. OBJECTS: Use appropriate Manim primitives
    - Text: Text("string", font_size=36, color=WHITE, weight=BOLD)
      * CRITICAL: 'weight' parameter ONLY works with Text(), NOT MathTex()!
      * weight=BOLD or weight=NORMAL (only for Text objects)
+     
+     ⚠️  ACCESSING TEXT CONTENT - NEVER use .get_string() (DEPRECATED!):
+     * Text objects use .text attribute, NOT .get_string() method! ⚠️
+     * .get_string() is DEPRECATED and will cause AttributeError in modern Manim!
+     * CORRECT: text_mobj.text  # Returns the string content ✅
+     * WRONG: text_mobj.get_string()  # ❌ AttributeError or DeprecationWarning!
+     * Example usage:
+       - CORRECT: value = int(num_mobj.text) ✅
+       - WRONG: value = int(num_mobj.get_string()) ❌
+     * When tracking array values: use text_mobj.text to read the number
      
      ⚠️  ROTATION - NEVER use 'rotation' or 'angle' parameters (they don't exist!):
      * Text() does NOT accept 'rotation' or 'angle' in constructor
@@ -706,6 +843,43 @@ CRITICAL CONSTRAINTS:
     * random.randint(1, 10) - Random integer for data values
   - ALWAYS import random if you use ANY random.* functions! ⚠️
   
+  CRITICAL - CODE DISPLAY (PREVENT TypeError!):
+  - NEVER use Code() class to display code snippets! ❌
+  - The Code class in modern Manim has a completely different API than expected!
+  - Code(code="...") will cause TypeError: Code.__init__() got an unexpected keyword argument 'code'
+  
+  If you need to show code in an animation:
+  - ❌ WRONG: Code(code=code_string, ...) - Will crash!
+  - ✅ CORRECT: Use Text() with monospace font instead:
+    ```python
+    code_text = Text(
+        'circle = Circle()\\nself.play(Create(circle))',
+        font="Courier New",  # Monospace font for code
+        font_size=24,
+        color=WHITE
+    )
+    ```
+  - ✅ ALTERNATIVE: Use Paragraph() for multi-line code:
+    ```python
+    from manim import Paragraph
+    code_lines = [
+        'def bubble_sort(arr):',
+        '    for i in range(len(arr)):',
+        '        for j in range(len(arr)-1):',
+        '            if arr[j] > arr[j+1]:',
+        '                arr[j], arr[j+1] = arr[j+1], arr[j]'
+    ]
+    code_display = Paragraph(
+        *code_lines,
+        font="Courier New",
+        font_size=20,
+        color=GREEN,
+        line_spacing=0.8
+    )
+    ```
+  - BEST PRACTICE: If showing code is essential, use simple Text objects
+  - Focus on visual explanations instead of showing code
+  
   - Axes: Axes(x_range=[-5, 5], y_range=[-5, 5], color=WHITE)
    - Graphs: axes.plot(lambda x: x**2, color=BLUE)
    - Groups: VGroup(obj1, obj2, ...)
@@ -716,7 +890,7 @@ CRITICAL CONSTRAINTS:
      * WRONG: Dot(point, radius=0.08, color=BLUE, opacity=0.8) ❌ TypeError!
      * Example: Dot(ORIGIN, radius=0.1, color="#00D9FF", fill_opacity=1.0, stroke_opacity=0)
 
-8. ANIMATIONS: Use smooth, clear animations
+10. ANIMATIONS: Use smooth, clear animations
    - Create(object) - draw shapes
    - Write(text) - write text
    - FadeIn(object) - fade in
@@ -1277,8 +1451,13 @@ class ManimAnimationManager:
             True if Manim is available, False otherwise
         """
         try:
+            # Use full path from virtual environment
+            import sys
+            venv_manim = str(Path(sys.executable).parent / 'manim')
+            manim_cmd = venv_manim if Path(venv_manim).exists() else 'manim'
+            
             result = subprocess.run(
-                ['manim', '--version'],
+                [manim_cmd, '--version'],
                 capture_output=True,
                 text=True,
                 timeout=5
@@ -1477,9 +1656,11 @@ class ManimAnimationManager:
                 print(f"🎥 Rendering animation with Manim ({quality})...")
                 print(f"   Output: {self.output_dir}/{output_file}.mp4")
                 
-                # Run Manim command
+                # Run Manim command (use full path from virtual environment)
+                import sys
+                venv_manim = str(Path(sys.executable).parent / 'manim')
                 cmd = [
-                    'manim',
+                    venv_manim if Path(venv_manim).exists() else 'manim',
                     '-ql' if quality == 'low_quality' else 
                     '-qm' if quality == 'medium_quality' else
                     '-qh' if quality == 'high_quality' else '-qp',
@@ -1569,7 +1750,7 @@ class ManimAnimationManager:
                 
                 # Create a clean filename
                 import shutil
-                from datetime import datetime
+                # datetime is already imported at the top of the file
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 clean_filename = f"{output_file}_{timestamp}.mp4"
                 download_path = downloads_dir / clean_filename
@@ -1911,8 +2092,13 @@ def generate_manim_animation(manim_code: str) -> str:
         # Execute subprocess.run(["manim", ...]) - HIGH-LATENCY STEP
         print(f"🎥 Executing Manim rendering process (this may take 30-60 seconds)...")
         
+        # Use full path from virtual environment
+        import sys
+        venv_manim = str(Path(sys.executable).parent / 'manim')
+        manim_cmd = venv_manim if Path(venv_manim).exists() else 'manim'
+        
         cmd = [
-            'manim',
+            manim_cmd,
             '-qm',  # Medium quality
             temp_file,
             'ConceptAnimation',

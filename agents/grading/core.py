@@ -60,52 +60,25 @@ class GradingAgent(BaseAgent):
         assignment_name: Optional[str] = None,
         **kwargs
     ) -> Dict[str, Any]:
-        """Build initial state for grading workflow."""
+        """
+        Build initial state for grading workflow.
+        
+        Uses shared StateManager.create_grading_agent_state() to eliminate duplication
+        and ensure consistency across grading workflows.
+        """
         existing_messages = existing_messages or []
         max_iterations = ConfigManager.get_max_iterations("grading")
         
-        # Build comprehensive grading agent state
-        state = StateManager.create_base_state(
+        return StateManager.create_grading_agent_state(
             question=question,
             existing_messages=existing_messages,
+            max_iterations=max_iterations,
+            professor_id=professor_id,
+            student_id=student_id,
+            student_name=student_name,
+            course_id=course_id,
+            assignment_id=assignment_id,
+            assignment_name=assignment_name,
             **kwargs
         )
-        
-        # Add grading-specific fields
-        grading_fields = {
-            "professor_id": professor_id,
-            "student_id": student_id,
-            "student_name": student_name,
-            "course_id": course_id,
-            "assignment_id": assignment_id,
-            "assignment_name": assignment_name,
-            "grading_type": None,
-            "submission_data": {"question": question},
-            "ai_feedback_data": {},
-            "processing_start_time": time.time(),
-            "grading_confidence": None,
-            "consistency_score": None,
-            "detected_issues": [],
-            "needs_human_review": False,
-            "review_reasons": [],
-            "rubric_used": None,
-            "adapted_rubric": False,
-            "criterion_scores": None,
-            "feedback_quality": None,
-            "suggested_improvements": [],
-            "positive_highlights": [],
-            "potential_errors": [],
-            "auto_corrections": [],
-            "compared_to_average": None,
-            "percentile_rank": None,
-            "is_complex_grading": False,
-            "grading_plan": None,
-            "current_grading_step": 0,
-            "completed_grading_steps": [],
-            "intermediate_grading_results": [],
-            "max_iterations": max_iterations
-        }
-        
-        return {**state, **grading_fields}
-
 

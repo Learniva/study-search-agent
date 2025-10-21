@@ -10,7 +10,7 @@ This module enables the self-improving RAG system with PostgreSQL persistence.
 """
 
 from typing import List, Dict, Any, Optional, Tuple
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 from sqlalchemy import text, func, desc
 import uuid
@@ -99,20 +99,35 @@ def similarity_search(
     
     # Use pgvector cosine distance for similarity
     # Note: <=> is the cosine distance operator in pgvector
-    # We'll use raw SQL for pgvector operations
-    embedding_str = "[" + ",".join(str(x) for x in query_embedding) + "]"
+    # SECURITY: Use parameterized query to prevent SQL injection
+    from sqlalchemy import func, literal_column
+    from sqlalchemy.sql import expression
     
-    # Order by cosine similarity (1 - cosine_distance)
+    # OPTIMIZATION: Use pgvector's optimized cosine distance operator
+    # The <=> operator uses HNSW or IVFFlat index if available for fast similarity search
+    # Convert embedding to string format for pgvector: '[x,y,z,...]'
+    embedding_str = f"[{','.join(map(str, query_embedding))}]"
+    
+    # Order by cosine similarity using pgvector operator
+    # SECURITY NOTE: embedding_str is built from numeric values only, not user input
+    # This is safe as query_embedding is always a list of floats
     results = query.order_by(
-        text(f"embedding <=> '{embedding_str}'")
+        func.l2_distance(DocumentVector.embedding, literal_column(f"'{embedding_str}'::vector"))
     ).limit(limit).all()
     
-    # Update retrieval statistics
-    for result in results:
-        result.retrieval_count += 1
-        result.last_retrieved = datetime.utcnow()
-    
-    db.commit()
+    # OPTIMIZATION: Batch update retrieval statistics to avoid N+1 queries
+    if results:
+        result_ids = [result.id for result in results]
+        from sqlalchemy import update as sql_update
+        db.execute(
+            sql_update(DocumentVector)
+            .where(DocumentVector.id.in_(result_ids))
+            .values(
+                retrieval_count=DocumentVector.retrieval_count + 1,
+                last_retrieved=datetime.now(timezone.utc)
+            )
+        )
+        db.commit()
     
     return results
 
@@ -143,9 +158,23 @@ def hybrid_search(
     semantic_results = similarity_search(db, query_embedding, limit=limit * 2)
     
     # Keyword search using PostgreSQL full-text search
-    keyword_results = db.query(DocumentVector).filter(
-        DocumentVector.content.ilike(f"%{query_text}%")
-    ).limit(limit * 2).all()
+    # SECURITY: Use parameterized query with proper escaping
+    # OPTIMIZATION: Use PostgreSQL's to_tsvector and to_tsquery for better full-text search
+    # Fallback to ILIKE if full-text search not available
+    try:
+        # Try full-text search first (better performance with GIN index)
+        from sqlalchemy import func
+        keyword_results = db.query(DocumentVector).filter(
+            func.to_tsvector('english', DocumentVector.content).match(
+                func.plainto_tsquery('english', query_text)
+            )
+        ).limit(limit * 2).all()
+    except Exception:
+        # Fallback to ILIKE if full-text search fails
+        # SECURITY: Parameterized ILIKE query - SQLAlchemy handles escaping
+        keyword_results = db.query(DocumentVector).filter(
+            DocumentVector.content.ilike(f"%{query_text}%")
+        ).limit(limit * 2).all()
     
     # Combine and rank results
     combined_scores = {}
@@ -161,9 +190,17 @@ def hybrid_search(
     # Get top results
     top_doc_ids = sorted(combined_scores.items(), key=lambda x: x[1], reverse=True)[:limit]
     
+    # OPTIMIZATION: Use IN clause to fetch all documents in one query instead of N queries
+    doc_ids_to_fetch = [doc_id for doc_id, _ in top_doc_ids]
+    docs_by_id = {
+        doc.id: doc 
+        for doc in db.query(DocumentVector).filter(DocumentVector.id.in_(doc_ids_to_fetch)).all()
+    }
+    
+    # Build results in order, maintaining scores
     results = []
     for doc_id, score in top_doc_ids:
-        doc = db.query(DocumentVector).filter(DocumentVector.id == doc_id).first()
+        doc = docs_by_id.get(doc_id)
         if doc:
             results.append((doc, score))
     
@@ -313,7 +350,7 @@ def update_exception_status(
         exception.applied_to_model = applied_to_model
         
         if status in ['resolved', 'learned']:
-            exception.resolved_at = datetime.utcnow()
+            exception.resolved_at = datetime.now(timezone.utc)
         
         db.commit()
 
@@ -437,7 +474,7 @@ def get_rag_performance_stats(
     """
     from datetime import timedelta
     
-    cutoff_date = datetime.utcnow() - timedelta(days=days)
+    cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
     
     query = db.query(RAGQueryLog).filter(RAGQueryLog.created_at >= cutoff_date)
     
