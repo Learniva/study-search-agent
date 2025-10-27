@@ -36,6 +36,7 @@ from database.operations.token_ops import (
 )
 from database.core.async_connection import get_session
 from sqlalchemy.ext.asyncio import AsyncSession
+from utils.email.email_service import email_service
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/auth", tags=["auth"])
@@ -421,6 +422,22 @@ async def register(
     token = await create_token_for_user(session, user.user_id, user.role)
     
     logger.info(f"✅ Registration successful: {user.username}")
+    
+    # Send welcome email to new user
+    try:
+        logger.info(f"📧 Sending welcome email to {user.email}")
+        email_sent = email_service.send_welcome_email(
+            to_email=user.email,
+            username=user.username,
+            first_name=user.first_name
+        )
+        if email_sent:
+            logger.info(f"✅ Welcome email sent successfully to {user.email}")
+        else:
+            logger.warning(f"⚠️ Failed to send welcome email to {user.email}")
+    except Exception as e:
+        # Don't fail registration if email fails
+        logger.error(f"❌ Error sending welcome email: {e}")
     
     return LoginResponse(
         token=token,

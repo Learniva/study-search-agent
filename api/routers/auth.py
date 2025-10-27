@@ -193,6 +193,26 @@ class ChangePasswordResponse(BaseModel):
     password_strength: Dict[str, Any]
 
 
+class SetPasswordRequest(BaseModel):
+    """Set password request for OAuth users without existing password."""
+    new_password: str = Field(..., min_length=12, max_length=128)
+    confirm_password: str = Field(..., min_length=12, max_length=128)
+    
+    @validator('confirm_password')
+    def passwords_match(cls, v, values):
+        if 'new_password' in values and v != values['new_password']:
+            raise ValueError('Passwords do not match')
+        return v
+
+
+class SetPasswordResponse(BaseModel):
+    """Set password response."""
+    success: bool
+    message: str
+    password_strength: Dict[str, Any]
+    account_type: str  # "oauth_with_password" after setting
+
+
 class LogoutRequest(BaseModel):
     """Logout request."""
     logout_all_devices: bool = Field(default=False)
@@ -1042,6 +1062,23 @@ async def register(
     
     logger.info(f"Registration successful: {user.username} from {client_ip}")
     
+    # Send welcome email to new user
+    try:
+        from utils.email import email_service
+        logger.info(f"📧 Sending welcome email to {user.email}")
+        email_sent = email_service.send_welcome_email(
+            to_email=user.email,
+            username=user.username,
+            first_name=first_name
+        )
+        if email_sent:
+            logger.info(f"✅ Welcome email sent successfully to {user.email}")
+        else:
+            logger.warning(f"⚠️ Failed to send welcome email to {user.email}")
+    except Exception as e:
+        # Don't fail registration if email fails
+        logger.error(f"❌ Error sending welcome email: {e}")
+    
     return RegisterResponse(
         user=user_dict,
         token=token.token,
@@ -1121,6 +1158,153 @@ async def change_password(
         success=True,
         message="Password changed successfully. Please log in again.",
         password_strength=password_strength
+    )
+
+
+@router.post("/set-password/", response_model=SetPasswordResponse)
+async def set_password(
+    request: SetPasswordRequest,
+    http_request: Request,
+    current_user: Dict[str, Any] = Depends(_get_current_user_from_token),
+    session: AsyncSession = Depends(get_session)
+):
+    """
+    Set password for OAuth users who don't have one.
+    
+    This endpoint allows users who signed up via Google OAuth (or other OAuth providers)
+    to create a password for their account, enabling them to log in with email/password
+    in addition to OAuth.
+    
+    Security Features:
+    - Only works if user has NO existing password
+    - Password policy enforcement
+    - Prevents password change (use /change-password for that)
+    - Security logging
+    - Audit trail
+    
+    Args:
+        request: Password creation request
+        http_request: HTTP request for IP/user agent
+        current_user: Current authenticated user
+        session: Database session
+        
+    Returns:
+        Success response with password strength info
+        
+    Raises:
+        HTTPException: If user already has a password or validation fails
+    """
+    client_ip = _get_client_ip(http_request)
+    user_id = current_user["user_id"]
+    
+    logger.info(f"Set password attempt: {current_user['username']} from {client_ip}")
+    
+    # Get user from database to check password status
+    user = await get_user_by_id(session, user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    # Check if user already has a password
+    has_password = False
+    if user.password_hash:
+        has_password = True
+    elif user.settings and user.settings.get('password_hash'):
+        # Check legacy location
+        has_password = True
+    
+    if has_password:
+        logger.warning(f"Set password failed - user already has password: {current_user['username']}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "error": "password_exists",
+                "message": "You already have a password set. Use the 'Change Password' feature instead.",
+                "suggestion": "Go to Settings > Security > Change Password"
+            }
+        )
+    
+    # Validate new password policy
+    password_validation = await validate_password_policy(
+        request.new_password,
+        username=current_user["username"],
+        email=current_user["email"]
+    )
+    
+    if not password_validation.is_valid:
+        logger.warning(f"Set password failed - weak password: {current_user['username']}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "error": "weak_password",
+                "message": "Password does not meet security requirements",
+                "errors": password_validation.errors,
+                "suggestions": password_validation.suggestions
+            }
+        )
+    
+    # Hash and set the password
+    from sqlalchemy import update
+    new_hash = hash_password(request.new_password)
+    
+    try:
+        await session.execute(
+            update(User)
+            .where(User.user_id == user_id)
+            .values(password_hash=new_hash)
+        )
+        
+        # Log audit event
+        audit_entry = AuditLog(
+            user_id=user.user_id,
+            user_role=user.role.value if hasattr(user.role, 'value') else str(user.role),
+            action_type="password_created",
+            resource_type="user_account",
+            resource_id=user.id,
+            action_details={
+                "method": "set_password_api",
+                "had_google_oauth": bool(user.google_id),
+                "ip_address": client_ip,
+                "user_agent": _get_user_agent(http_request)
+            },
+            old_value={"has_password": False},
+            new_value={"has_password": True},
+            ip_address=client_ip,
+            success=True
+        )
+        session.add(audit_entry)
+        
+        await session.commit()
+        logger.info(f"✅ Password set successfully for OAuth user: {current_user['username']}")
+        
+    except Exception as e:
+        logger.error(f"❌ Error setting password: {e}")
+        await session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to set password"
+        )
+    
+    password_strength = {
+        "strength": password_validation.strength.value,
+        "score": password_validation.score,
+        "warnings": password_validation.warnings
+    }
+    
+    # Determine account type for response
+    account_type = "oauth_with_password"
+    if user.google_id:
+        account_type = "google_and_password"
+    
+    logger.info(f"Password set successfully: {current_user['username']} from {client_ip}")
+    
+    return SetPasswordResponse(
+        success=True,
+        message="Password created successfully! You can now log in with either Google or email/password.",
+        password_strength=password_strength,
+        account_type=account_type
     )
 
 
@@ -1266,6 +1450,60 @@ async def get_security_events(
         events=events,
         total_count=len(events)
     )
+
+
+@router.get("/password-status/")
+async def get_password_status(
+    current_user: Dict[str, Any] = Depends(_get_current_user_from_token),
+    session: AsyncSession = Depends(get_session)
+):
+    """
+    Check if the current user has a password set.
+    
+    This is useful for the frontend to determine whether to show
+    "Set Password" or "Change Password" options.
+    
+    Returns:
+        {
+            "has_password": bool,
+            "has_google_oauth": bool,
+            "account_type": str,  # "password_only", "oauth_only", "both"
+            "can_set_password": bool,
+            "can_change_password": bool
+        }
+    """
+    user_id = current_user["user_id"]
+    user = await get_user_by_id(session, user_id)
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    # Check password status
+    has_password = bool(user.password_hash or (user.settings and user.settings.get('password_hash')))
+    has_google = bool(user.google_id)
+    
+    # Determine account type
+    if has_password and has_google:
+        account_type = "both"
+    elif has_password:
+        account_type = "password_only"
+    elif has_google:
+        account_type = "oauth_only"
+    else:
+        account_type = "incomplete"  # Shouldn't happen
+    
+    return {
+        "has_password": has_password,
+        "has_google_oauth": has_google,
+        "account_type": account_type,
+        "can_set_password": not has_password,  # Can set if no password
+        "can_change_password": has_password,  # Can change if has password
+        "email": user.email,
+        "username": user.username or user.email
+    }
 
 
 # ============================================================================

@@ -385,6 +385,337 @@ class EmailService:
             text_content=text_content
         )
     
+    def send_welcome_email(
+        self,
+        to_email: str,
+        username: str,
+        first_name: Optional[str] = None
+    ) -> bool:
+        """
+        Send a welcome email to newly registered users.
+        
+        Args:
+            to_email: Recipient email address
+            username: User's username
+            first_name: User's first name (optional)
+        
+        Returns:
+            True if email sent successfully
+        """
+        # Use first name if provided, otherwise use username
+        greeting_name = first_name if first_name else username
+        
+        subject = f"🎉 Welcome to LearnivaAI, {greeting_name}!"
+        
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body {{
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                    line-height: 1.8;
+                    color: #333;
+                    margin: 0;
+                    padding: 0;
+                }}
+                .container {{
+                    max-width: 600px;
+                    margin: 0 auto;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    padding: 40px 0;
+                }}
+                .inner-container {{
+                    background-color: white;
+                    margin: 0 20px;
+                    border-radius: 10px;
+                    overflow: hidden;
+                    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+                }}
+                .header {{
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    padding: 40px 30px;
+                    text-align: center;
+                }}
+                .header h1 {{
+                    margin: 0;
+                    font-size: 32px;
+                    font-weight: 600;
+                }}
+                .emoji-banner {{
+                    font-size: 64px;
+                    margin: 20px 0;
+                }}
+                .content {{
+                    padding: 40px 30px;
+                }}
+                .welcome-text {{
+                    font-size: 18px;
+                    color: #4a5568;
+                    margin-bottom: 25px;
+                }}
+                .highlight-box {{
+                    background: linear-gradient(135deg, #f6f8fb 0%, #e9ecef 100%);
+                    border-left: 5px solid #667eea;
+                    padding: 20px;
+                    margin: 25px 0;
+                    border-radius: 5px;
+                }}
+                .features {{
+                    margin: 30px 0;
+                }}
+                .feature-item {{
+                    display: flex;
+                    align-items: flex-start;
+                    margin: 20px 0;
+                    padding: 15px;
+                    background-color: #f8f9fa;
+                    border-radius: 8px;
+                    transition: transform 0.2s;
+                }}
+                .feature-item:hover {{
+                    transform: translateX(5px);
+                }}
+                .feature-icon {{
+                    font-size: 32px;
+                    margin-right: 15px;
+                    flex-shrink: 0;
+                }}
+                .feature-content h3 {{
+                    margin: 0 0 8px 0;
+                    color: #667eea;
+                    font-size: 16px;
+                }}
+                .feature-content p {{
+                    margin: 0;
+                    color: #666;
+                    font-size: 14px;
+                }}
+                .cta-button {{
+                    display: inline-block;
+                    padding: 16px 40px;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white !important;
+                    text-decoration: none;
+                    border-radius: 30px;
+                    margin: 25px 0;
+                    font-weight: 600;
+                    font-size: 16px;
+                    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+                    transition: transform 0.2s;
+                }}
+                .cta-button:hover {{
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+                }}
+                .tips-section {{
+                    background-color: #fff3e0;
+                    border-radius: 8px;
+                    padding: 20px;
+                    margin: 25px 0;
+                }}
+                .tips-section h3 {{
+                    color: #f57c00;
+                    margin-top: 0;
+                }}
+                .tip {{
+                    margin: 12px 0;
+                    padding-left: 25px;
+                    position: relative;
+                }}
+                .tip:before {{
+                    content: "💡";
+                    position: absolute;
+                    left: 0;
+                }}
+                .footer {{
+                    background-color: #f8f9fa;
+                    text-align: center;
+                    padding: 30px;
+                    color: #666;
+                    font-size: 13px;
+                }}
+                .footer p {{
+                    margin: 8px 0;
+                }}
+                .social-links {{
+                    margin: 20px 0;
+                }}
+                .social-links a {{
+                    display: inline-block;
+                    margin: 0 10px;
+                    color: #667eea;
+                    text-decoration: none;
+                }}
+                .divider {{
+                    height: 2px;
+                    background: linear-gradient(90deg, transparent, #667eea, transparent);
+                    margin: 30px 0;
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="inner-container">
+                    <div class="header">
+                        <div class="emoji-banner">🎓✨</div>
+                        <h1>Welcome to LearnivaAI!</h1>
+                    </div>
+                    
+                    <div class="content">
+                        <p class="welcome-text">
+                            <strong>Hi {greeting_name},</strong>
+                        </p>
+                        
+                        <p class="welcome-text">
+                            We're absolutely thrilled to have you join the LearnivaAI community! 🎉
+                        </p>
+                        
+                        <div class="highlight-box">
+                            <strong>You've just unlocked the power of AI-driven learning!</strong><br>
+                            Your journey to smarter, more efficient studying starts right now.
+                        </div>
+                        
+                        <div class="divider"></div>
+                        
+                        <h2 style="color: #667eea; text-align: center;">✨ What Can You Do Now?</h2>
+                        
+                        <div class="features">
+                            <div class="feature-item">
+                                <div class="feature-icon">🤖</div>
+                                <div class="feature-content">
+                                    <h3>AI-Powered Study Assistant</h3>
+                                    <p>Get instant help with homework, assignments, and research. Our intelligent study agent adapts to your learning style.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="feature-item">
+                                <div class="feature-icon">📝</div>
+                                <div class="feature-content">
+                                    <h3>Smart Grading & Feedback</h3>
+                                    <p>Submit your work and receive detailed, constructive feedback powered by AI to help you improve.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="feature-item">
+                                <div class="feature-icon">🎬</div>
+                                <div class="feature-content">
+                                    <h3>Visual Learning Animations</h3>
+                                    <p>Complex concepts made simple with beautiful animations and visual explanations.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="feature-item">
+                                <div class="feature-icon">📚</div>
+                                <div class="feature-content">
+                                    <h3>Personalized Learning Path</h3>
+                                    <p>Your study sessions are tracked and optimized to help you learn more effectively.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="text-align: center; margin: 35px 0;">
+                            <a href="{settings.frontend_url}" class="cta-button">
+                                🚀 Start Learning Now
+                            </a>
+                        </div>
+                        
+                        <div class="tips-section">
+                            <h3>💡 Quick Tips to Get Started:</h3>
+                            <div class="tip">Complete your profile to personalize your experience</div>
+                            <div class="tip">Try asking the study agent your first question</div>
+                            <div class="tip">Explore different subjects and topics</div>
+                            <div class="tip">Connect with Google for seamless access</div>
+                            <div class="tip">Check out the help section for tutorials</div>
+                        </div>
+                        
+                        <div class="divider"></div>
+                        
+                        <p style="color: #666; font-size: 15px;">
+                            Need help getting started? Our support team is here for you! 
+                            Just reply to this email or visit our help center.
+                        </p>
+                        
+                        <p style="margin-top: 30px; color: #4a5568;">
+                            Happy learning! 🎓<br>
+                            <strong>The LearnivaAI Team</strong>
+                        </p>
+                    </div>
+                    
+                    <div class="footer">
+                        <p><strong>Stay Connected</strong></p>
+                        <div class="social-links">
+                            <a href="#">Twitter</a> • 
+                            <a href="#">Facebook</a> • 
+                            <a href="#">LinkedIn</a>
+                        </div>
+                        <p>© 2025 LearnivaAI. All rights reserved.</p>
+                        <p>You're receiving this because you just created a LearnivaAI account.</p>
+                        <p style="margin-top: 15px;">
+                            <a href="mailto:support@learniva.ai" style="color: #667eea;">support@learniva.ai</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        text_content = f"""
+        🎉 WELCOME TO LEARNIVA AI! 🎉
+        
+        Hi {greeting_name},
+        
+        We're absolutely thrilled to have you join the LearnivaAI community!
+        
+        You've just unlocked the power of AI-driven learning! Your journey to smarter, 
+        more efficient studying starts right now.
+        
+        ✨ WHAT CAN YOU DO NOW?
+        
+        🤖 AI-Powered Study Assistant
+           Get instant help with homework, assignments, and research. Our intelligent 
+           study agent adapts to your learning style.
+        
+        📝 Smart Grading & Feedback
+           Submit your work and receive detailed, constructive feedback powered by AI 
+           to help you improve.
+        
+        🎬 Visual Learning Animations
+           Complex concepts made simple with beautiful animations and visual explanations.
+        
+        📚 Personalized Learning Path
+           Your study sessions are tracked and optimized to help you learn more effectively.
+        
+        💡 QUICK TIPS TO GET STARTED:
+        
+        • Complete your profile to personalize your experience
+        • Try asking the study agent your first question
+        • Explore different subjects and topics
+        • Connect with Google for seamless access
+        • Check out the help section for tutorials
+        
+        🚀 Ready to start? Visit: {settings.frontend_url}
+        
+        Need help getting started? Our support team is here for you! Just reply to 
+        this email or contact us at support@learniva.ai
+        
+        Happy learning! 🎓
+        The LearnivaAI Team
+        
+        ---
+        © 2025 LearnivaAI. All rights reserved.
+        You're receiving this because you just created a LearnivaAI account.
+        """
+        
+        return self.send_email(
+            to_email=to_email,
+            subject=subject,
+            html_content=html_content,
+            text_content=text_content
+        )
+    
     def _get_current_datetime(self) -> str:
         """Get current datetime formatted string."""
         from datetime import datetime, timezone

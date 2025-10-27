@@ -407,11 +407,19 @@ async def change_password(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    # Check if user is OAuth-only (Google Sign-In)
-    if user.google_id and not user.settings.get('password_hash'):
+    # Check if user has a password (OAuth-only users)
+    has_password = bool(user.password_hash or (user.settings and user.settings.get('password_hash')))
+    
+    if not has_password:
+        # OAuth-only user trying to change password (they don't have one)
         raise HTTPException(
             status_code=400,
-            detail="This account uses Google Sign-In. Password management is not available. You can set a password by contacting support."
+            detail={
+                "error": "no_password",
+                "message": "You don't have a password set yet. Please set a password first.",
+                "suggestion": "Use the 'Set Password' feature in Security settings to create a password for your account.",
+                "endpoint": "/api/auth/set-password/"
+            }
         )
     
     # Verify new passwords match
