@@ -17,6 +17,7 @@ from fastapi import APIRouter, Depends, HTTPException, Header
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 from datetime import datetime
+from uuid import UUID
 import logging
 
 from config.settings import settings
@@ -80,8 +81,8 @@ class PasswordResetConfirm(BaseModel):
 
 class UserResponse(BaseModel):
     """User data response."""
-    id: int
-    pk: int
+    id: str  # Changed from int to str to support UUID
+    pk: str  # Changed from int to str to support UUID
     username: str
     email: str
     first_name: str
@@ -141,7 +142,7 @@ async def verify_token_data(session: AsyncSession, token_value: str) -> Optional
         token_value: Token string to verify
     
     Returns:
-        User data if token valid, None if invalid or expired
+        User object if token valid, None if invalid or expired
     """
     token = await get_token(session, token_value)
     if not token:
@@ -155,19 +156,14 @@ async def verify_token_data(session: AsyncSession, token_value: str) -> Optional
         return None
     
     logger.debug(f"✅ Token verified for user: {user.username}")
-    return {
-        "user_id": user.user_id,
-        "role": user.role,
-        "username": user.username,
-        "email": user.email,
-    }
+    return user
 
 
 def user_to_dict(user) -> dict:
     """Convert User model to dictionary for API response."""
     return {
-        "id": hash(user.user_id) % 1000000,  # Generate numeric ID from string
-        "pk": hash(user.user_id) % 1000000,
+        "id": str(user.id),  # Use actual UUID string instead of hash
+        "pk": str(user.id),  # Use actual UUID string instead of hash
         "username": user.username,
         "email": user.email,
         "first_name": user.first_name or "",
@@ -238,29 +234,20 @@ async def get_current_user(
         )
     
     # ⚡ OPTIMIZATION: Check token cache first
-    token_cache = get_token_cache()
-    cached_user = token_cache.get(token)
+    token_cache = await get_token_cache()
+    cached_user = await token_cache.get(token)
     if cached_user:
         logger.debug(f"⚡ Auth cache HIT: {cached_user.get('username')} (<1ms)")
         return cached_user
     
     # Cache miss - verify token from database
     logger.debug(f"📦 Auth cache MISS: Verifying token from database...")
-    token_data = await verify_token_data(session, token)
-    if not token_data:
+    user = await verify_token_data(session, token)
+    if not user:
         logger.debug(f"🔒 Auth: Token verification failed - invalid or expired")
         raise HTTPException(
             status_code=401,
             detail={"error": "unauthorized", "message": "Invalid or expired token"}
-        )
-    
-    # Get full user object from database
-    user = await get_user_by_id(session, token_data["user_id"])
-    if not user:
-        logger.warning(f"🔒 Auth: User not found in database: {token_data['user_id']}")
-        raise HTTPException(
-            status_code=401,
-            detail={"error": "unauthorized", "message": "User not found"}
         )
     
     if not user.is_active:
@@ -273,7 +260,7 @@ async def get_current_user(
     user_dict = user_to_dict(user)
     
     # ⚡ Cache the user data for future requests
-    token_cache.set(token, user_dict)
+    await token_cache.set(token, user_dict)
     logger.debug(f"✅ Auth: Cached user data for: {user.username}")
     
     return user_dict
@@ -480,8 +467,19 @@ async def get_authenticated_user(
         
         # Get user from database
         user_id = payload.get("user_id")
+        
+        # Convert string UUID to UUID object for comparison with User.id (UUID field)
+        try:
+            user_uuid = UUID(user_id)
+        except (ValueError, TypeError):
+            return {
+                "authenticated": False,
+                "backend_ready": True,
+                "error": "Invalid user ID format"
+            }
+        
         result = await session.execute(
-            select(User).where(User.id == int(user_id))
+            select(User).where(User.id == user_uuid)
         )
         user = result.scalar_one_or_none()
         
@@ -497,7 +495,7 @@ async def get_authenticated_user(
             "authenticated": True,
             "backend_ready": True,
             "user": {
-                "id": user.id,
+                "id": str(user.id),  # Convert UUID to string
                 "email": user.email,
                 "username": user.username,
                 "name": user.name,
