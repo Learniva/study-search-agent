@@ -26,8 +26,8 @@ from pathlib import Path
 
 from api.lifespan import lifespan
 from api.routers import (
-    # query_router,  # Requires supervisor agent
-    # documents_router,  # Requires langchain
+    query_router,
+    documents_router,
     grading_router,
     ml_router,
     health_router,
@@ -40,7 +40,7 @@ from api.routers import (
     payments_router,
     auth_router,
     legacy_auth_router,
-    # concurrent_query_router,  # Requires supervisor agent
+    concurrent_query_router,
 )
 from utils.rate_limiting import RateLimitMiddleware
 from utils.monitoring import TracingMiddleware, get_logger, get_correlation_id
@@ -154,7 +154,12 @@ CORS_HEADERS = [
     "X-Correlation-ID",
     "X-Trace-ID",
     "X-Tenant-ID",
-    "X-CSP-Nonce"
+    "X-CSP-Nonce",
+    # Frontend custom headers
+    "X-User-Role",
+    "X-User-ID", 
+    "X-Thread-ID",
+    "X-CSRFToken",
 ]
 
 app.add_middleware(
@@ -163,7 +168,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allow_headers=CORS_HEADERS,
-    expose_headers=["X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset"],
+    expose_headers=["X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset", "X-Total-Count"],
     max_age=600,  # Cache preflight requests for 10 minutes
 )
 
@@ -234,9 +239,9 @@ async def generic_exception_handler(request, exc: Exception):
 app.include_router(health_router)
 
 # Core Features
-# app.include_router(query_router)  # Requires supervisor agent
-# app.include_router(concurrent_query_router)  # Requires supervisor agent  
-# app.include_router(documents_router)  # Requires langchain
+app.include_router(query_router)
+app.include_router(concurrent_query_router)
+app.include_router(documents_router)
 
 # Grading Features (Teachers only)
 app.include_router(grading_router)

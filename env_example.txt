@@ -54,6 +54,10 @@ ENABLE_SECURITY_HEADERS=true
 HSTS_MAX_AGE=31536000
 ENABLE_CSP=true
 
+# CORS Configuration
+# Comma-separated list of allowed origins for CORS
+CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001
+
 # ==================== MONITORING & LOGGING ====================
 
 # Error Tracking (Optional but recommended for production)

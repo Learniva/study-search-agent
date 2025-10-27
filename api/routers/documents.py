@@ -3,7 +3,7 @@
 import os
 import shutil
 from pathlib import Path
-from fastapi import APIRouter, File, UploadFile, HTTPException, BackgroundTasks
+from fastapi import APIRouter, File, UploadFile, HTTPException, BackgroundTasks, Request
 from typing import List
 
 from api.models import UploadResponse, DocumentInfo, DocumentsListResponse
@@ -52,6 +52,7 @@ async def list_documents():
 
 @router.post("/upload", response_model=UploadResponse)
 async def upload_document(
+    request: Request,
     file: UploadFile = File(...),
     background_tasks: BackgroundTasks = None
 ):
@@ -97,6 +98,10 @@ async def upload_document(
         # Index document in L2 Vector Store (pgvector) in background
         # This automatically triggers when a document is uploaded
         if background_tasks:
+            # Capture request state variables before background task
+            request_user_id = getattr(request.state, 'user_id', None) if hasattr(request, 'state') else None
+            request_course_id = None  # Could be extracted from query params if needed
+            
             def index_document():
                 try:
                     logger.info(f"🔄 AUTO-INDEXING STARTED for: {file.filename}")
@@ -104,10 +109,8 @@ async def upload_document(
                     processor = get_document_processor()
                     
                     with get_db() as db:
-                        # Extract user_id and course_id from request context if available
+                        # Use captured user_id and course_id from outer scope
                         # These are optional - documents can be uploaded without user context in development
-                        request_user_id = getattr(request.state, 'user_id', None) if hasattr(request, 'state') else None
-                        request_course_id = None  # Could be extracted from query params if needed
                         
                         result = processor.process_and_index_document_sync(
                             db=db,

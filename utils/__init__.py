@@ -18,8 +18,6 @@ All modules provide graceful degradation for optional dependencies.
 # CORE UTILITIES
 # =============================================================================
 
-# LLM imports are commented out to avoid langchain dependencies for auth-only operations
-# These can be imported directly from utils.core.llm when needed
 from .core import (
     ResultCache,
     DEFAULT_CACHE_TTL,
@@ -33,72 +31,73 @@ from .core import (
     GRADING_ERROR_INDICATORS,
     GRADING_UNCERTAINTY_INDICATORS,
 )
-# from .core.advanced_cache import MultiTierCache, get_cache, async_cached
+from .core.llm import initialize_llm, initialize_grading_llm
+from .core.advanced_cache import MultiTierCache, get_cache, async_cached
 
 # =============================================================================
 # SHARED PATTERNS
 # =============================================================================
 
-# from .patterns import BaseAgent, GraphBuilder, StateManager
+from .patterns import BaseAgent, GraphBuilder, StateManager
 
 # =============================================================================
 # RAG UTILITIES
 # =============================================================================
 
-# from .rag import (
-#     get_smart_context,
-#     estimate_tokens,
-#     truncate_to_tokens,
-#     detect_realtime_query,
-#     needs_query_enrichment,
-#     enrich_query_with_context,
-#     format_realtime_warning
-# )
+from .rag import (
+    get_smart_context,
+    estimate_tokens,
+    truncate_to_tokens,
+    detect_realtime_query,
+    needs_query_enrichment,
+    enrich_query_with_context,
+    format_realtime_warning
+)
 
 # =============================================================================
 # ROUTING UTILITIES
 # =============================================================================
 
-# from .routing import (
-#     fast_study_route,
-#     fast_grading_route,
-#     fast_intent_classification,
-#     calculate_text_similarity,
-#     PerformanceMonitor,
-#     RequestMetrics,
-#     get_performance_monitor,
-#     log_request,
-#     print_performance_report,
-#     get_performance_stats,
-#     PerformanceBasedRouter,
-#     ToolPerformanceTracker,
-#     get_performance_router,
-#     save_performance_router
-# )
+from .routing import (
+    fast_study_route,
+    fast_grading_route,
+    fast_intent_classification,
+    calculate_text_similarity,
+    PerformanceMonitor,
+    RequestMetrics,
+    get_performance_monitor,
+    log_request,
+    print_performance_report,
+    get_performance_stats,
+    PerformanceBasedRouter,
+    ToolPerformanceTracker,
+    get_performance_router,
+    save_performance_router
+)
 
 # =============================================================================
 # PROMPTS
 # =============================================================================
 
-# from .prompts import (
-#     get_agent_prompt,
-#     get_grading_prompt,
-#     get_grading_prompt_for_rubric,
-#     get_essay_grading_prompt,
-#     get_code_review_prompt,
-#     get_rubric_evaluation_prompt,
-#     get_feedback_prompt,
-#     get_feedback_generation_prompt,
-#     get_citation_check_prompt,
-#     format_rubric_for_prompt,
-#     get_mcq_grading_prompt,
-#     get_supervisor_prompt,
-#     get_intent_classification_prompt,
-#     GRADING_AGENT_SYSTEM_PROMPT,
-#     SUPERVISOR_INTENT_CLASSIFICATION_PROMPT,
-#     SUPERVISOR_ACCESS_CONTROL_EXPLANATION,
-#     MANIM_ANIMATION_SYSTEM_PROMPT,
-# )
+from .prompts import (
+    get_agent_prompt,
+    get_grading_prompt,
+    get_grading_prompt_for_rubric,
+    get_essay_grading_prompt,
+    get_code_review_prompt,
+    get_rubric_evaluation_prompt,
+    get_feedback_prompt,
+    get_feedback_generation_prompt,
+    get_citation_check_prompt,
+    format_rubric_for_prompt,
+    get_mcq_grading_prompt,
+    get_supervisor_prompt,
+    get_intent_classification_prompt,
+    GRADING_AGENT_SYSTEM_PROMPT,
+    SUPERVISOR_INTENT_CLASSIFICATION_PROMPT,
+    SUPERVISOR_ACCESS_CONTROL_EXPLANATION,
+    MANIM_ANIMATION_SYSTEM_PROMPT,
+)
 
 # =============================================================================
 # MONITORING
