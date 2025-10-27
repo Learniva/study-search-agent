@@ -41,7 +41,7 @@ async def create_user(
     """
     try:
         # Hash password using bcrypt
-        hashed_password = hash_password(password)
+        hashed_password = await hash_password(password)
         
         # SECURITY: Password hash is stored in dedicated column, not in settings JSONB
         # Settings JSONB should only contain user preferences, NOT sensitive data
@@ -53,6 +53,7 @@ async def create_user(
             email=email,
             username=username,
             role=role,
+            name=kwargs.get('name', ''),  # Full name field
             first_name=kwargs.get('first_name', ''),
             last_name=kwargs.get('last_name', ''),
             display_name=kwargs.get('display_name', username),
@@ -188,7 +189,7 @@ async def authenticate_user(
         else:
             password_hash = user.password_hash
         
-        if not verify_password(password, password_hash):
+        if not await verify_password(password, password_hash):
             logger.debug(f"🔐 Invalid password for user: {username}")
             return None
         
@@ -346,7 +347,7 @@ async def change_user_password(
             # Fallback to settings for backward compatibility
             password_hash = user.settings.get('password_hash') if user.settings else None
         
-        if not password_hash or not verify_password(old_password, password_hash):
+        if not password_hash or not await verify_password(old_password, password_hash):
             logger.warning(f"⚠️  Invalid old password for user: {user_id}")
             return False
         

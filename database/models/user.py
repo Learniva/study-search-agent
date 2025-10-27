@@ -1,10 +1,11 @@
 """User authentication models."""
 
 from sqlalchemy import Column, String, Integer, DateTime, Boolean, Enum, Text
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.sql import func
 from .base import Base
 import enum
+import uuid
 
 
 class UserRole(str, enum.Enum):
@@ -19,7 +20,7 @@ class User(Base):
     
     __tablename__ = "users"
     
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     user_id = Column(String(255), unique=True, index=True, nullable=False)  # Unique user identifier (email by default)
     email = Column(String, unique=True, index=True, nullable=False)
     username = Column(String(255), unique=True, index=True, nullable=True)  # Username for display
