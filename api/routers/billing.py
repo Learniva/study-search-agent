@@ -6,9 +6,9 @@ Handles billing, subscription, and payment information.
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 
-from utils.auth.jwt_handler import get_current_user  # Use Google OAuth JWT authentication
+from api.routers.auth import get_current_user  # Use unified authentication (supports both JWT and database tokens)
 
 router = APIRouter(prefix="/api/billing", tags=["billing"])
 
@@ -34,7 +34,7 @@ class BillingResponse(BaseModel):
 
 @router.get("/plans/")
 @router.get("/plans")
-async def get_billing_plans(current_user: dict = Depends(get_current_user)):
+async def get_billing_plans(current_user: Dict[str, Any] = Depends(get_current_user)):
     """
     Get available billing plans.
     
@@ -101,7 +101,7 @@ async def get_billing_plans(current_user: dict = Depends(get_current_user)):
 
 @router.get("/")
 @router.get("")
-async def get_billing_info(current_user: dict = Depends(get_current_user)):
+async def get_billing_info(current_user: Dict[str, Any] = Depends(get_current_user)):
     """
     Get user's billing information and current plan.
     
@@ -197,7 +197,7 @@ async def get_billing_info(current_user: dict = Depends(get_current_user)):
 @router.post("/upgrade")
 async def upgrade_plan(
     plan_tier: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """
     Upgrade user's subscription plan.
@@ -229,7 +229,7 @@ async def upgrade_plan(
 @router.post("/downgrade")
 async def downgrade_plan(
     plan_tier: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """
     Downgrade user's subscription plan.
@@ -258,7 +258,7 @@ async def downgrade_plan(
 
 
 @router.post("/cancel")
-async def cancel_subscription(current_user: dict = Depends(get_current_user)):
+async def cancel_subscription(current_user: Dict[str, Any] = Depends(get_current_user)):
     """
     Cancel user's subscription.
     
@@ -279,7 +279,7 @@ async def cancel_subscription(current_user: dict = Depends(get_current_user)):
 
 
 @router.get("/history")
-async def get_billing_history(current_user: dict = Depends(get_current_user)):
+async def get_billing_history(current_user: Dict[str, Any] = Depends(get_current_user)):
     """
     Get user's billing history.
     
@@ -301,7 +301,7 @@ async def get_billing_history(current_user: dict = Depends(get_current_user)):
 @router.post("/payment-method")
 async def add_payment_method(
     payment_method: dict,
-    current_user: dict = Depends(get_current_user)
+    current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """
     Add payment method.

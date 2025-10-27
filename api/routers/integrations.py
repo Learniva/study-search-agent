@@ -6,9 +6,9 @@ Handles third-party integrations like Google Drive, GitHub, Notion, etc.
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
-from typing import Optional
+from typing import List, Dict, Any, Optional
 
-from utils.auth.jwt_handler import get_current_user  # Use Google OAuth JWT authentication
+from api.routers.auth import get_current_user  # Use unified authentication (supports both JWT and database tokens)
 
 router = APIRouter(prefix="/api/integrations", tags=["integrations"])
 
@@ -22,7 +22,7 @@ class IntegrationStatus(BaseModel):
 
 @router.get("/google-drive/status")
 @router.get("/google-drive/status/")
-async def get_google_drive_status(current_user: dict = Depends(get_current_user)):
+async def get_google_drive_status(current_user: Dict[str, Any] = Depends(get_current_user)):
     """
     Get Google Drive integration status.
     
@@ -45,7 +45,7 @@ async def get_google_drive_status(current_user: dict = Depends(get_current_user)
 
 @router.get("/github/status")
 @router.get("/github/status/")
-async def get_github_status(current_user: dict = Depends(get_current_user)):
+async def get_github_status(current_user: Dict[str, Any] = Depends(get_current_user)):
     """
     Get GitHub integration status.
     
@@ -68,7 +68,7 @@ async def get_github_status(current_user: dict = Depends(get_current_user)):
 
 @router.get("/notion/status")
 @router.get("/notion/status/")
-async def get_notion_status(current_user: dict = Depends(get_current_user)):
+async def get_notion_status(current_user: Dict[str, Any] = Depends(get_current_user)):
     """
     Get Notion integration status.
     
@@ -90,7 +90,7 @@ async def get_notion_status(current_user: dict = Depends(get_current_user)):
 
 
 @router.post("/google-drive/connect")
-async def connect_google_drive(current_user: dict = Depends(get_current_user)):
+async def connect_google_drive(current_user: Dict[str, Any] = Depends(get_current_user)):
     """
     Connect Google Drive integration.
     
@@ -110,7 +110,7 @@ async def connect_google_drive(current_user: dict = Depends(get_current_user)):
 
 
 @router.post("/github/connect")
-async def connect_github(current_user: dict = Depends(get_current_user)):
+async def connect_github(current_user: Dict[str, Any] = Depends(get_current_user)):
     """
     Connect GitHub integration.
     
@@ -130,7 +130,7 @@ async def connect_github(current_user: dict = Depends(get_current_user)):
 
 
 @router.post("/notion/connect")
-async def connect_notion(current_user: dict = Depends(get_current_user)):
+async def connect_notion(current_user: Dict[str, Any] = Depends(get_current_user)):
     """
     Connect Notion integration.
     
@@ -150,19 +150,19 @@ async def connect_notion(current_user: dict = Depends(get_current_user)):
 
 
 @router.delete("/google-drive/disconnect")
-async def disconnect_google_drive(current_user: dict = Depends(get_current_user)):
+async def disconnect_google_drive(current_user: Dict[str, Any] = Depends(get_current_user)):
     """Disconnect Google Drive integration."""
     return {"message": "Google Drive disconnected (stub)"}
 
 
 @router.delete("/github/disconnect")
-async def disconnect_github(current_user: dict = Depends(get_current_user)):
+async def disconnect_github(current_user: Dict[str, Any] = Depends(get_current_user)):
     """Disconnect GitHub integration."""
     return {"message": "GitHub disconnected (stub)"}
 
 
 @router.delete("/notion/disconnect")
-async def disconnect_notion(current_user: dict = Depends(get_current_user)):
+async def disconnect_notion(current_user: Dict[str, Any] = Depends(get_current_user)):
     """Disconnect Notion integration."""
     return {"message": "Notion disconnected (stub)"}
 

@@ -11,10 +11,10 @@ Endpoints for user settings and preferences including:
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from utils.auth.jwt_handler import get_current_user  # Use Google OAuth JWT authentication
+from api.routers.auth import get_current_user  # Use unified authentication (supports both JWT and database tokens)
 from database.core.async_connection import get_session
 from database.operations.user_ops import (
     update_user_settings,
@@ -130,7 +130,7 @@ def get_user_settings(user: dict) -> UserSettings:
 # ============================================================================
 
 @router.get("/", response_model=UserSettings)
-async def get_settings(current_user: dict = Depends(get_current_user)):
+async def get_settings(current_user: Dict[str, Any] = Depends(get_current_user)):
     """
     Get user's complete settings.
     
@@ -152,7 +152,7 @@ async def get_settings(current_user: dict = Depends(get_current_user)):
 # ============================================================================
 
 @router.get("/notifications", response_model=NotificationSettings)
-async def get_notification_settings(current_user: dict = Depends(get_current_user)):
+async def get_notification_settings(current_user: Dict[str, Any] = Depends(get_current_user)):
     """
     Get user's notification settings.
     
@@ -175,7 +175,7 @@ async def get_notification_settings(current_user: dict = Depends(get_current_use
 @router.put("/notifications", response_model=NotificationSettings)
 async def update_notification_settings(
     notification_update: UpdateNotificationsRequest,
-    current_user: dict = Depends(get_current_user),
+    current_user: Dict[str, Any] = Depends(get_current_user),
     session: AsyncSession = Depends(get_session)
 ):
     """
@@ -230,7 +230,7 @@ async def update_notification_settings(
 # ============================================================================
 
 @router.get("/preferences", response_model=PreferencesSettings)
-async def get_preferences(current_user: dict = Depends(get_current_user)):
+async def get_preferences(current_user: Dict[str, Any] = Depends(get_current_user)):
     """
     Get user's preference settings.
     
@@ -251,7 +251,7 @@ async def get_preferences(current_user: dict = Depends(get_current_user)):
 @router.put("/preferences", response_model=PreferencesSettings)
 async def update_preferences(
     preferences_update: UpdatePreferencesRequest,
-    current_user: dict = Depends(get_current_user),
+    current_user: Dict[str, Any] = Depends(get_current_user),
     session: AsyncSession = Depends(get_session)
 ):
     """
@@ -300,7 +300,7 @@ async def update_preferences(
 # ============================================================================
 
 @router.get("/appearance", response_model=AppearanceSettings)
-async def get_appearance(current_user: dict = Depends(get_current_user)):
+async def get_appearance(current_user: Dict[str, Any] = Depends(get_current_user)):
     """
     Get user's appearance settings.
     
@@ -321,7 +321,7 @@ async def get_appearance(current_user: dict = Depends(get_current_user)):
 @router.put("/appearance", response_model=AppearanceSettings)
 async def update_appearance(
     appearance_update: UpdateAppearanceRequest,
-    current_user: dict = Depends(get_current_user),
+    current_user: Dict[str, Any] = Depends(get_current_user),
     session: AsyncSession = Depends(get_session)
 ):
     """
@@ -380,7 +380,7 @@ async def update_appearance(
 @router.post("/password/change")
 async def change_password(
     password_change: PasswordChangeRequest,
-    current_user: dict = Depends(get_current_user),
+    current_user: Dict[str, Any] = Depends(get_current_user),
     session: AsyncSession = Depends(get_session)
 ):
     """
@@ -469,7 +469,7 @@ async def change_password(
 @router.delete("/account")
 async def delete_account(
     delete_request: DeleteAccountRequest,
-    current_user: dict = Depends(get_current_user),
+    current_user: Dict[str, Any] = Depends(get_current_user),
     session: AsyncSession = Depends(get_session)
 ):
     """
@@ -657,7 +657,7 @@ async def delete_account(
 # ============================================================================
 
 @router.get("/connections")
-async def get_connections(current_user: dict = Depends(get_current_user)):
+async def get_connections(current_user: Dict[str, Any] = Depends(get_current_user)):
     """
     Get user's connected services.
     
@@ -679,7 +679,7 @@ async def get_connections(current_user: dict = Depends(get_current_user)):
 @router.post("/connections/{service}")
 async def connect_service(
     service: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """
     Connect an external service to the account.
@@ -706,7 +706,7 @@ async def connect_service(
 @router.delete("/connections/{service}")
 async def disconnect_service(
     service: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """
     Disconnect an external service from the account.

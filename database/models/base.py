@@ -11,7 +11,12 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy.dialects.postgresql import UUID, JSONB
-from pgvector.sqlalchemy import Vector
+try:
+    from pgvector.sqlalchemy import Vector
+    VECTOR_AVAILABLE = True
+except ImportError:
+    Vector = None
+    VECTOR_AVAILABLE = False
 import uuid
 
 # Shared declarative base for all models
@@ -32,8 +37,12 @@ __all__ = [
     'relationship',
     'UUID',
     'JSONB',
-    'Vector',
     'datetime',
     'uuid',
+    'VECTOR_AVAILABLE',
 ]
+
+# Only export Vector if available
+if VECTOR_AVAILABLE:
+    __all__.append('Vector')
 

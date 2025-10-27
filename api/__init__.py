@@ -8,6 +8,6 @@ Modular, scalable FastAPI application with:
 - Production-ready error handling
 """
 
-from .app import app
+# from .app import app
 
 __all__ = ["app"]

@@ -1,27 +1,40 @@
 """
-Centralized Prompt Templates for Multi-Agent System.
+Centralized prompt templates for the Multi-Agent Study & Grading System.
 
-Contains all system prompts for:
-- Study Agent (ReAct-style tool routing)
-- Grading Agent (evaluation and feedback)
-- Supervisor Agent (intent classification and routing)
-- Specialized grading tools (essay, code, MCQ, etc.)
-
-All prompts are carefully crafted to ensure consistent, high-quality outputs
-across different use cases and LLM providers.
+This module contains all prompt templates used across different agents,
+ensuring consistency and maintainability.
 """
 
-import json
-from typing import List, Dict, Any, Optional
-from langchain.prompts import PromptTemplate
-from langchain.tools import Tool
+from typing import Dict, List, Optional, Any
+from enum import Enum
+
+# Try to import PipelinePromptTemplate, fall back gracefully
+try:
+    from langchain.prompts import PromptTemplate
+    from langchain.tools import Tool
+    from langchain_core.prompts import (
+        ChatPromptTemplate,
+        MessagesPlaceholder,
+        HumanMessagePromptTemplate,
+        SystemMessagePromptTemplate,
+    )
+    LANGCHAIN_AVAILABLE = True
+except ImportError:
+    # Graceful fallback - LangChain not available or incompatible version
+    LANGCHAIN_AVAILABLE = False
+    PromptTemplate = None
+    Tool = None
+    ChatPromptTemplate = None
+    MessagesPlaceholder = None
+    HumanMessagePromptTemplate = None
+    SystemMessagePromptTemplate = None
 
 
 # =============================================================================
 # STUDY AGENT PROMPTS
 # =============================================================================
 
-def get_agent_prompt(tools: List[Tool]) -> PromptTemplate:
+def get_agent_prompt(tools: List[Any]) -> Optional[Any]:
     """
     Create and return the Study Agent prompt template.
     

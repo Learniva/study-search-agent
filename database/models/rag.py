@@ -9,8 +9,12 @@ Models for the self-improving RAG system:
 
 from .base import (
     Base, Column, String, Integer, Float, DateTime, Text, Boolean,
-    ForeignKey, UUID, JSONB, Vector, Index, datetime, uuid
+    ForeignKey, UUID, JSONB, Index, datetime, uuid, VECTOR_AVAILABLE
 )
+
+# Conditionally import Vector if available
+if VECTOR_AVAILABLE:
+    from .base import Vector
 
 
 class DocumentVector(Base):
@@ -40,7 +44,6 @@ class DocumentVector(Base):
     
     # Vector embedding (768 dimensions for Google Gemini models/embedding-001)
     # Provides effective semantic search for autonomous agent learning
-    embedding = Column(Vector(768))  # pgvector column for semantic search
     
     # Metadata for context (renamed from 'metadata' to avoid SQLAlchemy conflict)
     doc_metadata = Column(JSONB)  # Additional metadata (page, section, etc.)
@@ -71,6 +74,13 @@ class DocumentVector(Base):
     
     def __repr__(self):
         return f"<DocumentVector(doc={self.document_name}, chunk={self.chunk_index})>"
+
+
+# Add embedding column conditionally after class definition
+if VECTOR_AVAILABLE:
+    DocumentVector.embedding = Column(Vector(768))  # pgvector column for semantic search
+else:
+    DocumentVector.embedding = Column(Text)  # Fallback to text storage when pgvector not available
 
 
 class GradeException(Base):
