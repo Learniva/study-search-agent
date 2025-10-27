@@ -225,6 +225,170 @@ class EmailService:
             html_content=html_content,
             text_content=text_content
         )
+    
+    def send_account_linked_email(
+        self,
+        to_email: str,
+        username: str,
+        linked_service: str = "Google"
+    ) -> bool:
+        """
+        Send notification email when a third-party account is linked.
+        
+        Args:
+            to_email: Recipient email address
+            username: User's username
+            linked_service: Name of the linked service (e.g., "Google")
+        
+        Returns:
+            True if email sent successfully
+        """
+        subject = f"🔗 {linked_service} Account Linked - LearnivaAI"
+        
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body {{
+                    font-family: Arial, sans-serif;
+                    line-height: 1.6;
+                    color: #333;
+                }}
+                .container {{
+                    max-width: 600px;
+                    margin: 0 auto;
+                    padding: 20px;
+                }}
+                .header {{
+                    background-color: #4285f4;
+                    color: white;
+                    padding: 20px;
+                    text-align: center;
+                    border-radius: 5px 5px 0 0;
+                }}
+                .content {{
+                    background-color: #f9f9f9;
+                    padding: 30px;
+                    border-radius: 0 0 5px 5px;
+                }}
+                .info-box {{
+                    background-color: #e3f2fd;
+                    border-left: 4px solid #2196F3;
+                    padding: 15px;
+                    margin: 20px 0;
+                }}
+                .warning-box {{
+                    background-color: #fff3e0;
+                    border-left: 4px solid #ff9800;
+                    padding: 15px;
+                    margin: 20px 0;
+                }}
+                .footer {{
+                    text-align: center;
+                    margin-top: 20px;
+                    color: #666;
+                    font-size: 12px;
+                }}
+                .icon {{
+                    font-size: 48px;
+                    text-align: center;
+                    margin: 20px 0;
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>🔗 Account Successfully Linked</h1>
+                </div>
+                <div class="content">
+                    <div class="icon">✅</div>
+                    <p>Hi {username},</p>
+                    <p>Your LearnivaAI account has been successfully linked with your <strong>{linked_service}</strong> account.</p>
+                    
+                    <div class="info-box">
+                        <p><strong>📧 Email:</strong> {to_email}</p>
+                        <p><strong>🔗 Linked Service:</strong> {linked_service}</p>
+                        <p><strong>📅 Date:</strong> {self._get_current_datetime()}</p>
+                    </div>
+                    
+                    <h3>What This Means:</h3>
+                    <ul>
+                        <li>You can now sign in using either your email/password or your {linked_service} account</li>
+                        <li>Your profile information has been updated with your {linked_service} profile picture</li>
+                        <li>All your existing data and settings remain unchanged</li>
+                        <li>You have the convenience of using both sign-in methods</li>
+                    </ul>
+                    
+                    <div class="warning-box">
+                        <p><strong>⚠️ Security Notice:</strong></p>
+                        <p>If you did not authorize this account linking, please take immediate action:</p>
+                        <ol>
+                            <li>Change your password immediately</li>
+                            <li>Review your account security settings</li>
+                            <li>Contact our support team at support@learniva.ai</li>
+                        </ol>
+                    </div>
+                    
+                    <p>You can manage your connected accounts and security settings in your account preferences.</p>
+                    
+                    <p>Best regards,<br>The LearnivaAI Team</p>
+                </div>
+                <div class="footer">
+                    <p>© 2025 LearnivaAI. All rights reserved.</p>
+                    <p>This is an automated email. Please do not reply to this message.</p>
+                    <p>If you have questions, contact us at support@learniva.ai</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        text_content = f"""
+        Account Successfully Linked - LearnivaAI
+        
+        Hi {username},
+        
+        Your LearnivaAI account has been successfully linked with your {linked_service} account.
+        
+        Account Details:
+        - Email: {to_email}
+        - Linked Service: {linked_service}
+        - Date: {self._get_current_datetime()}
+        
+        What This Means:
+        • You can now sign in using either your email/password or your {linked_service} account
+        • Your profile information has been updated with your {linked_service} profile picture
+        • All your existing data and settings remain unchanged
+        • You have the convenience of using both sign-in methods
+        
+        SECURITY NOTICE:
+        If you did not authorize this account linking, please take immediate action:
+        1. Change your password immediately
+        2. Review your account security settings
+        3. Contact our support team at support@learniva.ai
+        
+        You can manage your connected accounts and security settings in your account preferences.
+        
+        Best regards,
+        The LearnivaAI Team
+        
+        © 2025 LearnivaAI. All rights reserved.
+        If you have questions, contact us at support@learniva.ai
+        """
+        
+        return self.send_email(
+            to_email=to_email,
+            subject=subject,
+            html_content=html_content,
+            text_content=text_content
+        )
+    
+    def _get_current_datetime(self) -> str:
+        """Get current datetime formatted string."""
+        from datetime import datetime, timezone
+        return datetime.now(timezone.utc).strftime("%B %d, %Y at %I:%M %p UTC")
 
 
 # Global email service instance

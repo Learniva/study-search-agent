@@ -53,6 +53,7 @@ from database.operations.token_ops import (
     delete_token,
     delete_user_tokens
 )
+from database.models.audit import AuditLog
 from utils.auth import create_access_token, get_current_user, google_oauth
 from utils.auth.password import (
     hash_password, 
@@ -590,6 +591,9 @@ async def google_callback(
             user = result.scalar_one_or_none()
             
             if user:
+                # Check if this is a first-time Google account linking
+                is_first_time_linking = user.google_id is None
+                
                 logger.info(f"✅ Found existing user by email, updating with Google ID")
                 # Update existing user with Google ID
                 user.google_id = google_id
@@ -597,6 +601,56 @@ async def google_callback(
                 user.profile_picture = picture
                 user.is_verified = email_verified
                 user.last_login = datetime.now(timezone.utc)
+                
+                # Log security event for account linking
+                if is_first_time_linking:
+                    logger.info(f"🔗 First-time Google account linking detected for {email}")
+                    
+                    # Create audit log entry
+                    try:
+                        audit_entry = AuditLog(
+                            user_id=user.user_id,
+                            user_role=user.role.value if hasattr(user.role, 'value') else str(user.role),
+                            action_type="oauth_account_linked",
+                            resource_type="user_account",
+                            resource_id=user.id,
+                            action_details={
+                                "provider": "google",
+                                "google_id": google_id,
+                                "email": email,
+                                "name": name,
+                                "email_verified": email_verified,
+                                "profile_updated": True
+                            },
+                            old_value={"google_id": None},
+                            new_value={"google_id": google_id},
+                            ip_address="oauth_callback",  # Could extract from request if available
+                            success=True
+                        )
+                        db.add(audit_entry)
+                        logger.info(f"✅ Audit log created for account linking")
+                    except Exception as audit_error:
+                        logger.error(f"❌ Failed to create audit log: {audit_error}")
+                        # Don't fail the OAuth flow if audit fails
+                    
+                    # Send notification email for first-time account linking
+                    try:
+                        from utils.email import email_service
+                        
+                        # Send account linking notification email
+                        email_sent = email_service.send_account_linked_email(
+                            to_email=email,
+                            username=user.username or email.split('@')[0],
+                            linked_service="Google"
+                        )
+                        
+                        if email_sent:
+                            logger.info(f"✅ Account linking notification email sent to {email}")
+                        else:
+                            logger.warning(f"⚠️ Failed to send account linking notification to {email}")
+                    except Exception as e:
+                        logger.error(f"❌ Error sending account linking email: {e}")
+                        # Don't fail the OAuth flow if email fails
             else:
                 logger.info(f"👤 Creating new user from Google OAuth")
                 # Create new user from Google OAuth
