@@ -49,7 +49,7 @@ class Settings(BaseSettings):
         default="redis://localhost:6379/0",
         description="Redis URL for distributed cache and token storage"
     )
-    redis_enabled: bool = Field(default=True, description="Enable Redis (falls back to in-memory if unavailable)")
+    redis_enabled: bool = Field(default=False, description="Enable Redis (falls back to in-memory if unavailable)")
     
     # ==================== API Configuration ====================
     api_host: str = Field(default="0.0.0.0", description="API host")
@@ -128,6 +128,20 @@ class Settings(BaseSettings):
         min_length=32,
         description="Secret key for JWT tokens (must be at least 32 characters)"
     )
+    
+    # OAuth Configuration
+    google_client_id: Optional[str] = Field(
+        default=None,
+        description="Google OAuth Client ID"
+    )
+    google_client_secret: Optional[str] = Field(
+        default=None,
+        description="Google OAuth Client Secret"
+    )
+    google_redirect_uri: str = Field(
+        default="http://localhost:8000/auth/google/callback",
+        description="Google OAuth redirect URI"
+    )
     access_token_expire_minutes: int = Field(
         default=30,
         ge=1,
@@ -137,6 +151,111 @@ class Settings(BaseSettings):
         default=24,
         ge=1,
         description="Auth token expiry (hours)"
+    )
+    
+    # Enhanced Security Settings
+    enable_account_lockout: bool = Field(
+        default=True,
+        description="Enable account lockout after failed login attempts"
+    )
+    max_login_attempts: int = Field(
+        default=5,
+        ge=3,
+        le=10,
+        description="Maximum login attempts before lockout"
+    )
+    lockout_duration_minutes: int = Field(
+        default=15,
+        ge=5,
+        le=60,
+        description="Account lockout duration in minutes"
+    )
+    
+    # Password Policy Settings
+    password_min_length: int = Field(
+        default=12,
+        ge=8,
+        le=128,
+        description="Minimum password length"
+    )
+    password_require_uppercase: bool = Field(
+        default=True,
+        description="Require uppercase letters in passwords"
+    )
+    password_require_lowercase: bool = Field(
+        default=True,
+        description="Require lowercase letters in passwords"
+    )
+    password_require_digits: bool = Field(
+        default=True,
+        description="Require digits in passwords"
+    )
+    password_require_special_chars: bool = Field(
+        default=True,
+        description="Require special characters in passwords"
+    )
+    password_min_special_chars: int = Field(
+        default=2,
+        ge=1,
+        le=5,
+        description="Minimum number of special characters required"
+    )
+    password_history_count: int = Field(
+        default=12,
+        ge=5,
+        le=24,
+        description="Number of previous passwords to prevent reuse"
+    )
+    
+    # Session Security
+    enable_session_fingerprinting: bool = Field(
+        default=True,
+        description="Enable session fingerprinting for device tracking"
+    )
+    max_concurrent_sessions: int = Field(
+        default=5,
+        ge=1,
+        le=20,
+        description="Maximum concurrent sessions per user"
+    )
+    session_timeout_hours: int = Field(
+        default=24,
+        ge=1,
+        le=168,
+        description="Session timeout in hours"
+    )
+    
+    # Security Headers
+    enable_security_headers: bool = Field(
+        default=True,
+        description="Enable comprehensive security headers"
+    )
+    hsts_max_age: int = Field(
+        default=31536000,  # 1 year
+        ge=0,
+        description="HSTS max-age in seconds"
+    )
+    enable_csp: bool = Field(
+        default=True,
+        description="Enable Content Security Policy"
+    )
+    csp_report_uri: Optional[str] = Field(
+        default=None,
+        description="CSP violation reporting endpoint"
+    )
+    
+    # Rate Limiting (Enhanced)
+    rate_limit_login_attempts: int = Field(
+        default=5,
+        ge=1,
+        le=20,
+        description="Login attempts per minute"
+    )
+    rate_limit_auth_endpoints: int = Field(
+        default=10,
+        ge=1,
+        le=50,
+        description="Auth endpoint requests per minute"
     )
     
     # ==================== Stripe Payment Configuration ====================
@@ -163,6 +282,16 @@ class Settings(BaseSettings):
     stripe_cancel_url: str = Field(
         default="http://localhost:3000/payment/cancel",
         description="Payment cancel redirect URL"
+    )
+    
+    # ==================== Frontend/Backend URLs ====================
+    frontend_url: str = Field(
+        default="http://localhost:3000",
+        description="Frontend application URL"
+    )
+    backend_url: str = Field(
+        default="http://localhost:8000",
+        description="Backend API URL"
     )
     
     # ==================== Email Configuration ====================
@@ -211,6 +340,17 @@ class Settings(BaseSettings):
             raise ValueError("Database URL must use PostgreSQL")
         return v
     
+    @field_validator("secret_key")
+    @classmethod
+    def validate_secret_key(cls, v: str) -> str:
+        """Validate secret key for production use."""
+        if len(v) < 32:
+            raise ValueError("SECRET_KEY must be at least 32 characters long")
+        if v in ["your-super-secret-jwt-key-minimum-32-characters-long-replace-in-production", 
+                 "change-me-in-production", "development-key-not-secure"]:
+            raise ValueError("SECRET_KEY must be changed from default value in production")
+        return v
+    
     @property
     def async_database_url(self) -> str:
         """Get async database URL for SQLAlchemy."""
@@ -222,6 +362,39 @@ class Settings(BaseSettings):
     def is_development(self) -> bool:
         """Check if running in development mode."""
         return self.debug or self.testing
+    
+    @property
+    def is_production_ready(self) -> bool:
+        """Check if configuration is production-ready."""
+        production_checks = [
+            len(self.secret_key) >= 32,
+            not self.secret_key.startswith("your-super-secret"),
+            not "localhost" in self.database_url if not self.is_development else True,
+            self.google_client_id is not None if self.google_client_secret else True,
+            self.google_client_secret is not None if self.google_client_id else True,
+        ]
+        return all(production_checks)
+    
+    def validate_production_config(self) -> list[str]:
+        """Get list of production configuration issues."""
+        issues = []
+        
+        if len(self.secret_key) < 32:
+            issues.append("SECRET_KEY must be at least 32 characters")
+        
+        if self.secret_key.startswith("your-super-secret"):
+            issues.append("SECRET_KEY must be changed from default value")
+            
+        if not self.is_development and "localhost" in self.database_url:
+            issues.append("DATABASE_URL should not use localhost in production")
+            
+        if self.google_client_id and not self.google_client_secret:
+            issues.append("GOOGLE_CLIENT_SECRET required when GOOGLE_CLIENT_ID is set")
+            
+        if self.google_client_secret and not self.google_client_id:
+            issues.append("GOOGLE_CLIENT_ID required when GOOGLE_CLIENT_SECRET is set")
+            
+        return issues
     
     @property
     def temperature_settings(self) -> dict[str, float]:
