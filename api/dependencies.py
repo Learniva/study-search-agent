@@ -5,10 +5,13 @@ FastAPI dependencies for authentication, database access, and common utilities.
 """
 
 from typing import Optional, Generator
-from fastapi import Header, HTTPException, Depends, status
+from fastapi import Header, HTTPException, Depends, status, Request
 
 from utils.monitoring import get_correlation_id, set_correlation_id
 from config import settings
+
+# New tenant dependency import
+from utils.auth.tenant_id_validator import validate_tenant_ulid_or_raise
 
 # Try to import database
 try:
@@ -210,6 +213,44 @@ async def require_user_id(
             detail="User ID is required. Provide X-User-ID header"
         )
     return user_id
+
+
+# ============================================================================
+# Tenant ID Dependencies (Multi-tenant support)
+# ============================================================================
+
+from fastapi import Request, Depends, Header
+from typing import Optional
+from utils.auth.tenant_id_validator import validate_tenant_ulid_or_raise
+
+async def get_tenant_id(
+    x_tenant_id: Optional[str] = Header(None, alias="X-Tenant-ID")
+) -> Optional[str]:
+    """
+    Extract tenant ULID from X-Tenant-ID header (optional at this stage).
+    """
+    return x_tenant_id
+
+
+async def require_tenant_id(
+    request: Request,
+    tenant_id: Optional[str] = Depends(get_tenant_id)
+) -> str:
+    """
+    Validate tenant ULID (mandatory tenant-aware endpoints).
+    Performs environment-aware validation.
+    """
+    # Trace propagation for audit trails
+    trace_id = request.headers.get("X-Correlation-ID") or request.headers.get("X-Trace-ID")
+    
+    validated = validate_tenant_ulid_or_raise(
+        tenant_id,
+        env=getattr(settings, "ENV", "prod"),
+        trace_id=trace_id,
+    )
+
+    return validated
+
 
 
 # ============================================================================

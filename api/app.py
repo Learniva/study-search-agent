@@ -26,8 +26,8 @@ from pathlib import Path
 
 from api.lifespan import lifespan
 from api.routers import (
-    query_router,
-    documents_router,
+    # query_router,  # Requires supervisor agent
+    # documents_router,  # Requires langchain
     grading_router,
     ml_router,
     health_router,
@@ -40,7 +40,7 @@ from api.routers import (
     payments_router,
     auth_router,
     legacy_auth_router,
-    concurrent_query_router,
+    # concurrent_query_router,  # Requires supervisor agent
 )
 from utils.rate_limiting import RateLimitMiddleware
 from utils.monitoring import TracingMiddleware, get_logger, get_correlation_id
@@ -48,6 +48,37 @@ from utils.errors import BaseApplicationError, get_error_handler
 from utils.auth import get_current_user
 from api.dependencies import require_admin_role
 from config import settings
+
+from middleware.auth_gateway import AuthGatewayMiddleware
+from middleware.security_headers import SecurityHeadersMiddleware
+
+app = FastAPI(
+    title="Study Search Agent API",
+    description="AI-powered study and grading assistant",
+    version="1.0.0",
+    lifespan=lifespan
+)
+
+# Security Headers Middleware (first in chain)
+app.add_middleware(
+    SecurityHeadersMiddleware,
+    strict_mode=not settings.is_development,
+    hsts_max_age=31536000,  # 1 year
+    csp_report_uri="/api/security/csp-report" if not settings.is_development else None
+)
+
+# Authentication Gateway Middleware
+app.add_middleware(
+    AuthGatewayMiddleware,
+    exempt_paths=[
+        # Health and docs
+        "/health", "/", "/docs", "/redoc", "/openapi.json",
+        # Auth endpoints (both prefixes)
+        "/auth/google/callback", "/auth/health", 
+        "/api/auth/login/", "/api/auth/register/", "/api/auth/validate-password/", "/api/auth/config/",
+        "/auth/login/", "/auth/register/", "/auth/validate-password/", "/auth/config/"
+    ]
+)
 
 logger = get_logger(__name__)
 
@@ -106,19 +137,33 @@ app = FastAPI(
 # Middleware Stack
 # ============================================================================
 
-# CORS - Use environment variable for allowed origins
+# CORS - Enhanced security configuration
 # SECURITY: Never use ["*"] in production with allow_credentials=True
 ALLOWED_ORIGINS = os.getenv(
     "CORS_ALLOWED_ORIGINS",
-    "http://localhost:3000,http://localhost:3001"
+    "http://localhost:3000,https://localhost:3000"
 ).split(",")
+
+# Filter out empty strings and validate origins
+ALLOWED_ORIGINS = [origin.strip() for origin in ALLOWED_ORIGINS if origin.strip()]
+
+# Additional security headers for CORS
+CORS_HEADERS = [
+    "Content-Type",
+    "Authorization", 
+    "X-Correlation-ID",
+    "X-Trace-ID",
+    "X-Tenant-ID",
+    "X-CSP-Nonce"
+]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH"],
-    allow_headers=["Content-Type", "Authorization", "X-Correlation-ID"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allow_headers=CORS_HEADERS,
+    expose_headers=["X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset"],
     max_age=600,  # Cache preflight requests for 10 minutes
 )
 
@@ -189,9 +234,9 @@ async def generic_exception_handler(request, exc: Exception):
 app.include_router(health_router)
 
 # Core Features
-app.include_router(query_router)
-app.include_router(concurrent_query_router)  # Concurrent execution support
-app.include_router(documents_router)
+# app.include_router(query_router)  # Requires supervisor agent
+# app.include_router(concurrent_query_router)  # Requires supervisor agent  
+# app.include_router(documents_router)  # Requires langchain
 
 # Grading Features (Teachers only)
 app.include_router(grading_router)
@@ -203,7 +248,7 @@ app.include_router(ml_router)
 app.include_router(videos_router)
 
 # Authentication (Public - no auth required)
-app.include_router(auth_router)
+app.include_router(auth_router)  # Comprehensive authentication with security features
 app.include_router(legacy_auth_router)  # Legacy /auth prefix for backward compatibility
 
 # User Management & Settings
