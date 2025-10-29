@@ -161,6 +161,7 @@ app.add_middleware(
         # Auth endpoints (both prefixes)
         "/auth/google/callback", "/auth/google/callback/", "/auth/health", "/auth/error",
         "/api/auth/google/callback", "/api/auth/google/callback/",
+        "/api/auth/google/login/", "/auth/google/login/",  # OAuth login initiation
         "/api/auth/login/", "/api/auth/register/", "/api/auth/validate-password/", "/api/auth/config/",
         "/auth/login/", "/auth/register/", "/auth/validate-password/", "/auth/config/"
     ]

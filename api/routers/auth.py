@@ -26,6 +26,7 @@ Version: 2.0.0
 import os
 import logging
 import httpx
+import json
 from datetime import datetime, timezone, timedelta
 from typing import Optional, Dict, Any, List
 from uuid import UUID
@@ -506,7 +507,13 @@ async def health_check():
 @router.get("/google/login/")
 async def google_login():
     """
-    Initiate Google OAuth login flow.
+    Initiate Google OAuth login flow with CSRF protection.
+    
+    Security Features:
+    - Generates cryptographically secure state parameter
+    - Stores state in Redis with 5-minute TTL
+    - State serves as CSRF token
+    - State validates handshake continuity across service restarts
     
     Returns:
         Redirect to Google OAuth consent screen
@@ -517,7 +524,51 @@ async def google_login():
             detail="Google OAuth is not configured"
         )
     
-    auth_url = google_oauth.get_authorization_url(GOOGLE_REDIRECT_URI)
+    # Generate cryptographically secure state parameter (CSRF protection)
+    import secrets
+    state = secrets.token_urlsafe(32)  # 256 bits of entropy
+    
+    # Store state in Redis with 5-minute TTL
+    # This allows state to survive service restart if Redis is available
+    from utils.cache.redis_client import RedisClient
+    redis_client = RedisClient.get_instance()
+    
+    if redis_client:
+        try:
+            # Store state with metadata for audit trail
+            state_data = {
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "expires_at": (datetime.now(timezone.utc) + timedelta(minutes=5)).isoformat(),
+            }
+            redis_client.setex(
+                f"oauth:state:{state}",
+                300,  # 5 minutes TTL
+                json.dumps(state_data)
+            )
+            logger.info(f"🔐 OAuth state generated and stored: {state[:10]}... (TTL: 5min)")
+        except Exception as e:
+            logger.error(f"❌ Failed to store OAuth state in Redis: {e}")
+            # In production, you may want to reject OAuth flow if Redis is unavailable
+            # For now, we'll continue but log the security warning
+            logger.warning("⚠️  SECURITY WARNING: OAuth state not stored - CSRF protection degraded")
+    else:
+        logger.warning("⚠️  Redis unavailable - OAuth state parameter cannot be validated on restart")
+    
+    # Build authorization URL with state parameter
+    from urllib.parse import urlencode
+    params = {
+        'client_id': GOOGLE_CLIENT_ID,
+        'redirect_uri': GOOGLE_REDIRECT_URI,
+        'response_type': 'code',
+        'scope': 'openid email profile',
+        'access_type': 'offline',
+        'prompt': 'consent',
+        'state': state,  # CSRF protection
+    }
+    
+    auth_url = f"https://accounts.google.com/o/oauth2/v2/auth?{urlencode(params)}"
+    logger.info(f"↪️  Redirecting to Google OAuth with state parameter")
+    
     return RedirectResponse(url=auth_url)
 
 
@@ -525,25 +576,87 @@ async def google_login():
 @router.get("/google/callback")  # Without trailing slash for compatibility
 async def google_callback(
     code: str,
+    state: Optional[str] = None,
     db: AsyncSession = Depends(get_async_db),
 ):
     """
-    Handle Google OAuth callback.
+    Handle Google OAuth callback with state validation.
+    
+    Security Features:
+    - Validates state parameter (CSRF protection)
+    - Detects service restart during handshake
+    - One-time state usage (prevents replay)
+    - Comprehensive security logging
     
     Args:
         code: Authorization code from Google
+        state: State parameter for CSRF protection
         db: Database session
         
     Returns:
-        Redirect to frontend with token
+        Redirect to frontend with token or error
     """
-    logger.info(f"🔐 OAuth callback received. Code length: {len(code) if code else 0}")
+    logger.info(f"🔐 OAuth callback received. Code length: {len(code) if code else 0}, State: {state[:10] if state else 'MISSING'}...")
     logger.info(f"🔐 Using redirect URI: {GOOGLE_REDIRECT_URI}")
     logger.info(f"🔐 Frontend URL: {FRONTEND_URL}")
     
+    # ========================================================================
+    # SECURITY: Validate required parameters
+    # ========================================================================
+    
     if not code:
-        logger.error("❌ Missing authorization code")
-        raise HTTPException(status_code=400, detail="Missing authorization code")
+        logger.error("❌ SECURITY: Missing authorization code")
+        error_url = f"{FRONTEND_URL}/auth/error?reason=missing_code&message=Missing+authorization+code"
+        return RedirectResponse(url=error_url)
+    
+    if not state:
+        logger.error("❌ SECURITY: Missing state parameter - potential CSRF attack or old OAuth flow")
+        logger.warning("🔒 SECURITY ALERT: OAuth callback without state parameter")
+        error_url = f"{FRONTEND_URL}/auth/error?reason=missing_state&message=Invalid+request+-+missing+state"
+        return RedirectResponse(url=error_url)
+    
+    # ========================================================================
+    # SECURITY: Validate state parameter from Redis
+    # ========================================================================
+    
+    from utils.cache.redis_client import RedisClient
+    redis_client = RedisClient.get_instance()
+    
+    if redis_client:
+        try:
+            # Retrieve state from Redis
+            state_key = f"oauth:state:{state}"
+            stored_state = redis_client.get(state_key)
+            
+            if not stored_state:
+                # State not found - either expired, invalid, or service restarted
+                logger.error(f"❌ SECURITY: Invalid or expired state parameter: {state[:10]}...")
+                logger.warning("🔒 SECURITY ALERT: OAuth state validation failed - possible attack or service restart")
+                logger.info("🔍 Possible scenarios: 1) CSRF attack, 2) State expired (>5min), 3) Service restarted during handshake")
+                
+                error_url = f"{FRONTEND_URL}/auth/error?reason=invalid_state&message=Session+expired+or+invalid+request"
+                return RedirectResponse(url=error_url)
+            
+            # State is valid - delete it immediately (one-time use, prevents replay)
+            redis_client.delete(state_key)
+            logger.info(f"✅ State validated and consumed: {state[:10]}...")
+            
+            # Parse state metadata for audit trail
+            try:
+                state_data = json.loads(stored_state)
+                created_at = state_data.get("created_at")
+                logger.info(f"📋 State created at: {created_at}")
+            except Exception:
+                pass  # Metadata parsing is optional
+                
+        except Exception as e:
+            logger.error(f"❌ Redis error during state validation: {e}")
+            logger.warning("⚠️  Proceeding without state validation (Redis unavailable)")
+            # In production, you might want to reject if Redis is required
+    else:
+        logger.warning("⚠️  Redis unavailable - cannot validate state parameter")
+        logger.warning("⚠️  SECURITY DEGRADED: Proceeding without state validation")
+        # In production with strict security, you should reject here
     
     try:
         # Exchange code for tokens
