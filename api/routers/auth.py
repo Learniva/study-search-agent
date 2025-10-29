@@ -279,6 +279,15 @@ class SecurityEventsResponse(BaseModel):
     total_count: int
 
 
+class SessionValidateResponse(BaseModel):
+    """Session validation response."""
+    valid: bool
+    user_id: Optional[str] = None
+    username: Optional[str] = None
+    email: Optional[str] = None
+    role: Optional[str] = None
+
+
 # Legacy models for Google OAuth compatibility
 class TokenResponse(BaseModel):
     """Token response model."""
@@ -1858,6 +1867,89 @@ async def get_current_user_info(
         role=user.role.value,
         is_verified=user.is_verified,
     )
+
+
+@router.get("/session/validate", response_model=SessionValidateResponse)
+async def validate_session(
+    request: Request,
+    authorization: Optional[str] = Header(None)
+):
+    """
+    Lightweight endpoint for silent session validation.
+    
+    This endpoint validates the user's session without hitting the database
+    if the token is cached. Designed for frequent client-side checks of
+    authentication status.
+    
+    Features:
+    - Cookie-based authentication support
+    - Header-based authentication fallback
+    - Token cache optimization (no DB hit if cached)
+    - Minimal response payload
+    - Compatible with httpOnly cookies
+    
+    Returns:
+        SessionValidateResponse: Validation status and minimal user data
+        
+    Raises:
+        No exceptions - returns valid=false for unauthenticated requests
+    """
+    try:
+        # Try to get token from cookie or header
+        from utils.auth.cookie_config import CookieConfig
+        token = CookieConfig.get_token_from_cookie_or_header(request, authorization)
+        
+        if not token:
+            return SessionValidateResponse(valid=False)
+        
+        # Check token cache first (avoids DB hit)
+        from utils.auth.token_cache import get_token_cache
+        token_cache = await get_token_cache()
+        cached_user = await token_cache.get(token)
+        
+        if cached_user:
+            # Return cached user data (no DB hit!)
+            return SessionValidateResponse(
+                valid=True,
+                user_id=cached_user.get("user_id"),
+                username=cached_user.get("username"),
+                email=cached_user.get("email"),
+                role=cached_user.get("role")
+            )
+        
+        # Token not in cache - validate it
+        # Try JWT first (faster, no DB hit)
+        try:
+            from utils.auth.jwt_handler import verify_access_token
+            payload = verify_access_token(token)
+            
+            # Valid JWT token
+            user_data = {
+                "user_id": payload.get("user_id"),
+                "username": payload.get("username") or payload.get("email", "").split("@")[0],
+                "email": payload.get("email"),
+                "role": payload.get("role", "student")
+            }
+            
+            # Cache it for next time
+            await token_cache.set(token, user_data)
+            
+            return SessionValidateResponse(
+                valid=True,
+                user_id=user_data.get("user_id"),
+                username=user_data.get("username"),
+                email=user_data.get("email"),
+                role=user_data.get("role")
+            )
+        except Exception:
+            # JWT validation failed, return invalid
+            # We deliberately don't check DB tokens here to keep it lightweight
+            return SessionValidateResponse(valid=False)
+            
+    except Exception as e:
+        # Any error means invalid session
+        logger.debug(f"Session validation error: {e}")
+        return SessionValidateResponse(valid=False)
 
 
 @router.get("/config/")

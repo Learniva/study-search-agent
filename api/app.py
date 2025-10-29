@@ -190,7 +190,8 @@ app.add_middleware(
         "/api/auth/google/callback", "/api/auth/google/callback/",
         "/api/auth/google/login/", "/auth/google/login/",  # OAuth login initiation
         "/api/auth/login/", "/api/auth/register/", "/api/auth/validate-password/", "/api/auth/config/",
-        "/auth/login/", "/auth/register/", "/auth/validate-password/", "/auth/config/"
+        "/auth/login/", "/auth/register/", "/auth/validate-password/", "/auth/config/",
+        "/api/auth/session/validate"  # Session validation endpoint (silent reauth check)
     ]
 )
 
