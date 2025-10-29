@@ -1,0 +1,27 @@
+{
+  "test_name": "origin_rejection_logging",
+  "timestamp": "2025-10-29T08:51:53.453866+00:00",
+  "hostile_attempts": [
+    {
+      "origin": "http://evil.com",
+      "timestamp": "2025-10-29T08:51:53.454802+00:00",
+      "status_code": 400,
+      "cors_allowed": false,
+      "expected_behavior": "rejected or not in CORS headers"
+    },
+    {
+      "origin": "https://attacker.net",
+      "timestamp": "2025-10-29T08:51:53.455627+00:00",
+      "status_code": 400,
+      "cors_allowed": false,
+      "expected_behavior": "rejected or not in CORS headers"
+    },
+    {
+      "origin": "null",
+      "timestamp": "2025-10-29T08:51:53.456422+00:00",
+      "status_code": 400,
+      "cors_allowed": false,
+      "expected_behavior": "rejected or not in CORS headers"
+    }
+  ]
+}

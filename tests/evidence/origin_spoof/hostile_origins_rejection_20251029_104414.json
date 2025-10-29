@@ -1,0 +1,126 @@
+{
+  "test_name": "hostile_origins_rejection",
+  "timestamp": "2025-10-29T08:44:14.509266+00:00",
+  "results": [
+    {
+      "origin": "http://evil.com",
+      "status_code": 401,
+      "headers": {
+        "content-length": "0"
+      },
+      "allowed": false
+    },
+    {
+      "origin": "https://attacker.net",
+      "status_code": 401,
+      "headers": {
+        "content-length": "0"
+      },
+      "allowed": false
+    },
+    {
+      "origin": "http://malicious-site.org",
+      "status_code": 401,
+      "headers": {
+        "content-length": "0"
+      },
+      "allowed": false
+    },
+    {
+      "origin": "https://phishing.example",
+      "status_code": 401,
+      "headers": {
+        "content-length": "0"
+      },
+      "allowed": false
+    },
+    {
+      "origin": "http://192.168.1.100:8080",
+      "status_code": 401,
+      "headers": {
+        "content-length": "0"
+      },
+      "allowed": false
+    },
+    {
+      "origin": "https://subdomain.evil.com",
+      "status_code": 401,
+      "headers": {
+        "content-length": "0"
+      },
+      "allowed": false
+    },
+    {
+      "origin": "null",
+      "status_code": 401,
+      "headers": {
+        "content-length": "0"
+      },
+      "allowed": false
+    },
+    {
+      "origin": "file://",
+      "status_code": 401,
+      "headers": {
+        "content-length": "0"
+      },
+      "allowed": false
+    },
+    {
+      "origin": "data://",
+      "status_code": 401,
+      "headers": {
+        "content-length": "0"
+      },
+      "allowed": false
+    },
+    {
+      "origin": "javascript://",
+      "status_code": 401,
+      "headers": {
+        "content-length": "0"
+      },
+      "allowed": false
+    },
+    {
+      "origin": "https://localhost.evil.com",
+      "status_code": 401,
+      "headers": {
+        "content-length": "0"
+      },
+      "allowed": false
+    },
+    {
+      "origin": "http://localhost:3000.evil.com",
+      "status_code": 401,
+      "headers": {
+        "content-length": "0"
+      },
+      "allowed": false
+    },
+    {
+      "origin": "http://evil.com@localhost:3000",
+      "status_code": 401,
+      "headers": {
+        "content-length": "0"
+      },
+      "allowed": false
+    },
+    {
+      "origin": "https://[::1]",
+      "status_code": 401,
+      "headers": {
+        "content-length": "0"
+      },
+      "allowed": false
+    },
+    {
+      "origin": "http://127.0.0.1",
+      "status_code": 401,
+      "headers": {
+        "content-length": "0"
+      },
+      "allowed": false
+    }
+  ]
+}

@@ -1,0 +1,261 @@
+{
+  "test_name": "hostile_origins_rejection",
+  "timestamp": "2025-10-29T08:36:53.213117+00:00",
+  "results": [
+    {
+      "origin": "http://evil.com",
+      "status_code": 400,
+      "headers": {
+        "vary": "Origin",
+        "access-control-allow-methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+        "access-control-max-age": "600",
+        "access-control-allow-headers": "Accept, Accept-Language, Authorization, Content-Language, Content-Type, X-CSP-Nonce, X-CSRFToken, X-Correlation-ID, X-Tenant-ID, X-Thread-ID, X-Trace-ID, X-User-ID, X-User-Role",
+        "access-control-allow-credentials": "true",
+        "content-length": "22",
+        "content-type": "text/plain; charset=utf-8",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58",
+        "x-ratelimit-reset": "1761727073"
+      },
+      "allowed": false
+    },
+    {
+      "origin": "https://attacker.net",
+      "status_code": 400,
+      "headers": {
+        "vary": "Origin",
+        "access-control-allow-methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+        "access-control-max-age": "600",
+        "access-control-allow-headers": "Accept, Accept-Language, Authorization, Content-Language, Content-Type, X-CSP-Nonce, X-CSRFToken, X-Correlation-ID, X-Tenant-ID, X-Thread-ID, X-Trace-ID, X-User-ID, X-User-Role",
+        "access-control-allow-credentials": "true",
+        "content-length": "22",
+        "content-type": "text/plain; charset=utf-8",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "57",
+        "x-ratelimit-reset": "1761727073"
+      },
+      "allowed": false
+    },
+    {
+      "origin": "http://malicious-site.org",
+      "status_code": 400,
+      "headers": {
+        "vary": "Origin",
+        "access-control-allow-methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+        "access-control-max-age": "600",
+        "access-control-allow-headers": "Accept, Accept-Language, Authorization, Content-Language, Content-Type, X-CSP-Nonce, X-CSRFToken, X-Correlation-ID, X-Tenant-ID, X-Thread-ID, X-Trace-ID, X-User-ID, X-User-Role",
+        "access-control-allow-credentials": "true",
+        "content-length": "22",
+        "content-type": "text/plain; charset=utf-8",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "56",
+        "x-ratelimit-reset": "1761727073"
+      },
+      "allowed": false
+    },
+    {
+      "origin": "https://phishing.example",
+      "status_code": 400,
+      "headers": {
+        "vary": "Origin",
+        "access-control-allow-methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+        "access-control-max-age": "600",
+        "access-control-allow-headers": "Accept, Accept-Language, Authorization, Content-Language, Content-Type, X-CSP-Nonce, X-CSRFToken, X-Correlation-ID, X-Tenant-ID, X-Thread-ID, X-Trace-ID, X-User-ID, X-User-Role",
+        "access-control-allow-credentials": "true",
+        "content-length": "22",
+        "content-type": "text/plain; charset=utf-8",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "55",
+        "x-ratelimit-reset": "1761727073"
+      },
+      "allowed": false
+    },
+    {
+      "origin": "http://192.168.1.100:8080",
+      "status_code": 400,
+      "headers": {
+        "vary": "Origin",
+        "access-control-allow-methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+        "access-control-max-age": "600",
+        "access-control-allow-headers": "Accept, Accept-Language, Authorization, Content-Language, Content-Type, X-CSP-Nonce, X-CSRFToken, X-Correlation-ID, X-Tenant-ID, X-Thread-ID, X-Trace-ID, X-User-ID, X-User-Role",
+        "access-control-allow-credentials": "true",
+        "content-length": "22",
+        "content-type": "text/plain; charset=utf-8",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "54",
+        "x-ratelimit-reset": "1761727073"
+      },
+      "allowed": false
+    },
+    {
+      "origin": "https://subdomain.evil.com",
+      "status_code": 400,
+      "headers": {
+        "vary": "Origin",
+        "access-control-allow-methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+        "access-control-max-age": "600",
+        "access-control-allow-headers": "Accept, Accept-Language, Authorization, Content-Language, Content-Type, X-CSP-Nonce, X-CSRFToken, X-Correlation-ID, X-Tenant-ID, X-Thread-ID, X-Trace-ID, X-User-ID, X-User-Role",
+        "access-control-allow-credentials": "true",
+        "content-length": "22",
+        "content-type": "text/plain; charset=utf-8",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "53",
+        "x-ratelimit-reset": "1761727073"
+      },
+      "allowed": false
+    },
+    {
+      "origin": "null",
+      "status_code": 400,
+      "headers": {
+        "vary": "Origin",
+        "access-control-allow-methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+        "access-control-max-age": "600",
+        "access-control-allow-headers": "Accept, Accept-Language, Authorization, Content-Language, Content-Type, X-CSP-Nonce, X-CSRFToken, X-Correlation-ID, X-Tenant-ID, X-Thread-ID, X-Trace-ID, X-User-ID, X-User-Role",
+        "access-control-allow-credentials": "true",
+        "content-length": "22",
+        "content-type": "text/plain; charset=utf-8",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "52",
+        "x-ratelimit-reset": "1761727073"
+      },
+      "allowed": false
+    },
+    {
+      "origin": "file://",
+      "status_code": 400,
+      "headers": {
+        "vary": "Origin",
+        "access-control-allow-methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+        "access-control-max-age": "600",
+        "access-control-allow-headers": "Accept, Accept-Language, Authorization, Content-Language, Content-Type, X-CSP-Nonce, X-CSRFToken, X-Correlation-ID, X-Tenant-ID, X-Thread-ID, X-Trace-ID, X-User-ID, X-User-Role",
+        "access-control-allow-credentials": "true",
+        "content-length": "22",
+        "content-type": "text/plain; charset=utf-8",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "51",
+        "x-ratelimit-reset": "1761727073"
+      },
+      "allowed": false
+    },
+    {
+      "origin": "data://",
+      "status_code": 400,
+      "headers": {
+        "vary": "Origin",
+        "access-control-allow-methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+        "access-control-max-age": "600",
+        "access-control-allow-headers": "Accept, Accept-Language, Authorization, Content-Language, Content-Type, X-CSP-Nonce, X-CSRFToken, X-Correlation-ID, X-Tenant-ID, X-Thread-ID, X-Trace-ID, X-User-ID, X-User-Role",
+        "access-control-allow-credentials": "true",
+        "content-length": "22",
+        "content-type": "text/plain; charset=utf-8",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "50",
+        "x-ratelimit-reset": "1761727073"
+      },
+      "allowed": false
+    },
+    {
+      "origin": "javascript://",
+      "status_code": 400,
+      "headers": {
+        "vary": "Origin",
+        "access-control-allow-methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+        "access-control-max-age": "600",
+        "access-control-allow-headers": "Accept, Accept-Language, Authorization, Content-Language, Content-Type, X-CSP-Nonce, X-CSRFToken, X-Correlation-ID, X-Tenant-ID, X-Thread-ID, X-Trace-ID, X-User-ID, X-User-Role",
+        "access-control-allow-credentials": "true",
+        "content-length": "22",
+        "content-type": "text/plain; charset=utf-8",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "49",
+        "x-ratelimit-reset": "1761727073"
+      },
+      "allowed": false
+    },
+    {
+      "origin": "https://localhost.evil.com",
+      "status_code": 400,
+      "headers": {
+        "vary": "Origin",
+        "access-control-allow-methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+        "access-control-max-age": "600",
+        "access-control-allow-headers": "Accept, Accept-Language, Authorization, Content-Language, Content-Type, X-CSP-Nonce, X-CSRFToken, X-Correlation-ID, X-Tenant-ID, X-Thread-ID, X-Trace-ID, X-User-ID, X-User-Role",
+        "access-control-allow-credentials": "true",
+        "content-length": "22",
+        "content-type": "text/plain; charset=utf-8",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "48",
+        "x-ratelimit-reset": "1761727073"
+      },
+      "allowed": false
+    },
+    {
+      "origin": "http://localhost:3000.evil.com",
+      "status_code": 400,
+      "headers": {
+        "vary": "Origin",
+        "access-control-allow-methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+        "access-control-max-age": "600",
+        "access-control-allow-headers": "Accept, Accept-Language, Authorization, Content-Language, Content-Type, X-CSP-Nonce, X-CSRFToken, X-Correlation-ID, X-Tenant-ID, X-Thread-ID, X-Trace-ID, X-User-ID, X-User-Role",
+        "access-control-allow-credentials": "true",
+        "content-length": "22",
+        "content-type": "text/plain; charset=utf-8",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "47",
+        "x-ratelimit-reset": "1761727073"
+      },
+      "allowed": false
+    },
+    {
+      "origin": "http://evil.com@localhost:3000",
+      "status_code": 400,
+      "headers": {
+        "vary": "Origin",
+        "access-control-allow-methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+        "access-control-max-age": "600",
+        "access-control-allow-headers": "Accept, Accept-Language, Authorization, Content-Language, Content-Type, X-CSP-Nonce, X-CSRFToken, X-Correlation-ID, X-Tenant-ID, X-Thread-ID, X-Trace-ID, X-User-ID, X-User-Role",
+        "access-control-allow-credentials": "true",
+        "content-length": "22",
+        "content-type": "text/plain; charset=utf-8",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "46",
+        "x-ratelimit-reset": "1761727073"
+      },
+      "allowed": false
+    },
+    {
+      "origin": "https://[::1]",
+      "status_code": 400,
+      "headers": {
+        "vary": "Origin",
+        "access-control-allow-methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+        "access-control-max-age": "600",
+        "access-control-allow-headers": "Accept, Accept-Language, Authorization, Content-Language, Content-Type, X-CSP-Nonce, X-CSRFToken, X-Correlation-ID, X-Tenant-ID, X-Thread-ID, X-Trace-ID, X-User-ID, X-User-Role",
+        "access-control-allow-credentials": "true",
+        "content-length": "22",
+        "content-type": "text/plain; charset=utf-8",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "45",
+        "x-ratelimit-reset": "1761727073"
+      },
+      "allowed": false
+    },
+    {
+      "origin": "http://127.0.0.1",
+      "status_code": 400,
+      "headers": {
+        "vary": "Origin",
+        "access-control-allow-methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+        "access-control-max-age": "600",
+        "access-control-allow-headers": "Accept, Accept-Language, Authorization, Content-Language, Content-Type, X-CSP-Nonce, X-CSRFToken, X-Correlation-ID, X-Tenant-ID, X-Thread-ID, X-Trace-ID, X-User-ID, X-User-Role",
+        "access-control-allow-credentials": "true",
+        "content-length": "22",
+        "content-type": "text/plain; charset=utf-8",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "44",
+        "x-ratelimit-reset": "1761727073"
+      },
+      "allowed": false
+    }
+  ]
+}

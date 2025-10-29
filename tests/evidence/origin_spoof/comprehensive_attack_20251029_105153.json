@@ -1,0 +1,176 @@
+{
+  "test_name": "comprehensive_origin_spoof_attack",
+  "timestamp": "2025-10-29T08:51:53.507355+00:00",
+  "attack_vectors": [
+    {
+      "attack_vector": "Forged Origin Header",
+      "headers_sent": {
+        "Origin": "http://evil.com"
+      },
+      "status_code": 400,
+      "cors_headers": {
+        "access-control-allow-methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+        "access-control-max-age": "600",
+        "access-control-allow-headers": "Accept, Accept-Language, Authorization, Content-Language, Content-Type, X-CSP-Nonce, X-CSRFToken, X-Correlation-ID, X-Tenant-ID, X-Thread-ID, X-Trace-ID, X-User-ID, X-User-Role",
+        "access-control-allow-credentials": "true"
+      },
+      "security_headers": {
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'nonce-gM_za-pzFTyKB5Qn0ErVtQ'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; media-src 'self'; worker-src 'self'; child-src 'self'; report-uri /api/security/csp-report"
+      },
+      "blocked": true,
+      "wildcard": false
+    },
+    {
+      "attack_vector": "Forged Referer Header",
+      "headers_sent": {
+        "Referer": "http://evil.com/phishing.html"
+      },
+      "status_code": 405,
+      "cors_headers": {},
+      "security_headers": {
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'nonce-F15bUbRGWniB_uoPa65Lnw'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; media-src 'self'; worker-src 'self'; child-src 'self'; report-uri /api/security/csp-report"
+      },
+      "blocked": true,
+      "wildcard": false
+    },
+    {
+      "attack_vector": "Combined Origin + Referer",
+      "headers_sent": {
+        "Origin": "http://evil.com",
+        "Referer": "http://evil.com/attack.html"
+      },
+      "status_code": 400,
+      "cors_headers": {
+        "access-control-allow-methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+        "access-control-max-age": "600",
+        "access-control-allow-headers": "Accept, Accept-Language, Authorization, Content-Language, Content-Type, X-CSP-Nonce, X-CSRFToken, X-Correlation-ID, X-Tenant-ID, X-Thread-ID, X-Trace-ID, X-User-ID, X-User-Role",
+        "access-control-allow-credentials": "true"
+      },
+      "security_headers": {
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'nonce-EuiFWh7zXE54VNefZgPtbA'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; media-src 'self'; worker-src 'self'; child-src 'self'; report-uri /api/security/csp-report"
+      },
+      "blocked": true,
+      "wildcard": false
+    },
+    {
+      "attack_vector": "Null Origin",
+      "headers_sent": {
+        "Origin": "null"
+      },
+      "status_code": 400,
+      "cors_headers": {
+        "access-control-allow-methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+        "access-control-max-age": "600",
+        "access-control-allow-headers": "Accept, Accept-Language, Authorization, Content-Language, Content-Type, X-CSP-Nonce, X-CSRFToken, X-Correlation-ID, X-Tenant-ID, X-Thread-ID, X-Trace-ID, X-User-ID, X-User-Role",
+        "access-control-allow-credentials": "true"
+      },
+      "security_headers": {
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'nonce-EwEWfNyxH0Nsht-H7HM_Lg'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; media-src 'self'; worker-src 'self'; child-src 'self'; report-uri /api/security/csp-report"
+      },
+      "blocked": true,
+      "wildcard": false
+    },
+    {
+      "attack_vector": "File Protocol",
+      "headers_sent": {
+        "Origin": "file://"
+      },
+      "status_code": 400,
+      "cors_headers": {
+        "access-control-allow-methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+        "access-control-max-age": "600",
+        "access-control-allow-headers": "Accept, Accept-Language, Authorization, Content-Language, Content-Type, X-CSP-Nonce, X-CSRFToken, X-Correlation-ID, X-Tenant-ID, X-Thread-ID, X-Trace-ID, X-User-ID, X-User-Role",
+        "access-control-allow-credentials": "true"
+      },
+      "security_headers": {
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'nonce-PO8m2ntYw81AmImJs-XBUA'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; media-src 'self'; worker-src 'self'; child-src 'self'; report-uri /api/security/csp-report"
+      },
+      "blocked": true,
+      "wildcard": false
+    },
+    {
+      "attack_vector": "Subdomain Hijack Attempt",
+      "headers_sent": {
+        "Origin": "http://localhost.evil.com"
+      },
+      "status_code": 400,
+      "cors_headers": {
+        "access-control-allow-methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+        "access-control-max-age": "600",
+        "access-control-allow-headers": "Accept, Accept-Language, Authorization, Content-Language, Content-Type, X-CSP-Nonce, X-CSRFToken, X-Correlation-ID, X-Tenant-ID, X-Thread-ID, X-Trace-ID, X-User-ID, X-User-Role",
+        "access-control-allow-credentials": "true"
+      },
+      "security_headers": {
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'nonce-ijLtaYAmL0POtCPkJbmUoA'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; media-src 'self'; worker-src 'self'; child-src 'self'; report-uri /api/security/csp-report"
+      },
+      "blocked": true,
+      "wildcard": false
+    },
+    {
+      "attack_vector": "Domain Append Attack",
+      "headers_sent": {
+        "Origin": "http://localhost:3000.evil.com"
+      },
+      "status_code": 400,
+      "cors_headers": {
+        "access-control-allow-methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+        "access-control-max-age": "600",
+        "access-control-allow-headers": "Accept, Accept-Language, Authorization, Content-Language, Content-Type, X-CSP-Nonce, X-CSRFToken, X-Correlation-ID, X-Tenant-ID, X-Thread-ID, X-Trace-ID, X-User-ID, X-User-Role",
+        "access-control-allow-credentials": "true"
+      },
+      "security_headers": {
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'nonce-uQr3h3mIcJtjHmbkkyJ0BQ'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; media-src 'self'; worker-src 'self'; child-src 'self'; report-uri /api/security/csp-report"
+      },
+      "blocked": true,
+      "wildcard": false
+    },
+    {
+      "attack_vector": "User Info Attack",
+      "headers_sent": {
+        "Origin": "http://evil.com@localhost:3000"
+      },
+      "status_code": 400,
+      "cors_headers": {
+        "access-control-allow-methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+        "access-control-max-age": "600",
+        "access-control-allow-headers": "Accept, Accept-Language, Authorization, Content-Language, Content-Type, X-CSP-Nonce, X-CSRFToken, X-Correlation-ID, X-Tenant-ID, X-Thread-ID, X-Trace-ID, X-User-ID, X-User-Role",
+        "access-control-allow-credentials": "true"
+      },
+      "security_headers": {
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'nonce-Hvt1p2B6jSMjpFKKk4q-kA'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; media-src 'self'; worker-src 'self'; child-src 'self'; report-uri /api/security/csp-report"
+      },
+      "blocked": true,
+      "wildcard": false
+    }
+  ],
+  "summary": {
+    "total_attempts": 8,
+    "blocked": 8,
+    "leaked": 0,
+    "wildcard_detected": false
+  }
+}

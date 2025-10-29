@@ -52,34 +52,6 @@ from config import settings
 from middleware.auth_gateway import AuthGatewayMiddleware
 from middleware.security_headers import SecurityHeadersMiddleware
 
-app = FastAPI(
-    title="Study Search Agent API",
-    description="AI-powered study and grading assistant",
-    version="1.0.0",
-    lifespan=lifespan
-)
-
-# Security Headers Middleware (first in chain)
-app.add_middleware(
-    SecurityHeadersMiddleware,
-    strict_mode=not settings.is_development,
-    hsts_max_age=31536000,  # 1 year
-    csp_report_uri="/api/security/csp-report" if not settings.is_development else None
-)
-
-# Authentication Gateway Middleware
-app.add_middleware(
-    AuthGatewayMiddleware,
-    exempt_paths=[
-        # Health and docs
-        "/health", "/", "/docs", "/redoc", "/openapi.json",
-        # Auth endpoints (both prefixes)
-        "/auth/google/callback", "/auth/health", 
-        "/api/auth/login/", "/api/auth/register/", "/api/auth/validate-password/", "/api/auth/config/",
-        "/auth/login/", "/auth/register/", "/auth/validate-password/", "/auth/config/"
-    ]
-)
-
 logger = get_logger(__name__)
 
 
@@ -170,6 +142,27 @@ app.add_middleware(
     allow_headers=CORS_HEADERS,
     expose_headers=["X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset", "X-Total-Count"],
     max_age=600,  # Cache preflight requests for 10 minutes
+)
+
+# Security Headers Middleware
+app.add_middleware(
+    SecurityHeadersMiddleware,
+    strict_mode=not settings.is_development,
+    hsts_max_age=31536000,  # 1 year
+    csp_report_uri="/api/security/csp-report" if not settings.is_development else None
+)
+
+# Authentication Gateway Middleware
+app.add_middleware(
+    AuthGatewayMiddleware,
+    exempt_paths=[
+        # Health and docs
+        "/health", "/", "/docs", "/redoc", "/openapi.json",
+        # Auth endpoints (both prefixes)
+        "/auth/google/callback", "/auth/health", 
+        "/api/auth/login/", "/api/auth/register/", "/api/auth/validate-password/", "/api/auth/config/",
+        "/auth/login/", "/auth/register/", "/auth/validate-password/", "/auth/config/"
+    ]
 )
 
 # Rate Limiting

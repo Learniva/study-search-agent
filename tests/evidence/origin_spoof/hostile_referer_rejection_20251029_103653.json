@@ -1,0 +1,96 @@
+{
+  "test_name": "hostile_referer_rejection",
+  "timestamp": "2025-10-29T08:36:53.284955+00:00",
+  "results": [
+    {
+      "referer": "http://evil.com",
+      "status_code": 503,
+      "has_cors_headers": false,
+      "security_headers": {}
+    },
+    {
+      "referer": "https://attacker.net",
+      "status_code": 503,
+      "has_cors_headers": false,
+      "security_headers": {}
+    },
+    {
+      "referer": "http://malicious-site.org",
+      "status_code": 503,
+      "has_cors_headers": false,
+      "security_headers": {}
+    },
+    {
+      "referer": "https://phishing.example",
+      "status_code": 503,
+      "has_cors_headers": false,
+      "security_headers": {}
+    },
+    {
+      "referer": "http://192.168.1.100:8080",
+      "status_code": 503,
+      "has_cors_headers": false,
+      "security_headers": {}
+    },
+    {
+      "referer": "https://subdomain.evil.com",
+      "status_code": 503,
+      "has_cors_headers": false,
+      "security_headers": {}
+    },
+    {
+      "referer": "null",
+      "status_code": 503,
+      "has_cors_headers": false,
+      "security_headers": {}
+    },
+    {
+      "referer": "file://",
+      "status_code": 503,
+      "has_cors_headers": false,
+      "security_headers": {}
+    },
+    {
+      "referer": "data://",
+      "status_code": 503,
+      "has_cors_headers": false,
+      "security_headers": {}
+    },
+    {
+      "referer": "javascript://",
+      "status_code": 503,
+      "has_cors_headers": false,
+      "security_headers": {}
+    },
+    {
+      "referer": "https://localhost.evil.com",
+      "status_code": 503,
+      "has_cors_headers": false,
+      "security_headers": {}
+    },
+    {
+      "referer": "http://localhost:3000.evil.com",
+      "status_code": 503,
+      "has_cors_headers": false,
+      "security_headers": {}
+    },
+    {
+      "referer": "http://evil.com@localhost:3000",
+      "status_code": 503,
+      "has_cors_headers": false,
+      "security_headers": {}
+    },
+    {
+      "referer": "https://[::1]",
+      "status_code": 503,
+      "has_cors_headers": false,
+      "security_headers": {}
+    },
+    {
+      "referer": "http://127.0.0.1",
+      "status_code": 503,
+      "has_cors_headers": false,
+      "security_headers": {}
+    }
+  ]
+}

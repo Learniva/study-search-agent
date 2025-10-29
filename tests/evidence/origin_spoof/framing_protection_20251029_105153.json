@@ -1,0 +1,36 @@
+{
+  "test_name": "framing_protection",
+  "timestamp": "2025-10-29T08:51:53.240851+00:00",
+  "results": [
+    {
+      "origin": "http://evil.com",
+      "x_frame_options": "DENY",
+      "csp_frame_ancestors": "frame-ancestors 'none'",
+      "blocked": true
+    },
+    {
+      "origin": "https://attacker.net",
+      "x_frame_options": "DENY",
+      "csp_frame_ancestors": "frame-ancestors 'none'",
+      "blocked": true
+    },
+    {
+      "origin": "http://malicious-site.org",
+      "x_frame_options": "DENY",
+      "csp_frame_ancestors": "frame-ancestors 'none'",
+      "blocked": true
+    },
+    {
+      "origin": "https://phishing.example",
+      "x_frame_options": "DENY",
+      "csp_frame_ancestors": "frame-ancestors 'none'",
+      "blocked": true
+    },
+    {
+      "origin": "http://192.168.1.100:8080",
+      "x_frame_options": "DENY",
+      "csp_frame_ancestors": "frame-ancestors 'none'",
+      "blocked": true
+    }
+  ]
+}
