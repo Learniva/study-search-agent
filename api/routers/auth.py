@@ -1590,12 +1590,24 @@ async def refresh_access_token(
     token_id = payload.get("token_id")
     rotation_chain_id = payload.get("rotation_chain_id")
     
-    # Generate new tokens
+    # Fetch user to get current role
+    user = await get_user_by_id(session, user_id)
+    if not user:
+        logger.error(f"User {user_id} not found during token refresh")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={"error": "user_not_found", "message": "User not found"}
+        )
+    
+    # Generate new tokens with role claim
     from utils.auth.jwt_handler import create_access_token
     new_access_token = create_access_token(
         data={
             "user_id": user_id,
             "sub": user_id,
+            "email": user.email,
+            "role": user.role.value if hasattr(user.role, 'value') else user.role,
+            "name": user.name,
             "type": "access"
         }
     )
