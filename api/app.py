@@ -51,6 +51,7 @@ from config import settings
 
 from middleware.auth_gateway import AuthGatewayMiddleware
 from middleware.security_headers import SecurityHeadersMiddleware
+from middleware.csrf_protection import CSRFProtectionMiddleware
 
 logger = get_logger(__name__)
 
@@ -109,7 +110,7 @@ app = FastAPI(
 # Middleware Stack
 # ============================================================================
 
-# CORS - Enhanced security configuration
+# CORS - Enhanced security configuration for cookie-based authentication
 # SECURITY: Never use ["*"] in production with allow_credentials=True
 ALLOWED_ORIGINS = os.getenv(
     "CORS_ALLOWED_ORIGINS",
@@ -119,28 +120,38 @@ ALLOWED_ORIGINS = os.getenv(
 # Filter out empty strings and validate origins
 ALLOWED_ORIGINS = [origin.strip() for origin in ALLOWED_ORIGINS if origin.strip()]
 
-# Additional security headers for CORS
+# Additional security headers for CORS (cookie-based auth)
 CORS_HEADERS = [
     "Content-Type",
-    "Authorization", 
+    "Authorization",  # Keep for backward compatibility during migration
     "X-Correlation-ID",
     "X-Trace-ID",
     "X-Tenant-ID",
     "X-CSP-Nonce",
+    # CSRF protection (required for cookie-based auth)
+    "X-CSRF-Token",
     # Frontend custom headers
     "X-User-Role",
     "X-User-ID", 
     "X-Thread-ID",
-    "X-CSRFToken",
+]
+
+# Expose headers that client can read
+CORS_EXPOSE_HEADERS = [
+    "X-RateLimit-Limit",
+    "X-RateLimit-Remaining",
+    "X-RateLimit-Reset",
+    "X-Total-Count",
+    "X-CSRF-Token",  # Allow client to read CSRF token
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
-    allow_credentials=True,
+    allow_credentials=True,  # REQUIRED for cookie-based auth
     allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allow_headers=CORS_HEADERS,
-    expose_headers=["X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset", "X-Total-Count"],
+    expose_headers=CORS_EXPOSE_HEADERS,
     max_age=600,  # Cache preflight requests for 10 minutes
 )
 
@@ -150,6 +161,22 @@ app.add_middleware(
     strict_mode=not settings.is_development,
     hsts_max_age=31536000,  # 1 year
     csp_report_uri="/api/security/csp-report" if not settings.is_development else None
+)
+
+# CSRF Protection Middleware (for cookie-based authentication)
+app.add_middleware(
+    CSRFProtectionMiddleware,
+    exempt_paths={
+        # Auth endpoints that don't need CSRF (login/register create new sessions)
+        "/api/auth/login/",
+        "/auth/login/",
+        "/api/auth/register/",
+        "/auth/register/",
+        "/api/auth/google/callback",
+        "/api/auth/google/callback/",
+        "/auth/google/callback",
+        "/auth/google/callback/",
+    }
 )
 
 # Authentication Gateway Middleware

@@ -13,7 +13,7 @@ Features:
 - Optional Redis caching for performance
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Header
+from fastapi import APIRouter, Depends, HTTPException, Header, Response
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 from datetime import datetime
@@ -21,6 +21,8 @@ from uuid import UUID
 import logging
 
 from config.settings import settings
+from utils.auth.cookie_config import CookieConfig, set_auth_cookies, clear_auth_cookies
+from middleware.csrf_protection import generate_csrf_token
 from database.operations.user_ops import (
     create_user,
     authenticate_user,
@@ -274,12 +276,22 @@ async def get_current_user(
 @router.post("/login/", response_model=LoginResponse)
 async def login(
     request: LoginRequest,
+    response: Response,
     session: AsyncSession = Depends(get_session)
 ):
     """
-    Login endpoint.
+    Login endpoint with secure httpOnly cookie support.
     
-    Authenticates user and returns token.
+    Authenticates user and issues token via:
+    1. Secure httpOnly cookie (preferred - XSS protection)
+    2. Response body (backward compatibility)
+    
+    Security Features:
+    - httpOnly cookie prevents JavaScript access
+    - Secure flag for HTTPS-only transmission
+    - SameSite=strict prevents CSRF attacks
+    - Short-lived access tokens (15 minutes)
+    - CSRF token for state-changing operations
     """
     logger.info(f"🔐 Login attempt: {request.username}")
     
@@ -296,8 +308,20 @@ async def login(
     # Create token
     token = await create_token_for_user(session, user.user_id, user.role)
     
-    logger.info(f"✅ Login successful: {user.username}")
+    # Generate CSRF token
+    csrf_token = generate_csrf_token()
     
+    # Set secure httpOnly cookies
+    set_auth_cookies(
+        response=response,
+        access_token=token,
+        csrf_token=csrf_token
+    )
+    
+    logger.info(f"✅ Login successful: {user.username} (cookie-based auth)")
+    
+    # Return token in response body for backward compatibility
+    # This can be removed once all clients migrate to cookie-based auth
     return LoginResponse(
         token=token,
         user=user_to_dict(user)
@@ -306,19 +330,25 @@ async def login(
 
 @router.post("/logout/")
 async def logout(
+    response: Response,
     authorization: Optional[str] = Header(None),
     session: AsyncSession = Depends(get_session)
 ):
     """
-    Logout endpoint.
+    Logout endpoint with cookie clearing support.
     
     Invalidates the user's token by:
-    1. Clearing from cache (instant invalidation)
-    2. Deleting from PostgreSQL (persistent invalidation)
+    1. Clearing httpOnly authentication cookies (instant)
+    2. Clearing from cache (instant invalidation)
+    3. Deleting from PostgreSQL (persistent invalidation)
     
     Works even with invalid/expired tokens since the user wants to logout anyway.
     """
     from utils.auth.token_cache import get_token_cache
+    
+    # Clear authentication cookies
+    clear_auth_cookies(response)
+    logger.info("🍪 Authentication cookies cleared")
     
     if authorization:
         # Extract token
@@ -346,18 +376,27 @@ async def logout(
 @router.post("/register/", response_model=LoginResponse)
 async def register(
     request: RegisterRequest,
+    response: Response,
     session: AsyncSession = Depends(get_session)
 ):
     """
-    Registration endpoint.
+    Registration endpoint with secure httpOnly cookie support.
     
-    Creates new user account and returns token.
+    Creates new user account and issues token via:
+    1. Secure httpOnly cookie (preferred - XSS protection)
+    2. Response body (backward compatibility)
     
     Password Requirements:
     - Minimum 8 characters
     - At least 1 uppercase letter
     - At least 1 lowercase letter
     - At least 1 digit
+    
+    Security Features:
+    - httpOnly cookie prevents JavaScript access
+    - Secure flag for HTTPS-only transmission
+    - SameSite=strict prevents CSRF attacks
+    - CSRF token for state-changing operations
     """
     logger.info(f"📝 Registration attempt: {request.username} ({request.email})")
     
@@ -421,7 +460,17 @@ async def register(
     # Create token
     token = await create_token_for_user(session, user.user_id, user.role)
     
-    logger.info(f"✅ Registration successful: {user.username}")
+    # Generate CSRF token
+    csrf_token = generate_csrf_token()
+    
+    # Set secure httpOnly cookies
+    set_auth_cookies(
+        response=response,
+        access_token=token,
+        csrf_token=csrf_token
+    )
+    
+    logger.info(f"✅ Registration successful: {user.username} (cookie-based auth)")
     
     # Send welcome email to new user
     try:
@@ -439,6 +488,8 @@ async def register(
         # Don't fail registration if email fails
         logger.error(f"❌ Error sending welcome email: {e}")
     
+    # Return token in response body for backward compatibility
+    # This can be removed once all clients migrate to cookie-based auth
     return LoginResponse(
         token=token,
         user=user_to_dict(user)
