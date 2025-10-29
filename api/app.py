@@ -159,7 +159,8 @@ app.add_middleware(
         # Health and docs
         "/health", "/", "/docs", "/redoc", "/openapi.json",
         # Auth endpoints (both prefixes)
-        "/auth/google/callback", "/auth/health", 
+        "/auth/google/callback", "/auth/google/callback/", "/auth/health", "/auth/error",
+        "/api/auth/google/callback", "/api/auth/google/callback/",
         "/api/auth/login/", "/api/auth/register/", "/api/auth/validate-password/", "/api/auth/config/",
         "/auth/login/", "/auth/register/", "/auth/validate-password/", "/auth/config/"
     ]
