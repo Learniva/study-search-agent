@@ -30,7 +30,7 @@ import json
 from datetime import datetime, timezone, timedelta
 from typing import Optional, Dict, Any, List
 from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException, Request, status, Header
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status, Header
 from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel, Field, EmailStr, validator
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -54,8 +54,20 @@ from database.operations.token_ops import (
     delete_token,
     delete_user_tokens
 )
+from database.operations.refresh_token_ops import (
+    create_refresh_token,
+    get_refresh_token,
+    revoke_user_tokens,
+    rotate_refresh_token,
+    revoke_token_chain
+)
 from database.models.audit import AuditLog
 from utils.auth import create_access_token, get_current_user, google_oauth
+from utils.auth.refresh_token_handler import (
+    create_refresh_token as create_refresh_token_jwt,
+    verify_refresh_token
+)
+from utils.auth.cookie_config import CookieConfig
 from utils.auth.password import (
     hash_password, 
     verify_password,
@@ -224,6 +236,13 @@ class LogoutResponse(BaseModel):
     success: bool
     message: str
     sessions_terminated: int
+
+
+class RefreshTokenResponse(BaseModel):
+    """Refresh token response."""
+    access_token: str
+    expires_at: datetime
+    token_type: str = "bearer"
 
 
 class SessionInfo(BaseModel):
@@ -850,6 +869,7 @@ async def google_callback(
 async def login(
     request: LoginRequest,
     http_request: Request,
+    response: JSONResponse,
     session: AsyncSession = Depends(get_session)
 ):
     """
@@ -861,6 +881,7 @@ async def login(
     - Device tracking
     - Security monitoring
     - Rate limiting (handled by middleware)
+    - Refresh token rotation
     """
     client_ip = _get_client_ip(http_request)
     user_agent = _get_user_agent(http_request)
@@ -908,6 +929,39 @@ async def login(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create authentication token"
         )
+    
+    # Create refresh token with rotation chain
+    from database.models.refresh_token import RefreshToken as RefreshTokenModel
+    rotation_chain_id = RefreshTokenModel.generate_chain_id()
+    
+    # Generate token ID for database record
+    import uuid
+    refresh_token_id = str(uuid.uuid4())
+    
+    # Create JWT refresh token
+    refresh_token_jwt = create_refresh_token_jwt(
+        user_id=user.user_id,
+        rotation_chain_id=rotation_chain_id,
+        token_id=refresh_token_id
+    )
+    
+    # Store refresh token in database
+    refresh_token_record = await create_refresh_token(
+        session=session,
+        user_id=user.user_id,
+        token_value=refresh_token_jwt,
+        rotation_chain_id=rotation_chain_id,
+        device_info=user_agent,
+        ip_address=client_ip
+    )
+    
+    if not refresh_token_record:
+        logger.error(f"Failed to create refresh token for user: {user.user_id}")
+        # Don't fail login, just log the error
+    else:
+        # Set refresh token in httpOnly cookie
+        CookieConfig.set_refresh_token_cookie(response, refresh_token_jwt)
+        logger.debug(f"✅ Refresh token created for user {user.user_id}")
     
     # Update user activity
     await update_user_activity(session, user.user_id)
@@ -1462,10 +1516,151 @@ async def logout(
         await delete_user_tokens(session, user_id)
         sessions_terminated = "all"
     
+    # Revoke all refresh tokens for the user
+    await revoke_user_tokens(session, user_id, reason="user_logout")
+    
     return LogoutResponse(
         success=True,
         message="Logged out successfully",
         sessions_terminated=sessions_terminated
+    )
+
+
+@router.post("/refresh/", response_model=RefreshTokenResponse)
+async def refresh_access_token(
+    http_request: Request,
+    response: JSONResponse,
+    session: AsyncSession = Depends(get_session)
+):
+    """
+    Refresh access token using refresh token rotation.
+    
+    Security Features:
+    - Token rotation: Each refresh creates a new refresh token
+    - Single-use tokens: Old refresh token becomes invalid
+    - Chain tracking: All tokens in rotation chain are linked
+    - Misuse detection: Reuse of old token → revoke entire chain
+    - httpOnly cookies: Tokens not accessible to JavaScript
+    
+    Flow:
+    1. Read refresh_token from httpOnly cookie
+    2. Verify it's valid and not revoked
+    3. Check for reuse (security threat)
+    4. Create new access + refresh tokens
+    5. Mark old refresh token as used
+    6. Set new tokens in httpOnly cookies
+    
+    Returns:
+        New access token and expiration
+    
+    Raises:
+        HTTPException: If refresh token is invalid, expired, revoked, or reused
+    """
+    client_ip = _get_client_ip(http_request)
+    user_agent = _get_user_agent(http_request)
+    
+    # Get refresh token from httpOnly cookie
+    refresh_token = CookieConfig.get_refresh_token_from_cookie(http_request)
+    
+    if not refresh_token:
+        logger.warning(f"Refresh attempt without token from {client_ip}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={"error": "missing_refresh_token", "message": "Refresh token not found"}
+        )
+    
+    # Verify JWT structure
+    try:
+        payload = verify_refresh_token(refresh_token)
+    except HTTPException as e:
+        logger.warning(f"Invalid refresh token JWT from {client_ip}: {e.detail}")
+        raise
+    
+    # Extract token details
+    user_id = payload.get("user_id")
+    token_id = payload.get("token_id")
+    rotation_chain_id = payload.get("rotation_chain_id")
+    
+    # Generate new tokens
+    from utils.auth.jwt_handler import create_access_token
+    new_access_token = create_access_token(
+        data={
+            "user_id": user_id,
+            "sub": user_id,
+            "type": "access"
+        }
+    )
+    
+    # Create new refresh token value (JWT)
+    from database.models.refresh_token import RefreshToken as RefreshTokenModel
+    new_refresh_token_record = RefreshTokenModel()  # For generating token_id
+    
+    new_refresh_token_jwt = create_refresh_token_jwt(
+        user_id=user_id,
+        rotation_chain_id=rotation_chain_id,
+        token_id=new_refresh_token_record.token_id
+    )
+    
+    # Rotate refresh token in database
+    new_refresh_token_db, error = await rotate_refresh_token(
+        session=session,
+        old_token_value=refresh_token,
+        new_token_value=new_refresh_token_jwt,
+        device_info=user_agent,
+        ip_address=client_ip
+    )
+    
+    if error:
+        # Handle specific errors
+        if error == "refresh_token_not_found":
+            logger.warning(f"Refresh token not found in DB from {client_ip}")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail={"error": "invalid_refresh_token", "message": "Refresh token not found"}
+            )
+        elif error == "refresh_token_revoked":
+            logger.warning(f"Attempted to use revoked refresh token from {client_ip}")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail={"error": "refresh_token_revoked", "message": "Refresh token has been revoked"}
+            )
+        elif error == "refresh_token_expired":
+            logger.warning(f"Attempted to use expired refresh token from {client_ip}")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail={"error": "refresh_token_expired", "message": "Refresh token has expired"}
+            )
+        elif error == "refresh_token_reused_chain_revoked":
+            logger.error(
+                f"🚨 SECURITY: Refresh token reuse detected from {client_ip}! "
+                f"Chain {rotation_chain_id[:8]}... revoked."
+            )
+            # Clear cookies to force re-authentication
+            CookieConfig.clear_auth_cookies(response)
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail={
+                    "error": "security_violation",
+                    "message": "Token reuse detected. All sessions have been terminated for security."
+                }
+            )
+        else:
+            logger.error(f"Refresh token rotation failed from {client_ip}: {error}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail={"error": "token_rotation_failed", "message": "Failed to rotate refresh token"}
+            )
+    
+    # Set new tokens in httpOnly cookies
+    CookieConfig.set_access_token_cookie(response, new_access_token)
+    CookieConfig.set_refresh_token_cookie(response, new_refresh_token_jwt)
+    
+    logger.info(f"✅ Token refreshed for user {user_id} from {client_ip}")
+    
+    return RefreshTokenResponse(
+        access_token=new_access_token,
+        expires_at=new_refresh_token_db.expires_at,
+        token_type="bearer"
     )
 
 
