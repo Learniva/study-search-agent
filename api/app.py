@@ -17,6 +17,10 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
+# Disable ChromaDB telemetry to speed up startup
+os.environ.setdefault("ANONYMIZED_TELEMETRY", "False")
+os.environ.setdefault("CHROMA_TELEMETRY", "False")
+
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -123,7 +127,7 @@ ALLOWED_ORIGINS = [origin.strip() for origin in ALLOWED_ORIGINS if origin.strip(
 # Additional security headers for CORS (cookie-based auth)
 CORS_HEADERS = [
     "Content-Type",
-    "Authorization",  # Keep for backward compatibility during migration
+    "Authorization",  # CRITICAL: Required for Bearer token authentication
     "X-Correlation-ID",
     "X-Trace-ID",
     "X-Tenant-ID",
@@ -191,7 +195,8 @@ app.add_middleware(
         "/api/auth/google/login/", "/auth/google/login/",  # OAuth login initiation
         "/api/auth/login/", "/api/auth/register/", "/api/auth/validate-password/", "/api/auth/config/",
         "/auth/login/", "/auth/register/", "/auth/validate-password/", "/auth/config/",
-        "/api/auth/session/validate"  # Session validation endpoint (silent reauth check)
+        "/api/auth/session/validate",  # Session validation endpoint (silent reauth check)
+        "/api/auth/me/", "/auth/me/"  # User info endpoint (needs auth but different validation)
     ]
 )
 

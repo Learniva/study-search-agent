@@ -47,10 +47,17 @@ except ImportError:
 # Initialize LLM for grading (using Gemini with grading-optimized settings: temp=0.3)
 grading_llm = initialize_grading_llm()
 
-# Initialize rubric store for RAG
-if RUBRIC_RAG_AVAILABLE:
-    print("🔄 Initializing Rubric RAG store...")
-    initialize_rubric_store()
+# LAZY LOAD: Don't initialize rubric store at import time to speed up startup
+# It will be initialized on first use of grading tools
+_rubric_store_initialized = False
+
+def ensure_rubric_store():
+    """Lazy initialization of rubric store on first use."""
+    global _rubric_store_initialized
+    if RUBRIC_RAG_AVAILABLE and not _rubric_store_initialized:
+        print("🔄 Initializing Rubric RAG store...")
+        initialize_rubric_store()
+        _rubric_store_initialized = True
 
 
 @tool
@@ -115,6 +122,7 @@ def grade_essay(essay_and_rubric: str) -> str:
     
     # Step 2: Retrieve rubric using RAG if not provided
     if not rubric and RUBRIC_RAG_AVAILABLE:
+        ensure_rubric_store()  # Lazy load rubric store
         print("🔍 Retrieving rubric using RAG...")
         
         # Detect assignment type from content

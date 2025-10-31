@@ -44,8 +44,12 @@ TIMESTAMP_LENGTH = 10
 RANDOM_LENGTH = 16
 
 # Time windows in seconds
-FUTURE_DRIFT_SECONDS = 24 * 3600  # 24 hours
-PAST_REPLAY_SECONDS = 24 * 3600   # 24 hours
+FUTURE_DRIFT_SECONDS = 24 * 3600  # 24 hours for production
+PAST_REPLAY_SECONDS = 24 * 3600   # 24 hours for production
+
+# Development time windows (much more permissive)
+DEV_FUTURE_DRIFT_SECONDS = 30 * 24 * 3600  # 30 days
+DEV_PAST_REPLAY_SECONDS = 30 * 24 * 3600   # 30 days
 
 # Crockford Base32 character set (uppercase only)
 CROCKFORD_BASE32_CHARS = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
@@ -237,8 +241,11 @@ def validate_tenant_ulid_or_raise(
     # Time-based security checks
     current_time_ms = int(time.time() * 1000)
     
+    # Use more permissive time windows for development
+    future_drift_ms = (DEV_FUTURE_DRIFT_SECONDS if env != "prod" else FUTURE_DRIFT_SECONDS) * 1000
+    past_replay_ms = (DEV_PAST_REPLAY_SECONDS if env != "prod" else PAST_REPLAY_SECONDS) * 1000
+    
     # Check for future drift (clock skew protection)
-    future_drift_ms = FUTURE_DRIFT_SECONDS * 1000
     if parsed_timestamp_ms - current_time_ms > future_drift_ms:
         logger.warning(
             "ULID timestamp too far in future: %d ms ahead", 
@@ -260,7 +267,6 @@ def validate_tenant_ulid_or_raise(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
     
     # Check for replay attacks (old token protection)
-    past_replay_ms = PAST_REPLAY_SECONDS * 1000
     if current_time_ms - parsed_timestamp_ms > past_replay_ms:
         logger.warning(
             "ULID timestamp too old (replay attack): %d ms old", 

@@ -63,6 +63,7 @@ async def lifespan(app: FastAPI):
         import os
         os.environ.setdefault("LANGCHAIN_TRACING_V2", "false")
         
+        logger.info("🔄 Importing SupervisorAgent...")
         from agents.supervisor.core import SupervisorAgent
         from api.dependencies import get_supervisor
         
@@ -71,8 +72,10 @@ async def lifespan(app: FastAPI):
         logger.info(f"🤖 Initializing Supervisor Agent with {llm_provider.upper()}")
         
         # Initialize supervisor
+        logger.info("🔄 Creating SupervisorAgent instance...")
         supervisor = SupervisorAgent(llm_provider=llm_provider)
         
+        logger.info("🔄 Setting supervisor in dependency...")
         # Set supervisor in dependency
         get_supervisor.set_supervisor(supervisor)
         

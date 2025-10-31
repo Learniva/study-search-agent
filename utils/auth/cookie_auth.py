@@ -75,7 +75,7 @@ async def get_current_user_from_cookie(
             user = await session.get(token_data.__class__.__bases__[0], token_data.user_id)
             if user and user.is_active:
                 user_dict = {
-                    "user_id": user.user_id,
+                    "user_id": str(user.id),  # ✅ Use UUID id, not user_id (which is email)
                     "username": user.username,
                     "email": user.email,
                     "full_name": user.name or f"{user.first_name or ''} {user.last_name or ''}".strip() or None,
@@ -117,7 +117,7 @@ async def get_current_user_from_cookie(
         
         if user and user.is_active:
             user_dict = {
-                "user_id": user.user_id,
+                "user_id": str(user.id),  # ✅ Use UUID id, not user_id (which is email)
                 "username": user.username,
                 "email": user.email,
                 "full_name": user.name or f"{user.first_name or ''} {user.last_name or ''}".strip() or None,

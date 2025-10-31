@@ -383,7 +383,7 @@ async def _get_current_user_from_token(
         )
     
     user_dict = {
-        "user_id": user.user_id,
+        "user_id": str(user.id),  # ✅ Use UUID id, not user_id (which is email)
         "username": user.username,
         "email": user.email,
         "full_name": user.name or f"{user.first_name or ''} {user.last_name or ''}".strip() or None,
@@ -446,7 +446,7 @@ async def get_current_user(
             user = await get_user_by_id(session, token_data.user_id)
             if user and user.is_active:
                 user_dict = {
-                    "user_id": user.user_id,
+                    "user_id": str(user.id),  # ✅ Use UUID id, not user_id (which is email)
                     "username": user.username,
                     "email": user.email,
                     "full_name": user.name or f"{user.first_name or ''} {user.last_name or ''}".strip() or None,
@@ -491,7 +491,7 @@ async def get_current_user(
         
         if user and user.is_active:
             user_dict = {
-                "user_id": user.user_id,
+                "user_id": str(user.id),  # ✅ Use UUID id, not user_id (which is email)
                 "username": user.username,
                 "email": user.email,
                 "full_name": user.name or f"{user.first_name or ''} {user.last_name or ''}".strip() or None,
@@ -977,7 +977,7 @@ async def login(
     
     # Prepare response
     user_dict = {
-        "user_id": user.user_id,
+        "user_id": str(user.id),  # ✅ Use UUID id, not user_id (which is email)
         "username": user.username,
         "email": user.email,
         "full_name": user.name or f"{user.first_name or ''} {user.last_name or ''}".strip() or None,
@@ -1112,7 +1112,7 @@ async def exchange_token(
     
     # Prepare user data
     user_dict = {
-        "user_id": user.user_id,
+        "user_id": str(user.id),  # ✅ Use UUID id, not user_id (which is email)
         "username": user.username,
         "email": user.email,
         "full_name": user.name or f"{user.first_name or ''} {user.last_name or ''}".strip() or None,
@@ -1221,7 +1221,7 @@ async def register(
     
     # Prepare response
     user_dict = {
-        "user_id": user.user_id,
+        "user_id": str(user.id),  # ✅ Use UUID id, not user_id (which is email)
         "username": user.username,
         "email": user.email,
         "full_name": user.name or f"{user.first_name or ''} {user.last_name or ''}".strip() or None,
@@ -1676,7 +1676,15 @@ async def refresh_access_token(
     CookieConfig.set_access_token_cookie(response, new_access_token)
     CookieConfig.set_refresh_token_cookie(response, new_refresh_token_jwt)
     
-    logger.info(f"✅ Token refreshed for user {user_id} from {client_ip}")
+    logger.info({
+        "event": "token_refresh",
+        "status": "success",
+        "user_id": user_id,
+        "client_ip": client_ip,
+        "user_agent": user_agent[:50] if user_agent else "unknown",
+        "rotation_chain_id": rotation_chain_id[:8] if rotation_chain_id else "none",
+        "message": "Token refreshed successfully"
+    })
     
     return RefreshTokenResponse(
         access_token=new_access_token,

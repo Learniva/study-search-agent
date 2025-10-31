@@ -8,7 +8,8 @@ Endpoints for user profile management including:
 - Manage contact information
 """
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+import logging
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Request
 from pydantic import BaseModel, EmailStr
 from typing import Optional, Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,6 +23,7 @@ from database.operations.user_ops import (
 )
 
 router = APIRouter(prefix="/api/profile", tags=["profile"])
+logger = logging.getLogger(__name__)
 
 
 # ============================================================================
@@ -80,6 +82,7 @@ class ProfileResponse(BaseModel):
 
 @router.get("/", response_model=ProfileResponse)
 async def get_profile(
+    request: Request,
     current_user: Dict[str, Any] = Depends(get_current_user),
     session: AsyncSession = Depends(get_session)
 ):
@@ -105,6 +108,16 @@ async def get_profile(
     """
     # Get user_id from current_user
     user_id = current_user["user_id"]
+    
+    # Log successful profile access with structured logging
+    logger.info({
+        "event": "profile_access",
+        "action": "get_profile",
+        "user_id": user_id,
+        "has_auth_header": "Authorization" in request.headers,
+        "client_ip": request.client.host if request.client else "unknown",
+        "path": request.url.path
+    })
     
     # Fetch user from database to get all profile fields
     user = await get_user_by_id(session, user_id)
