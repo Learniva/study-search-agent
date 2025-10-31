@@ -1,0 +1,26 @@
+{
+  "test_name": "no_wildcard_cors",
+  "timestamp": "2025-10-29T08:33:53.974721+00:00",
+  "results": [
+    {
+      "origin": "http://localhost:3000",
+      "status_code": 429,
+      "cors_headers": {}
+    },
+    {
+      "origin": "http://evil.com",
+      "status_code": 429,
+      "cors_headers": {}
+    },
+    {
+      "origin": "https://attacker.net",
+      "status_code": 429,
+      "cors_headers": {}
+    },
+    {
+      "origin": "null",
+      "status_code": 429,
+      "cors_headers": {}
+    }
+  ]
+}

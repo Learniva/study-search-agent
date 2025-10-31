@@ -19,10 +19,10 @@ Production Notes:
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from datetime import datetime
 
-from utils.auth.jwt_handler import get_current_user  # Use Google OAuth JWT authentication
+from api.routers.auth import get_current_user  # Use unified authentication (supports both JWT and database tokens)
 
 router = APIRouter(prefix="/api/workspaces", tags=["learniva-workspaces"])
 
@@ -93,7 +93,7 @@ def generate_workspace_id(user_id: int) -> str:
 # ============================================================================
 
 @router.get("/", response_model=List[WorkspaceResponse])
-async def list_workspaces(current_user: dict = Depends(get_current_user)):
+async def list_workspaces(current_user: Dict[str, Any] = Depends(get_current_user)):
     """
     List all workspaces for authenticated user.
     
@@ -121,7 +121,7 @@ async def list_workspaces(current_user: dict = Depends(get_current_user)):
 @router.post("/", response_model=WorkspaceResponse)
 async def create_workspace(
     workspace: WorkspaceCreate,
-    current_user: dict = Depends(get_current_user)
+    current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """
     Create new workspace (conversation thread).
@@ -173,7 +173,7 @@ async def create_workspace(
 @router.get("/{workspace_id}/", response_model=WorkspaceResponse)
 async def get_workspace(
     workspace_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """
     Get workspace details.
@@ -211,7 +211,7 @@ async def get_workspace(
 async def update_workspace(
     workspace_id: str,
     update: WorkspaceUpdate,
-    current_user: dict = Depends(get_current_user)
+    current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """
     Update workspace details.
@@ -255,7 +255,7 @@ async def update_workspace(
 @router.delete("/{workspace_id}/")
 async def delete_workspace(
     workspace_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """
     Delete workspace.
@@ -294,7 +294,7 @@ async def delete_workspace(
 @router.get("/{workspace_id}/documents/", response_model=List[DocumentResponse])
 async def get_workspace_documents(
     workspace_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """
     Get documents in workspace.
@@ -354,7 +354,7 @@ async def get_workspace_documents(
 @router.post("/{workspace_id}/documents/")
 async def upload_workspace_document(
     workspace_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """
     Upload document to workspace.
@@ -405,7 +405,7 @@ async def upload_workspace_document(
 @router.get("/{workspace_id}/materials/")
 async def get_workspace_materials(
     workspace_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """
     Get learning materials for workspace.

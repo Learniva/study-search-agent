@@ -16,6 +16,11 @@ from typing import Optional, Dict, Any, List
 from pathlib import Path
 
 from langchain.tools import tool
+
+# Disable ChromaDB telemetry before import to speed up initialization
+os.environ.setdefault("ANONYMIZED_TELEMETRY", "False")
+os.environ.setdefault("CHROMA_TELEMETRY", "False")
+
 from langchain_community.vectorstores import Chroma
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_core.documents import Document

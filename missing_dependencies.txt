@@ -1,0 +1,32 @@
+# Missing Dependencies for Authentication System
+# Run: pip install -r missing_dependencies.txt
+
+# Core SQLAlchemy async support
+greenlet>=2.0.0
+
+# Additional async database support (if needed)
+asyncpg>=0.28.0
+
+# HTTP client for OAuth (if not already installed)
+httpx>=0.25.0
+
+# Password policy validation
+passlib[bcrypt]>=1.7.4
+
+# JSON Web Token support
+python-jose[cryptography]>=3.3.0
+
+# Environment variable management
+python-dotenv>=1.0.0
+
+# PostgreSQL adapter
+psycopg2-binary>=2.9.0
+
+# Redis support (optional but recommended)
+redis>=5.0.0
+
+# Email validation
+email-validator>=2.0.0
+
+# Security headers and CORS
+starlette>=0.27.0

@@ -2,13 +2,29 @@
 API Dependencies.
 
 FastAPI dependencies for authentication, database access, and common utilities.
+Includes RBAC (Role-Based Access Control) support.
 """
 
-from typing import Optional, Generator
-from fastapi import Header, HTTPException, Depends, status
+from typing import Optional, Generator, Dict, Any
+from fastapi import Header, HTTPException, Depends, status, Request
 
 from utils.monitoring import get_correlation_id, set_correlation_id
 from config import settings
+
+# New tenant dependency import
+from utils.auth.tenant_id_validator import validate_tenant_ulid_or_raise
+
+# RBAC imports
+from middleware.rbac import (
+    get_current_user_from_token,
+    require_role,
+    require_permission,
+    require_any_permission,
+    require_student,
+    require_teacher,
+    require_admin,
+)
+from utils.auth.permissions import Permission
 
 # Try to import database
 try:
@@ -43,11 +59,29 @@ async def get_or_create_correlation_id(
 
 
 # ============================================================================
-# User Role Dependencies (JWT-Based - SECURE)
+# RBAC Dependencies (New - Recommended)
+# ============================================================================
+
+# Re-export RBAC dependencies for convenience
+get_current_user = get_current_user_from_token
+require_student_role = require_student
+require_teacher_role_rbac = require_teacher
+require_admin_role_rbac = require_admin
+
+# Permission-based dependencies
+require_grading_write = Depends(require_permission(Permission.GRADING_WRITE))
+require_grading_admin = Depends(require_permission(Permission.GRADING_ADMIN))
+require_content_write = Depends(require_permission(Permission.CONTENT_WRITE))
+require_document_upload = Depends(require_permission(Permission.DOCUMENT_UPLOAD))
+require_system_admin = Depends(require_permission(Permission.SYSTEM_ADMIN))
+
+
+# ============================================================================
+# User Role Dependencies (JWT-Based - LEGACY - Backward Compatible)
 # ============================================================================
 
 async def get_current_user_role(
-    authorization: Optional[str] = Header(None)
+    current_user: Dict[str, Any] = Depends(get_current_user_from_token)
 ) -> str:
     """
     Get user role from JWT token (SECURE).
@@ -56,7 +90,7 @@ async def get_current_user_role(
     NOT from headers. This prevents role escalation attacks.
     
     Args:
-        authorization: Authorization header with JWT token
+        current_user: Current user data from RBAC middleware
         
     Returns:
         User role from JWT token
@@ -64,13 +98,8 @@ async def get_current_user_role(
     Raises:
         HTTPException: If token is invalid or missing
     """
-    from utils.auth import get_current_user
-    
-    # Get authenticated user from JWT token
-    user = await get_current_user(authorization)
-    
-    # Extract role from JWT token payload
-    role = user.role.lower() if hasattr(user, 'role') else "student"
+    # Extract role from current user (already validated by RBAC middleware)
+    role = current_user.get("role", "student").lower()
     
     valid_roles = ["student", "teacher", "professor", "instructor", "admin"]
     if role not in valid_roles:
@@ -80,13 +109,16 @@ async def get_current_user_role(
 
 
 async def require_teacher_role(
-    authorization: Optional[str] = Header(None)
+    current_user: Dict[str, Any] = Depends(require_teacher)
 ) -> str:
     """
     Require teacher or admin role (JWT-based authentication).
     
+    DEPRECATED: Use require_teacher_role_rbac or require_permission instead.
+    This function is kept for backward compatibility.
+    
     Args:
-        authorization: Authorization header with JWT token
+        current_user: Current user data from RBAC middleware
         
     Returns:
         User role from JWT
@@ -94,24 +126,20 @@ async def require_teacher_role(
     Raises:
         HTTPException: If user is not teacher or admin
     """
-    role = await get_current_user_role(authorization)
-    
-    if role not in ["teacher", "professor", "instructor", "admin"]:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="This endpoint requires teacher/professor or admin privileges"
-        )
-    return role
+    return current_user.get("role", "student")
 
 
 async def require_admin_role(
-    authorization: Optional[str] = Header(None)
+    current_user: Dict[str, Any] = Depends(require_admin)
 ) -> str:
     """
     Require admin role (JWT-based authentication).
     
+    DEPRECATED: Use require_admin_role_rbac or require_permission instead.
+    This function is kept for backward compatibility.
+    
     Args:
-        authorization: Authorization header with JWT token
+        current_user: Current user data from RBAC middleware
         
     Returns:
         User role from JWT
@@ -119,14 +147,7 @@ async def require_admin_role(
     Raises:
         HTTPException: If user is not admin
     """
-    role = await get_current_user_role(authorization)
-    
-    if role != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="This endpoint requires admin privileges"
-        )
-    return role
+    return current_user.get("role", "student")
 
 
 # ============================================================================
@@ -210,6 +231,44 @@ async def require_user_id(
             detail="User ID is required. Provide X-User-ID header"
         )
     return user_id
+
+
+# ============================================================================
+# Tenant ID Dependencies (Multi-tenant support)
+# ============================================================================
+
+from fastapi import Request, Depends, Header
+from typing import Optional
+from utils.auth.tenant_id_validator import validate_tenant_ulid_or_raise
+
+async def get_tenant_id(
+    x_tenant_id: Optional[str] = Header(None, alias="X-Tenant-ID")
+) -> Optional[str]:
+    """
+    Extract tenant ULID from X-Tenant-ID header (optional at this stage).
+    """
+    return x_tenant_id
+
+
+async def require_tenant_id(
+    request: Request,
+    tenant_id: Optional[str] = Depends(get_tenant_id)
+) -> str:
+    """
+    Validate tenant ULID (mandatory tenant-aware endpoints).
+    Performs environment-aware validation.
+    """
+    # Trace propagation for audit trails
+    trace_id = request.headers.get("X-Correlation-ID") or request.headers.get("X-Trace-ID")
+    
+    validated = validate_tenant_ulid_or_raise(
+        tenant_id,
+        env=getattr(settings, "ENV", "prod"),
+        trace_id=trace_id,
+    )
+
+    return validated
+
 
 
 # ============================================================================

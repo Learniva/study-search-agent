@@ -1,3 +1,85 @@
+# ==================== CRITICAL PRODUCTION VARIABLES ====================
+# These MUST be set for production deployment
+
+# JWT Secret Key (REQUIRED - Generate with: openssl rand -hex 32)
+SECRET_KEY=your-super-secret-jwt-key-minimum-32-characters-long-replace-in-production
+
+# Database Configuration (REQUIRED)
+DATABASE_URL=postgresql://username:password@localhost:5432/grading_system
+
+# Redis Configuration (REQUIRED for distributed sessions)
+REDIS_URL=redis://localhost:6379/0
+
+# ==================== AUTHENTICATION & SECURITY ====================
+
+# Google OAuth Configuration (REQUIRED for OAuth)
+GOOGLE_CLIENT_ID=your-google-oauth-client-id
+GOOGLE_CLIENT_SECRET=your-google-oauth-client-secret
+GOOGLE_REDIRECT_URI=http://localhost:8000/api/auth/google/callback/
+
+# Production URLs (Update for production deployment)
+FRONTEND_URL=http://localhost:3000
+BACKEND_URL=http://localhost:8000
+
+# Password Reset
+PASSWORD_RESET_URL=http://localhost:3000/reset-password
+PASSWORD_RESET_TOKEN_EXPIRE_HOURS=24
+
+# Session Configuration
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+TOKEN_EXPIRE_HOURS=24
+MAX_CONCURRENT_SESSIONS=5
+SESSION_TIMEOUT_HOURS=24
+
+# Account Security
+ENABLE_ACCOUNT_LOCKOUT=true
+MAX_LOGIN_ATTEMPTS=5
+LOCKOUT_DURATION_MINUTES=15
+
+# Password Policy
+PASSWORD_MIN_LENGTH=12
+PASSWORD_REQUIRE_UPPERCASE=true
+PASSWORD_REQUIRE_LOWERCASE=true
+PASSWORD_REQUIRE_DIGITS=true
+PASSWORD_REQUIRE_SPECIAL_CHARS=true
+PASSWORD_MIN_SPECIAL_CHARS=2
+PASSWORD_HISTORY_COUNT=12
+
+# Rate Limiting
+RATE_LIMIT_LOGIN_ATTEMPTS=5
+RATE_LIMIT_AUTH_ENDPOINTS=10
+
+# Security Headers
+ENABLE_SECURITY_HEADERS=true
+HSTS_MAX_AGE=31536000
+ENABLE_CSP=true
+
+# CORS Configuration
+# Comma-separated list of allowed origins for CORS
+CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001
+
+# ==================== MONITORING & LOGGING ====================
+
+# Error Tracking (Optional but recommended for production)
+SENTRY_DSN=your-sentry-dsn-here
+
+# Logging
+LOG_LEVEL=INFO
+ENABLE_METRICS=true
+ENABLE_TRACING=false
+
+# ==================== PAYMENT INTEGRATION (Optional) ====================
+
+# Stripe Configuration
+STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
+STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key
+STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret
+STRIPE_PRICE_ID=price_your_default_price_id
+STRIPE_SUCCESS_URL=http://localhost:3000/payment/success
+STRIPE_CANCEL_URL=http://localhost:3000/payment/cancel
+
+# ==================== AI/ML CONFIGURATION (Optional) ====================
+
 # Choose your LLM provider (huggingface, gemini, openai, or anthropic)
 LLM_PROVIDER=gemini
 
@@ -15,4 +97,20 @@ ANTHROPIC_API_KEY=your_anthropic_api_key_here
 
 # Tavily API Key for web search
 TAVILY_API_KEY=your_tavily_api_key_here
+
+# ==================== DEVELOPMENT SETTINGS ====================
+
+# Development Mode
+DEBUG=false
+ENVIRONMENT=production
+
+# Database Settings
+DB_POOL_SIZE=20
+DB_MAX_OVERFLOW=30
+DB_ECHO=false
+
+# Cache Settings
+CACHE_ENABLED=true
+CACHE_TTL=300
+CACHE_MAX_SIZE=1000
 

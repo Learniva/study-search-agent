@@ -72,12 +72,16 @@ from .operations import (
     analyze_rag_performance,
 )
 
-# Checkpointing
-from .checkpointing import (
-    PostgresCheckpointSaver,
-    get_postgres_checkpointer,
-    DATABASE_AVAILABLE as CHECKPOINTING_AVAILABLE,
-)
+# Checkpointing (Optional - requires langgraph)
+try:
+    from .checkpointing import (
+        PostgresCheckpointSaver,
+        get_postgres_checkpointer,
+        DATABASE_AVAILABLE as CHECKPOINTING_AVAILABLE,
+    )
+    CHECKPOINTING_AVAILABLE = True
+except ImportError:
+    CHECKPOINTING_AVAILABLE = False
 
 __all__ = [
     # Core
@@ -135,9 +139,14 @@ __all__ = [
     'get_rag_query_logs',
     'analyze_rag_performance',
     
-    # Checkpointing
-    'PostgresCheckpointSaver',
-    'get_postgres_checkpointer',
+    # Feature flags
     'CHECKPOINTING_AVAILABLE',
 ]
+
+# Add checkpointing exports if available
+if CHECKPOINTING_AVAILABLE:
+    __all__.extend([
+        'PostgresCheckpointSaver',
+        'get_postgres_checkpointer',
+    ])
 

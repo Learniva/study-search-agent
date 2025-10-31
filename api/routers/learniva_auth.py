@@ -13,13 +13,16 @@ Features:
 - Optional Redis caching for performance
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Header
+from fastapi import APIRouter, Depends, HTTPException, Header, Response
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 from datetime import datetime
+from uuid import UUID
 import logging
 
 from config.settings import settings
+from utils.auth.cookie_config import CookieConfig, set_auth_cookies, clear_auth_cookies
+from middleware.csrf_protection import generate_csrf_token
 from database.operations.user_ops import (
     create_user,
     authenticate_user,
@@ -35,6 +38,7 @@ from database.operations.token_ops import (
 )
 from database.core.async_connection import get_session
 from sqlalchemy.ext.asyncio import AsyncSession
+from utils.email.email_service import email_service
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/auth", tags=["auth"])
@@ -80,8 +84,8 @@ class PasswordResetConfirm(BaseModel):
 
 class UserResponse(BaseModel):
     """User data response."""
-    id: int
-    pk: int
+    id: str  # Changed from int to str to support UUID
+    pk: str  # Changed from int to str to support UUID
     username: str
     email: str
     first_name: str
@@ -141,7 +145,7 @@ async def verify_token_data(session: AsyncSession, token_value: str) -> Optional
         token_value: Token string to verify
     
     Returns:
-        User data if token valid, None if invalid or expired
+        User object if token valid, None if invalid or expired
     """
     token = await get_token(session, token_value)
     if not token:
@@ -155,19 +159,14 @@ async def verify_token_data(session: AsyncSession, token_value: str) -> Optional
         return None
     
     logger.debug(f"✅ Token verified for user: {user.username}")
-    return {
-        "user_id": user.user_id,
-        "role": user.role,
-        "username": user.username,
-        "email": user.email,
-    }
+    return user
 
 
 def user_to_dict(user) -> dict:
     """Convert User model to dictionary for API response."""
     return {
-        "id": hash(user.user_id) % 1000000,  # Generate numeric ID from string
-        "pk": hash(user.user_id) % 1000000,
+        "id": str(user.id),  # Use actual UUID string instead of hash
+        "pk": str(user.id),  # Use actual UUID string instead of hash
         "username": user.username,
         "email": user.email,
         "first_name": user.first_name or "",
@@ -238,29 +237,20 @@ async def get_current_user(
         )
     
     # ⚡ OPTIMIZATION: Check token cache first
-    token_cache = get_token_cache()
-    cached_user = token_cache.get(token)
+    token_cache = await get_token_cache()
+    cached_user = await token_cache.get(token)
     if cached_user:
         logger.debug(f"⚡ Auth cache HIT: {cached_user.get('username')} (<1ms)")
         return cached_user
     
     # Cache miss - verify token from database
     logger.debug(f"📦 Auth cache MISS: Verifying token from database...")
-    token_data = await verify_token_data(session, token)
-    if not token_data:
+    user = await verify_token_data(session, token)
+    if not user:
         logger.debug(f"🔒 Auth: Token verification failed - invalid or expired")
         raise HTTPException(
             status_code=401,
             detail={"error": "unauthorized", "message": "Invalid or expired token"}
-        )
-    
-    # Get full user object from database
-    user = await get_user_by_id(session, token_data["user_id"])
-    if not user:
-        logger.warning(f"🔒 Auth: User not found in database: {token_data['user_id']}")
-        raise HTTPException(
-            status_code=401,
-            detail={"error": "unauthorized", "message": "User not found"}
         )
     
     if not user.is_active:
@@ -273,7 +263,7 @@ async def get_current_user(
     user_dict = user_to_dict(user)
     
     # ⚡ Cache the user data for future requests
-    token_cache.set(token, user_dict)
+    await token_cache.set(token, user_dict)
     logger.debug(f"✅ Auth: Cached user data for: {user.username}")
     
     return user_dict
@@ -286,12 +276,22 @@ async def get_current_user(
 @router.post("/login/", response_model=LoginResponse)
 async def login(
     request: LoginRequest,
+    response: Response,
     session: AsyncSession = Depends(get_session)
 ):
     """
-    Login endpoint.
+    Login endpoint with secure httpOnly cookie support.
     
-    Authenticates user and returns token.
+    Authenticates user and issues token via:
+    1. Secure httpOnly cookie (preferred - XSS protection)
+    2. Response body (backward compatibility)
+    
+    Security Features:
+    - httpOnly cookie prevents JavaScript access
+    - Secure flag for HTTPS-only transmission
+    - SameSite=strict prevents CSRF attacks
+    - Short-lived access tokens (15 minutes)
+    - CSRF token for state-changing operations
     """
     logger.info(f"🔐 Login attempt: {request.username}")
     
@@ -308,8 +308,20 @@ async def login(
     # Create token
     token = await create_token_for_user(session, user.user_id, user.role)
     
-    logger.info(f"✅ Login successful: {user.username}")
+    # Generate CSRF token
+    csrf_token = generate_csrf_token()
     
+    # Set secure httpOnly cookies
+    set_auth_cookies(
+        response=response,
+        access_token=token,
+        csrf_token=csrf_token
+    )
+    
+    logger.info(f"✅ Login successful: {user.username} (cookie-based auth)")
+    
+    # Return token in response body for backward compatibility
+    # This can be removed once all clients migrate to cookie-based auth
     return LoginResponse(
         token=token,
         user=user_to_dict(user)
@@ -318,19 +330,25 @@ async def login(
 
 @router.post("/logout/")
 async def logout(
+    response: Response,
     authorization: Optional[str] = Header(None),
     session: AsyncSession = Depends(get_session)
 ):
     """
-    Logout endpoint.
+    Logout endpoint with cookie clearing support.
     
     Invalidates the user's token by:
-    1. Clearing from cache (instant invalidation)
-    2. Deleting from PostgreSQL (persistent invalidation)
+    1. Clearing httpOnly authentication cookies (instant)
+    2. Clearing from cache (instant invalidation)
+    3. Deleting from PostgreSQL (persistent invalidation)
     
     Works even with invalid/expired tokens since the user wants to logout anyway.
     """
     from utils.auth.token_cache import get_token_cache
+    
+    # Clear authentication cookies
+    clear_auth_cookies(response)
+    logger.info("🍪 Authentication cookies cleared")
     
     if authorization:
         # Extract token
@@ -358,18 +376,27 @@ async def logout(
 @router.post("/register/", response_model=LoginResponse)
 async def register(
     request: RegisterRequest,
+    response: Response,
     session: AsyncSession = Depends(get_session)
 ):
     """
-    Registration endpoint.
+    Registration endpoint with secure httpOnly cookie support.
     
-    Creates new user account and returns token.
+    Creates new user account and issues token via:
+    1. Secure httpOnly cookie (preferred - XSS protection)
+    2. Response body (backward compatibility)
     
     Password Requirements:
     - Minimum 8 characters
     - At least 1 uppercase letter
     - At least 1 lowercase letter
     - At least 1 digit
+    
+    Security Features:
+    - httpOnly cookie prevents JavaScript access
+    - Secure flag for HTTPS-only transmission
+    - SameSite=strict prevents CSRF attacks
+    - CSRF token for state-changing operations
     """
     logger.info(f"📝 Registration attempt: {request.username} ({request.email})")
     
@@ -433,8 +460,36 @@ async def register(
     # Create token
     token = await create_token_for_user(session, user.user_id, user.role)
     
-    logger.info(f"✅ Registration successful: {user.username}")
+    # Generate CSRF token
+    csrf_token = generate_csrf_token()
     
+    # Set secure httpOnly cookies
+    set_auth_cookies(
+        response=response,
+        access_token=token,
+        csrf_token=csrf_token
+    )
+    
+    logger.info(f"✅ Registration successful: {user.username} (cookie-based auth)")
+    
+    # Send welcome email to new user
+    try:
+        logger.info(f"📧 Sending welcome email to {user.email}")
+        email_sent = email_service.send_welcome_email(
+            to_email=user.email,
+            username=user.username,
+            first_name=user.first_name
+        )
+        if email_sent:
+            logger.info(f"✅ Welcome email sent successfully to {user.email}")
+        else:
+            logger.warning(f"⚠️ Failed to send welcome email to {user.email}")
+    except Exception as e:
+        # Don't fail registration if email fails
+        logger.error(f"❌ Error sending welcome email: {e}")
+    
+    # Return token in response body for backward compatibility
+    # This can be removed once all clients migrate to cookie-based auth
     return LoginResponse(
         token=token,
         user=user_to_dict(user)
@@ -480,8 +535,19 @@ async def get_authenticated_user(
         
         # Get user from database
         user_id = payload.get("user_id")
+        
+        # Convert string UUID to UUID object for comparison with User.id (UUID field)
+        try:
+            user_uuid = UUID(user_id)
+        except (ValueError, TypeError):
+            return {
+                "authenticated": False,
+                "backend_ready": True,
+                "error": "Invalid user ID format"
+            }
+        
         result = await session.execute(
-            select(User).where(User.id == int(user_id))
+            select(User).where(User.id == user_uuid)
         )
         user = result.scalar_one_or_none()
         
@@ -497,7 +563,7 @@ async def get_authenticated_user(
             "authenticated": True,
             "backend_ready": True,
             "user": {
-                "id": user.id,
+                "id": str(user.id),  # Convert UUID to string
                 "email": user.email,
                 "username": user.username,
                 "name": user.name,

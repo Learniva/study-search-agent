@@ -7,7 +7,8 @@ Essential system utilities used throughout the application:
 - cache: Result caching with TTL
 """
 
-from .llm import initialize_llm, initialize_grading_llm, DEFAULT_MODEL, TEMPERATURE_SETTINGS
+# Commenting out LLM imports to avoid langchain dependencies for auth-only operations
+# from .llm import initialize_llm, initialize_grading_llm, DEFAULT_MODEL, TEMPERATURE_SETTINGS
 from .constants import (
     DEFAULT_CACHE_TTL,
     MAX_CONTEXT_TOKENS,
@@ -23,25 +24,25 @@ from .constants import (
 from .cache import ResultCache
 
 __all__ = [
-    # LLM
-    'initialize_llm',
-    'initialize_grading_llm',
-    'DEFAULT_MODEL',
-    'TEMPERATURE_SETTINGS',
+    # LLM (commented out to avoid langchain dependencies)
+    # "initialize_llm",
+    # "initialize_grading_llm",
+    # "DEFAULT_MODEL", 
+    # "TEMPERATURE_SETTINGS",
     
     # Cache
-    'ResultCache',
+    "ResultCache",
     
     # Constants (explicitly exported)
-    'DEFAULT_CACHE_TTL',
-    'MAX_CONTEXT_TOKENS',
-    'MAX_AGENT_ITERATIONS',
-    'MAX_GRADING_ITERATIONS',
-    'VAGUE_QUESTION_PATTERNS',
-    'FOLLOW_UP_PRONOUNS',
-    'GENERIC_SUBJECTS',
-    'REALTIME_QUERY_PATTERNS',
-    'GRADING_ERROR_INDICATORS',
-    'GRADING_UNCERTAINTY_INDICATORS',
+    "DEFAULT_CACHE_TTL",
+    "MAX_CONTEXT_TOKENS",
+    "MAX_AGENT_ITERATIONS",
+    "MAX_GRADING_ITERATIONS",
+    "VAGUE_QUESTION_PATTERNS",
+    "FOLLOW_UP_PRONOUNS",
+    "GENERIC_SUBJECTS",
+    "REALTIME_QUERY_PATTERNS",
+    "GRADING_ERROR_INDICATORS",
+    "GRADING_UNCERTAINTY_INDICATORS",
 ]
 

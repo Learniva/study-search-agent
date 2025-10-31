@@ -1,19 +1,17 @@
 """
-Application Lifespan Manager.
+Application lifespan management with full agent initialization.
 
-Handles startup and shutdown events with proper resource management.
+This module handles the startup and shutdown of the FastAPI application,
+including database initialization, supervisor agent setup, and all ML components.
 """
-
+import logging
 import os
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 
-from agents.supervisor import SupervisorAgent
-from api.dependencies import get_supervisor
-from utils.monitoring import setup_logging, get_logger
-from utils.scaling import get_distributed_state
-from utils.async_tools import get_resource_manager
-from config import settings
+from config.settings import settings
+from utils.monitoring import get_logger
 
 logger = get_logger(__name__)
 
@@ -21,165 +19,137 @@ logger = get_logger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
-    Application lifespan manager.
+    Full application lifespan manager with complete AI/ML initialization.
     
-    Handles:
-    - Logging setup
-    - Database initialization
-    - Agent initialization
-    - Distributed state setup
-    - Resource cleanup
+    This version initializes all system components including:
+    - Database connections
+    - Supervisor agent with study and grading capabilities
+    - Vector store for RAG
+    - Caching systems
+    - Performance monitoring
     """
-    # ========================================================================
-    # STARTUP
-    # ========================================================================
+    logger.info("🚀 Starting Multi-Agent Study & Grading System")
     
-    logger.info("🚀 Starting Multi-Agent Study & Grading System API v2.0")
-    
-    # Setup logging
-    setup_logging()
-    
-    # Validate security configuration (SECRET_KEY, etc.)
+    # =========================================================================
+    # Database Initialization
+    # =========================================================================
     try:
-        from utils.security import validate_production_secrets
-        
-        logger.info("🔒 Validating security configuration...")
-        validate_production_secrets(debug=settings.debug)
-        logger.info("✅ Security validation passed")
-    except ValueError as e:
-        logger.error(f"❌ Security validation failed:\n{str(e)}")
-        raise
-    except ImportError:
-        logger.warning("⚠️  Security validation module not available")
-    
-    # Initialize database if available
-    try:
-        from database.core.async_engine import async_db_engine
-        
-        logger.info("📊 Initializing database connection pool...")
-        health = await async_db_engine.health_check()
-        
-        if health:
-            logger.info("✅ Database initialized successfully")
-            
-            # Start pool monitoring
-            try:
-                from database.monitoring import get_pool_monitor
-                
-                monitor = get_pool_monitor(async_db_engine.engine)
-                await monitor.start_monitoring()
-                logger.info("✅ Database pool monitoring started")
-            except Exception as e:
-                logger.warning(f"Pool monitoring failed: {e}")
+        from database import init_db, check_db_connection
+        init_db()
+        if check_db_connection():
+            logger.info("✅ Database connection established")
         else:
-            logger.warning("⚠️  Database health check failed")
-            
+            logger.warning("⚠️  Database connection check failed")
     except ImportError:
-        logger.warning("⚠️  Database module not available")
+        logger.warning("⚠️  Database modules not available")
     except Exception as e:
-        logger.error(f"Database initialization error: {e}")
+        logger.warning(f"⚠️  Database initialization failed: {e}")
     
-    # Initialize distributed state if Redis available
-    if settings.redis_url:
-        try:
-            logger.info("🌐 Initializing distributed state management...")
-            dist_state = get_distributed_state()
-            await dist_state.register_instance()
-            await dist_state.start_heartbeat()
-            logger.info("✅ Distributed state initialized")
-        except Exception as e:
-            logger.warning(f"Distributed state failed: {e}")
-    
-    # Document loading is now handled via L2 Vector Store (pgvector)
-    # Documents should be uploaded via POST /documents/upload API endpoint
-    documents_dir = os.getenv("DOCUMENTS_DIR", "documents")
-    if os.path.exists(documents_dir) and os.listdir(documents_dir):
-        logger.info(f"📚 Documents directory found: {documents_dir}")
-        logger.info("💡 Use POST /documents/upload to index documents in the vector store")
-    
-    # Initialize supervisor agent
-    logger.info("🤖 Initializing Supervisor Agent...")
+    # =========================================================================
+    # Vector Store Initialization (for RAG)
+    # =========================================================================
     try:
-        llm_provider = os.getenv("LLM_PROVIDER", settings.llm_provider)
+        from database.operations.document_processing import get_document_processor
+        doc_processor = get_document_processor()
+        logger.info("✅ Vector store initialized for document Q&A")
+    except Exception as e:
+        logger.warning(f"⚠️  Vector store initialization failed: {e}")
+    
+    # =========================================================================
+    # Supervisor Agent Initialization
+    # =========================================================================
+    try:
+        # Workaround for LangChain tracing import issue
+        import os
+        os.environ.setdefault("LANGCHAIN_TRACING_V2", "false")
+        
+        logger.info("🔄 Importing SupervisorAgent...")
+        from agents.supervisor.core import SupervisorAgent
+        from api.dependencies import get_supervisor
+        
+        # Get LLM provider from environment
+        llm_provider = os.getenv("LLM_PROVIDER", "gemini")
+        logger.info(f"🤖 Initializing Supervisor Agent with {llm_provider.upper()}")
+        
+        # Initialize supervisor
+        logger.info("🔄 Creating SupervisorAgent instance...")
         supervisor = SupervisorAgent(llm_provider=llm_provider)
         
+        logger.info("🔄 Setting supervisor in dependency...")
         # Set supervisor in dependency
         get_supervisor.set_supervisor(supervisor)
         
-        logger.info("✅ Supervisor Agent initialized")
-        logger.info("   • Study & Search Agent: Ready")
-        logger.info("   • AI Grading Agent: Ready (Teachers only)")
+        logger.info("✅ Supervisor Agent initialized successfully")
+        logger.info("   → Study Agent: Ready for research, Q&A, and animations")
+        logger.info("   → Grading Agent: Ready for essay grading, code review")
         
+    except ImportError as e:
+        import traceback
+        if "tracing_enabled" in str(e):
+            logger.error("❌ LangChain version incompatibility detected")
+            logger.error(f"   → Error: {e}")
+            logger.error(f"   → Traceback: {traceback.format_exc()}")
+            logger.error("   → Try: pip install --upgrade langchain-core langgraph")
+            logger.error("   → Or set: LANGCHAIN_TRACING_V2=false in .env")
+        else:
+            logger.error(f"❌ Supervisor Agent initialization failed: {e}")
+            logger.error(f"   → Traceback: {traceback.format_exc()}")
+        logger.error("   Application will start but AI features will be unavailable")
     except Exception as e:
-        logger.error(f"❌ Supervisor initialization failed: {e}")
-        raise
+        import traceback
+        logger.error(f"❌ Supervisor Agent initialization failed: {e}")
+        logger.error(f"   → Traceback: {traceback.format_exc()}")
+        logger.error("   Application will start but AI features will be unavailable")
     
-    # Register resources
-    resource_manager = get_resource_manager()
-    await resource_manager.register_resource(
-        "supervisor",
-        supervisor,
-        resource_type="agent",
-        cleanup_func=lambda: logger.info("Supervisor cleaned up")
-    )
-    
-    # Warm cache if enabled
-    if settings.cache_enabled:
-        try:
+    # =========================================================================
+    # Cache Initialization
+    # =========================================================================
+    try:
+        if settings.cache_enabled:
             from utils.cache import get_cache_optimizer
-            
-            logger.info("🔥 Warming cache...")
-            optimizer = get_cache_optimizer()
-            # Could load frequently accessed data here
-            logger.info("✅ Cache warmed")
-        except Exception as e:
-            logger.warning(f"Cache warming failed: {e}")
+            cache_optimizer = get_cache_optimizer()
+            logger.info("✅ Query caching enabled")
+    except Exception as e:
+        logger.warning(f"⚠️  Cache initialization failed: {e}")
     
-    logger.info("=" * 70)
-    logger.info("✅ API Server Ready!")
-    logger.info(f"   Docs: http://{settings.api_host}:{settings.api_port}/docs")
-    logger.info(f"   Health: http://{settings.api_host}:{settings.api_port}/health")
-    logger.info("=" * 70)
+    # =========================================================================
+    # Performance Monitoring
+    # =========================================================================
+    try:
+        from utils.routing.performance import get_performance_monitor
+        perf_monitor = get_performance_monitor()
+        logger.info("✅ Performance monitoring initialized")
+    except Exception as e:
+        logger.warning(f"⚠️  Performance monitoring initialization failed: {e}")
+    
+    logger.info("✅ Multi-Agent Study & Grading System ready")
+    logger.info("📚 Document upload: POST /documents/upload")
+    logger.info("💬 Query endpoint: POST /query/")
+    logger.info("📝 Grading endpoint: POST /grading/grade")
     
     yield
     
-    # ========================================================================
-    # SHUTDOWN
-    # ========================================================================
+    # =========================================================================
+    # Cleanup
+    # =========================================================================
+    logger.info("🛑 Shutting down Multi-Agent Study & Grading System")
     
-    logger.info("🛑 Shutting down gracefully...")
-    
-    # Stop distributed state
-    if settings.redis_url:
-        try:
-            dist_state = get_distributed_state()
-            await dist_state.cleanup()
-            logger.info("✅ Distributed state cleaned up")
-        except Exception as e:
-            logger.error(f"Distributed state cleanup error: {e}")
-    
-    # Stop database monitoring
+    # Database cleanup
     try:
-        from database.monitoring import get_pool_monitor
-        from database.core.async_engine import async_db_engine
-        
-        monitor = get_pool_monitor(async_db_engine.engine)
-        await monitor.stop_monitoring()
-        logger.info("✅ Database monitoring stopped")
-    except Exception:
-        pass
-    
-    # Close database connections
-    try:
-        from database.core.async_engine import async_db_engine
-        await async_db_engine.close()
+        from database import close_db
+        close_db()
         logger.info("✅ Database connections closed")
+    except ImportError:
+        pass
     except Exception as e:
-        logger.error(f"Database cleanup error: {e}")
+        logger.warning(f"Database cleanup warning: {e}")
     
-    # Cleanup resources
-    resource_manager = get_resource_manager()
-    await resource_manager.cleanup_all()
+    # Agent cleanup
+    try:
+        get_supervisor.supervisor = None
+        logger.info("✅ Agents cleaned up")
+    except Exception as e:
+        logger.warning(f"Agent cleanup warning: {e}")
     
     logger.info("✅ Shutdown complete")
 

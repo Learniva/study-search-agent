@@ -8,12 +8,14 @@ Endpoints for user profile management including:
 - Manage contact information
 """
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+import logging
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Request
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from typing import Optional, Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from utils.auth.jwt_handler import get_current_user, get_optional_current_user  # Use Google OAuth JWT authentication
+from api.routers.auth import get_current_user  # Use unified authentication (supports both JWT and database tokens)
+from api.models import ProfileResponse  # Import ProfileResponse from central models
 from database.core.async_connection import get_session
 from database.operations.user_ops import (
     get_user_by_id,
@@ -22,6 +24,7 @@ from database.operations.user_ops import (
 )
 
 router = APIRouter(prefix="/api/profile", tags=["profile"])
+logger = logging.getLogger(__name__)
 
 
 # ============================================================================
@@ -60,26 +63,16 @@ class UpdateAccountRequest(BaseModel):
     website: Optional[str] = None
 
 
-class ProfileResponse(BaseModel):
-    """Profile response."""
-    id: int
-    username: str
-    email: str
-    first_name: Optional[str]
-    last_name: Optional[str]
-    display_name: Optional[str]
-    location: Optional[str]
-    website: Optional[str]
-    profile_picture: Optional[str]
-    role: str
-
-
 # ============================================================================
 # Endpoints
 # ============================================================================
 
 @router.get("/", response_model=ProfileResponse)
-async def get_profile(current_user: dict = Depends(get_current_user)):
+async def get_profile(
+    request: Request,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session)
+):
     """
     Get current user's profile information.
     
@@ -100,22 +93,52 @@ async def get_profile(current_user: dict = Depends(get_current_user)):
             "role": "student"
         }
     """
-    # Handle Google OAuth user structure
-    user_id = int(current_user.get("user_id", 0))
-    name = current_user.get("name", "")
-    name_parts = name.split(" ", 1) if name else ["", ""]
+    # Get user_id from current_user
+    user_id = current_user["user_id"]
     
+    # Log successful profile access with structured logging
+    logger.info({
+        "event": "profile_access",
+        "action": "get_profile",
+        "user_id": user_id,
+        "has_auth_header": "Authorization" in request.headers,
+        "client_ip": request.client.host if request.client else "unknown",
+        "path": request.url.path
+    })
+    
+    # Fetch user from database to get all profile fields
+    user = await get_user_by_id(session, user_id)
+    
+    if not user:
+        # Fallback to JWT data if user not found in database (shouldn't happen)
+        name = current_user.get("name", "")
+        name_parts = name.split(" ", 1) if name else ["", ""]
+        
+        return ProfileResponse(
+            id=str(current_user.get("user_id", "")),
+            username=current_user.get("email", "").split("@")[0],
+            email=current_user.get("email", ""),
+            first_name=name_parts[0] if len(name_parts) > 0 else "",
+            last_name=name_parts[1] if len(name_parts) > 1 else "",
+            display_name=current_user.get("name", ""),
+            location="",
+            website="",
+            profile_picture="",
+            role=current_user.get("role", "student")
+        )
+    
+    # Return data from database
     return ProfileResponse(
-        id=user_id,
-        username=current_user.get("email", "").split("@")[0],  # Use email prefix as username
-        email=current_user.get("email", ""),
-        first_name=name_parts[0] if len(name_parts) > 0 else "",
-        last_name=name_parts[1] if len(name_parts) > 1 else "",
-        display_name=current_user.get("name", ""),
-        location="",
-        website="",
-        profile_picture="",
-        role=current_user.get("role", "student")
+        id=str(user.id),
+        username=user.username or user.email.split("@")[0],
+        email=user.email,
+        first_name=user.first_name or "",
+        last_name=user.last_name or "",
+        display_name=user.display_name or user.name or "",
+        location=user.location or "",
+        website=user.website or "",
+        profile_picture=user.profile_picture or user.picture or "",
+        role=user.role
     )
 
 
@@ -123,7 +146,7 @@ async def get_profile(current_user: dict = Depends(get_current_user)):
 @router.patch("/", response_model=ProfileResponse)
 async def update_profile(
     profile_update: UpdateProfileRequest,
-    current_user: dict = Depends(get_current_user),
+    current_user: Dict[str, Any] = Depends(get_current_user),
     session: AsyncSession = Depends(get_session)
 ):
     """
@@ -146,8 +169,8 @@ async def update_profile(
     Response:
         Updated profile information
     """
-    # Get user_id from current_user (email is used as user_id)
-    user_id = current_user["email"]
+    # Get user_id from current_user
+    user_id = current_user["user_id"]
     
     # Update profile in database
     updated_user_model = await update_user_profile(
@@ -167,7 +190,7 @@ async def update_profile(
         )
     
     return ProfileResponse(
-        id=hash(updated_user_model.user_id) % 1000000,
+        id=str(updated_user_model.id),
         username=updated_user_model.username,
         email=updated_user_model.email,
         first_name=updated_user_model.first_name or "",
@@ -186,7 +209,7 @@ async def update_profile(
 @router.patch("/update_account/")
 async def update_account(
     account_update: UpdateAccountRequest,
-    current_user: dict = Depends(get_current_user),
+    current_user: Dict[str, Any] = Depends(get_current_user),
     session: AsyncSession = Depends(get_session)
 ):
     """
@@ -212,8 +235,8 @@ async def update_account(
     Response:
         Updated profile information
     """
-    # Get user_id from current_user (email is used as user_id)
-    user_id = current_user["email"]
+    # Get user_id from current_user
+    user_id = current_user["user_id"]
     
     # Update profile in database
     updated_user_model = await update_user_profile(
@@ -234,7 +257,7 @@ async def update_account(
         )
     
     return ProfileResponse(
-        id=hash(updated_user_model.user_id) % 1000000,
+        id=str(updated_user_model.id),
         username=updated_user_model.username,
         email=updated_user_model.email,
         first_name=updated_user_model.first_name or "",
@@ -250,7 +273,7 @@ async def update_account(
 @router.post("/picture")
 async def upload_profile_picture(
     file: UploadFile = File(...),
-    current_user: dict = Depends(get_current_user),
+    current_user: Dict[str, Any] = Depends(get_current_user),
     session: AsyncSession = Depends(get_session)
 ):
     """
@@ -277,12 +300,11 @@ async def upload_profile_picture(
     
     # In production, save to storage service (S3, etc.)
     # For now, just return a mock URL
-    user_id_hash = current_user["id"]
-    picture_url = f"/uploads/profile/{user_id_hash}.jpg"
+    user_id = current_user["user_id"]
+    picture_url = f"/uploads/profile/{user_id}.jpg"
     
     # Update user in database
-    user_email = current_user["email"]
-    await update_user_profile(session, user_email, profile_picture=picture_url)
+    await update_user_profile(session, user_id, profile_picture=picture_url)
     
     return {
         "message": "Profile picture uploaded successfully",
@@ -292,7 +314,7 @@ async def upload_profile_picture(
 
 @router.delete("/picture")
 async def delete_profile_picture(
-    current_user: dict = Depends(get_current_user),
+    current_user: Dict[str, Any] = Depends(get_current_user),
     session: AsyncSession = Depends(get_session)
 ):
     """
@@ -306,8 +328,8 @@ async def delete_profile_picture(
             "message": "Profile picture deleted successfully"
         }
     """
-    user_email = current_user["email"]
-    await update_user_profile(session, user_email, profile_picture=None)
+    user_id = current_user["user_id"]
+    await update_user_profile(session, user_id, profile_picture=None)
     
     return {
         "message": "Profile picture deleted successfully"
@@ -316,7 +338,7 @@ async def delete_profile_picture(
 
 @router.get("/preferences")
 @router.get("/preferences/")
-async def get_profile_preferences(current_user: dict = Depends(get_current_user)):
+async def get_profile_preferences(current_user: Dict[str, Any] = Depends(get_current_user)):
     """
     Get user preferences (default settings).
     
@@ -338,7 +360,7 @@ async def get_profile_preferences(current_user: dict = Depends(get_current_user)
 
 @router.get("/statistics")
 @router.get("/statistics/")
-async def get_profile_statistics(current_user: dict = Depends(get_current_user)):
+async def get_profile_statistics(current_user: Dict[str, Any] = Depends(get_current_user)):
     """
     Get user statistics and activity.
     
@@ -377,7 +399,7 @@ class PlanInformation(BaseModel):
 
 
 @router.get("/billing")
-async def get_billing_info(current_user: dict = Depends(get_current_user)):
+async def get_billing_info(current_user: Dict[str, Any] = Depends(get_current_user)):
     """
     Get user's billing information and current plan.
     
@@ -457,7 +479,7 @@ async def get_billing_info(current_user: dict = Depends(get_current_user)):
 @router.post("/upgrade")
 async def upgrade_plan(
     plan_tier: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """
     Upgrade user's subscription plan.

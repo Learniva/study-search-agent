@@ -258,7 +258,7 @@ class UpdateProfileRequest(BaseModel):
 
 class ProfileResponse(BaseModel):
     """Profile response."""
-    id: int
+    id: str  # Changed from int to str for UUID compatibility
     username: str
     email: str
     first_name: Optional[str]

@@ -1,0 +1,48 @@
+{
+  "test_name": "no_wildcard_cors",
+  "timestamp": "2025-10-29T08:51:52.341584+00:00",
+  "results": [
+    {
+      "origin": "http://localhost:3000",
+      "status_code": 200,
+      "cors_headers": {
+        "access-control-allow-methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+        "access-control-max-age": "600",
+        "access-control-allow-headers": "Accept, Accept-Language, Authorization, Content-Language, Content-Type, X-CSP-Nonce, X-CSRFToken, X-Correlation-ID, X-Tenant-ID, X-Thread-ID, X-Trace-ID, X-User-ID, X-User-Role",
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "http://localhost:3000"
+      },
+      "wildcard_violation": false
+    },
+    {
+      "origin": "http://evil.com",
+      "status_code": 400,
+      "cors_headers": {
+        "access-control-allow-methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+        "access-control-max-age": "600",
+        "access-control-allow-headers": "Accept, Accept-Language, Authorization, Content-Language, Content-Type, X-CSP-Nonce, X-CSRFToken, X-Correlation-ID, X-Tenant-ID, X-Thread-ID, X-Trace-ID, X-User-ID, X-User-Role",
+        "access-control-allow-credentials": "true"
+      }
+    },
+    {
+      "origin": "https://attacker.net",
+      "status_code": 400,
+      "cors_headers": {
+        "access-control-allow-methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+        "access-control-max-age": "600",
+        "access-control-allow-headers": "Accept, Accept-Language, Authorization, Content-Language, Content-Type, X-CSP-Nonce, X-CSRFToken, X-Correlation-ID, X-Tenant-ID, X-Thread-ID, X-Trace-ID, X-User-ID, X-User-Role",
+        "access-control-allow-credentials": "true"
+      }
+    },
+    {
+      "origin": "null",
+      "status_code": 400,
+      "cors_headers": {
+        "access-control-allow-methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+        "access-control-max-age": "600",
+        "access-control-allow-headers": "Accept, Accept-Language, Authorization, Content-Language, Content-Type, X-CSP-Nonce, X-CSRFToken, X-Correlation-ID, X-Tenant-ID, X-Thread-ID, X-Trace-ID, X-User-ID, X-User-Role",
+        "access-control-allow-credentials": "true"
+      }
+    }
+  ]
+}

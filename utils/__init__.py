@@ -19,10 +19,6 @@ All modules provide graceful degradation for optional dependencies.
 # =============================================================================
 
 from .core import (
-    initialize_llm,
-    initialize_grading_llm,
-    DEFAULT_MODEL,
-    TEMPERATURE_SETTINGS,
     ResultCache,
     DEFAULT_CACHE_TTL,
     MAX_CONTEXT_TOKENS,
@@ -33,8 +29,9 @@ from .core import (
     GENERIC_SUBJECTS,
     REALTIME_QUERY_PATTERNS,
     GRADING_ERROR_INDICATORS,
-    GRADING_UNCERTAINTY_INDICATORS
+    GRADING_UNCERTAINTY_INDICATORS,
 )
+from .core.llm import initialize_llm, initialize_grading_llm
 from .core.advanced_cache import MultiTierCache, get_cache, async_cached
 
 # =============================================================================
@@ -107,6 +104,8 @@ from .prompts import (
 # =============================================================================
 
 from .monitoring import (
+    get_correlation_id,
+    set_correlation_id,
     get_logger,
     setup_logging,
     track_query,
@@ -174,32 +173,17 @@ except ImportError as e:
 
 __all__ = [
     # Core
-    'initialize_llm',
-    'initialize_grading_llm',
-    'DEFAULT_MODEL',
-    'TEMPERATURE_SETTINGS',
     'ResultCache',
-    'MultiTierCache',
-    'get_cache',
-    'async_cached',
-    
-    # Patterns
-    'BaseAgent',
-    'GraphBuilder',
-    'StateManager',
-    
-    # RAG
-    'get_smart_context',
-    'estimate_tokens',
-    'truncate_to_tokens',
-    'detect_realtime_query',
-    'needs_query_enrichment',
-    'enrich_query_with_context',
-    'format_realtime_warning',
-    
-    # Routing
-    'fast_study_route',
-    'fast_grading_route',
+    'DEFAULT_CACHE_TTL',
+    'MAX_CONTEXT_TOKENS',
+    'MAX_AGENT_ITERATIONS',
+    'MAX_GRADING_ITERATIONS',
+    'VAGUE_QUESTION_PATTERNS',
+    'FOLLOW_UP_PRONOUNS',
+    'GENERIC_SUBJECTS',
+    'REALTIME_QUERY_PATTERNS',
+    'GRADING_ERROR_INDICATORS',
+    'GRADING_UNCERTAINTY_INDICATORS',
     'fast_intent_classification',
     'calculate_text_similarity',
     'PerformanceMonitor',
@@ -214,18 +198,9 @@ __all__ = [
     'save_performance_router',
     
     # Prompts
-    'get_agent_prompt',
-    'get_grading_prompt',
-    'get_essay_grading_prompt',
-    'get_code_review_prompt',
-    'get_mcq_grading_prompt',
-    'get_feedback_generation_prompt',
-    'format_rubric_for_prompt',
-    'get_supervisor_prompt',
-    'get_intent_classification_prompt',
-    'QUERY_ENRICHMENT_SYSTEM_PROMPT',
-    
     # Monitoring
+    'get_correlation_id',
+    'set_correlation_id',
     'get_logger',
     'setup_logging',
     'track_query',

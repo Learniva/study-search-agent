@@ -19,7 +19,7 @@ class Token(Base):
     __tablename__ = "tokens"
     
     # Primary key
-    token = Column(String(64), primary_key=True, index=True)
+    token = Column(String(128), primary_key=True, index=True)  # Increased from 64 to 128 to accommodate full token
     
     # Foreign key to user
     user_id = Column(String(255), ForeignKey("users.user_id"), nullable=False, index=True)

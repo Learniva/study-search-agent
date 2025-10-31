@@ -78,19 +78,42 @@ def setup_logging():
     for handler in root_logger.handlers[:]:
         root_logger.removeHandler(handler)
     
-    # Create console handler
+    # Create console handler with no buffering - use simple format to avoid flush issues
     console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setFormatter(StructuredFormatter())
+    console_handler.setLevel(getattr(logging, settings.log_level))
     
-    # Create file handler if not in testing mode
-    if not settings.testing:
-        log_dir = Path("logs")
-        log_dir.mkdir(exist_ok=True)
-        file_handler = logging.FileHandler(log_dir / "app.log")
-        file_handler.setFormatter(StructuredFormatter())
-        root_logger.addHandler(file_handler)
+    # Use simple formatter for faster startup (JSON slows down flush)
+    if settings.is_development:
+        console_handler.setFormatter(StructuredFormatter())
+    else:
+        # In production, use simple format to avoid JSON serialization delays
+        simple_formatter = logging.Formatter(
+            '%(asctime)s [%(levelname)s] %(name)s - %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S'
+        )
+        console_handler.setFormatter(simple_formatter)
     
     root_logger.addHandler(console_handler)
+    
+    # Create file handler if not in testing mode - async to prevent blocking
+    if not settings.testing:
+        try:
+            log_dir = Path("logs")
+            log_dir.mkdir(exist_ok=True)
+            # Use delay=True for lazy file opening to speed up startup
+            file_handler = logging.FileHandler(
+                log_dir / "app.log", 
+                mode='a', 
+                encoding='utf-8', 
+                delay=True  # Don't open file until first write
+            )
+            file_handler.setFormatter(StructuredFormatter())
+            file_handler.setLevel(logging.INFO)
+            root_logger.addHandler(file_handler)
+        except Exception as e:
+            # If file logging fails, just continue with console logging
+            print(f"Warning: Could not setup file logging: {e}", file=sys.stderr)
+    
     root_logger.setLevel(getattr(logging, settings.log_level))
     
     # Reduce noise from third-party libraries
@@ -107,18 +130,30 @@ class AgentLogger:
     
     def info(self, message: str, **context):
         """Log info message with context."""
-        extra = {"context": context} if context else {}
-        self.logger.info(message, extra=extra)
+        try:
+            extra = {"context": context} if context else {}
+            self.logger.info(message, extra=extra)
+        except (TimeoutError, BrokenPipeError, OSError):
+            # Ignore logging errors that would block startup
+            pass
     
     def error(self, message: str, error: Optional[Exception] = None, **context):
         """Log error with context and exception."""
-        extra = {"context": context} if context else {}
-        self.logger.error(message, exc_info=error, extra=extra)
+        try:
+            extra = {"context": context} if context else {}
+            self.logger.error(message, exc_info=error, extra=extra)
+        except (TimeoutError, BrokenPipeError, OSError):
+            # Ignore logging errors that would block startup
+            pass
     
     def warning(self, message: str, **context):
         """Log warning with context."""
-        extra = {"context": context} if context else {}
-        self.logger.warning(message, extra=extra)
+        try:
+            extra = {"context": context} if context else {}
+            self.logger.warning(message, extra=extra)
+        except (TimeoutError, BrokenPipeError, OSError):
+            # Ignore logging errors that would block startup
+            pass
     
     def debug(self, message: str, **context):
         """Log debug message with context."""

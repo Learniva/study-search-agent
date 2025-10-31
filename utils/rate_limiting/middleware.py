@@ -75,7 +75,14 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         # Exempt static file downloads from rate limiting
         # (animations, videos, PDFs, etc.)
         exempt_paths = ['/downloads/', '/animations/', '/static/', '/media/']
+        
+        # Exempt session validation endpoint (called frequently for silent auth checks)
+        exempt_endpoints = ['/api/auth/session/validate']
+        
         if any(request.url.path.startswith(path) for path in exempt_paths):
+            return await call_next(request)
+        
+        if request.url.path in exempt_endpoints:
             return await call_next(request)
         
         # Get client identifier

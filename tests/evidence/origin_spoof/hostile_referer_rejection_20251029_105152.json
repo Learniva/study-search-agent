@@ -1,0 +1,171 @@
+{
+  "test_name": "hostile_referer_rejection",
+  "timestamp": "2025-10-29T08:51:52.502810+00:00",
+  "results": [
+    {
+      "referer": "http://evil.com",
+      "status_code": 200,
+      "has_cors_headers": false,
+      "security_headers": {
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'nonce-qRrScSs0i7K_ZkuwsNw5iA'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; media-src 'self'; worker-src 'self'; child-src 'self'; report-uri /api/security/csp-report"
+      }
+    },
+    {
+      "referer": "https://attacker.net",
+      "status_code": 200,
+      "has_cors_headers": false,
+      "security_headers": {
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'nonce-biPATf6Hn7qbSqN-qvhrBg'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; media-src 'self'; worker-src 'self'; child-src 'self'; report-uri /api/security/csp-report"
+      }
+    },
+    {
+      "referer": "http://malicious-site.org",
+      "status_code": 200,
+      "has_cors_headers": false,
+      "security_headers": {
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'nonce-Jk_KofVlR7Mx3U8oCtL25g'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; media-src 'self'; worker-src 'self'; child-src 'self'; report-uri /api/security/csp-report"
+      }
+    },
+    {
+      "referer": "https://phishing.example",
+      "status_code": 200,
+      "has_cors_headers": false,
+      "security_headers": {
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'nonce-ib-Br4CuXgnZyBVWlOswcg'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; media-src 'self'; worker-src 'self'; child-src 'self'; report-uri /api/security/csp-report"
+      }
+    },
+    {
+      "referer": "http://192.168.1.100:8080",
+      "status_code": 200,
+      "has_cors_headers": false,
+      "security_headers": {
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'nonce-UNrBAOOETSVcWcZG0y1LTQ'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; media-src 'self'; worker-src 'self'; child-src 'self'; report-uri /api/security/csp-report"
+      }
+    },
+    {
+      "referer": "https://subdomain.evil.com",
+      "status_code": 200,
+      "has_cors_headers": false,
+      "security_headers": {
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'nonce-zDJRLZLXPtr5R6QlqPM1hA'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; media-src 'self'; worker-src 'self'; child-src 'self'; report-uri /api/security/csp-report"
+      }
+    },
+    {
+      "referer": "null",
+      "status_code": 200,
+      "has_cors_headers": false,
+      "security_headers": {
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'nonce-1Ddu5zenZmp2C3TT9ST37g'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; media-src 'self'; worker-src 'self'; child-src 'self'; report-uri /api/security/csp-report"
+      }
+    },
+    {
+      "referer": "file://",
+      "status_code": 200,
+      "has_cors_headers": false,
+      "security_headers": {
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'nonce-gWLKxt9zHlRGcsTyGaeYQA'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; media-src 'self'; worker-src 'self'; child-src 'self'; report-uri /api/security/csp-report"
+      }
+    },
+    {
+      "referer": "data://",
+      "status_code": 200,
+      "has_cors_headers": false,
+      "security_headers": {
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'nonce-LHq1tSwWB7ylZJt17XNyrQ'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; media-src 'self'; worker-src 'self'; child-src 'self'; report-uri /api/security/csp-report"
+      }
+    },
+    {
+      "referer": "javascript://",
+      "status_code": 200,
+      "has_cors_headers": false,
+      "security_headers": {
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'nonce-ctLFLizDCVzLk_6c-e03NA'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; media-src 'self'; worker-src 'self'; child-src 'self'; report-uri /api/security/csp-report"
+      }
+    },
+    {
+      "referer": "https://localhost.evil.com",
+      "status_code": 200,
+      "has_cors_headers": false,
+      "security_headers": {
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'nonce-b6UnFLcVZ-uiLamLzL__lA'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; media-src 'self'; worker-src 'self'; child-src 'self'; report-uri /api/security/csp-report"
+      }
+    },
+    {
+      "referer": "http://localhost:3000.evil.com",
+      "status_code": 200,
+      "has_cors_headers": false,
+      "security_headers": {
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'nonce-pjyYNf3XkmD_B1wodNJqtg'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; media-src 'self'; worker-src 'self'; child-src 'self'; report-uri /api/security/csp-report"
+      }
+    },
+    {
+      "referer": "http://evil.com@localhost:3000",
+      "status_code": 200,
+      "has_cors_headers": false,
+      "security_headers": {
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'nonce-1IfccryYkQyQZFcrZN2W3A'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; media-src 'self'; worker-src 'self'; child-src 'self'; report-uri /api/security/csp-report"
+      }
+    },
+    {
+      "referer": "https://[::1]",
+      "status_code": 200,
+      "has_cors_headers": false,
+      "security_headers": {
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'nonce-agmNDD90BKPmkbgqbwYWEQ'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; media-src 'self'; worker-src 'self'; child-src 'self'; report-uri /api/security/csp-report"
+      }
+    },
+    {
+      "referer": "http://127.0.0.1",
+      "status_code": 200,
+      "has_cors_headers": false,
+      "security_headers": {
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'nonce-ANwKGcN53LJFKDGr1zutxA'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; media-src 'self'; worker-src 'self'; child-src 'self'; report-uri /api/security/csp-report"
+      }
+    }
+  ]
+}

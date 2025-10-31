@@ -17,6 +17,10 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
+# Disable ChromaDB telemetry to speed up startup
+os.environ.setdefault("ANONYMIZED_TELEMETRY", "False")
+os.environ.setdefault("CHROMA_TELEMETRY", "False")
+
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -48,6 +52,10 @@ from utils.errors import BaseApplicationError, get_error_handler
 from utils.auth import get_current_user
 from api.dependencies import require_admin_role
 from config import settings
+
+from middleware.auth_gateway import AuthGatewayMiddleware
+from middleware.security_headers import SecurityHeadersMiddleware
+from middleware.csrf_protection import CSRFProtectionMiddleware
 
 logger = get_logger(__name__)
 
@@ -106,20 +114,90 @@ app = FastAPI(
 # Middleware Stack
 # ============================================================================
 
-# CORS - Use environment variable for allowed origins
+# CORS - Enhanced security configuration for cookie-based authentication
 # SECURITY: Never use ["*"] in production with allow_credentials=True
 ALLOWED_ORIGINS = os.getenv(
     "CORS_ALLOWED_ORIGINS",
-    "http://localhost:3000,http://localhost:3001"
+    "http://localhost:3000,https://localhost:3000"
 ).split(",")
+
+# Filter out empty strings and validate origins
+ALLOWED_ORIGINS = [origin.strip() for origin in ALLOWED_ORIGINS if origin.strip()]
+
+# Additional security headers for CORS (cookie-based auth)
+CORS_HEADERS = [
+    "Content-Type",
+    "Authorization",  # CRITICAL: Required for Bearer token authentication
+    "X-Correlation-ID",
+    "X-Trace-ID",
+    "X-Tenant-ID",
+    "X-CSP-Nonce",
+    # CSRF protection (required for cookie-based auth)
+    "X-CSRF-Token",
+    # Frontend custom headers
+    "X-User-Role",
+    "X-User-ID", 
+    "X-Thread-ID",
+]
+
+# Expose headers that client can read
+CORS_EXPOSE_HEADERS = [
+    "X-RateLimit-Limit",
+    "X-RateLimit-Remaining",
+    "X-RateLimit-Reset",
+    "X-Total-Count",
+    "X-CSRF-Token",  # Allow client to read CSRF token
+]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH"],
-    allow_headers=["Content-Type", "Authorization", "X-Correlation-ID"],
+    allow_credentials=True,  # REQUIRED for cookie-based auth
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allow_headers=CORS_HEADERS,
+    expose_headers=CORS_EXPOSE_HEADERS,
     max_age=600,  # Cache preflight requests for 10 minutes
+)
+
+# Security Headers Middleware
+app.add_middleware(
+    SecurityHeadersMiddleware,
+    strict_mode=not settings.is_development,
+    hsts_max_age=31536000,  # 1 year
+    csp_report_uri="/api/security/csp-report" if not settings.is_development else None
+)
+
+# CSRF Protection Middleware (for cookie-based authentication)
+app.add_middleware(
+    CSRFProtectionMiddleware,
+    exempt_paths={
+        # Auth endpoints that don't need CSRF (login/register create new sessions)
+        "/api/auth/login/",
+        "/auth/login/",
+        "/api/auth/register/",
+        "/auth/register/",
+        "/api/auth/google/callback",
+        "/api/auth/google/callback/",
+        "/auth/google/callback",
+        "/auth/google/callback/",
+    }
+)
+
+# Authentication Gateway Middleware
+app.add_middleware(
+    AuthGatewayMiddleware,
+    exempt_paths=[
+        # Health and docs
+        "/health", "/", "/docs", "/redoc", "/openapi.json",
+        # Auth endpoints (both prefixes)
+        "/auth/google/callback", "/auth/google/callback/", "/auth/health", "/auth/error",
+        "/api/auth/google/callback", "/api/auth/google/callback/",
+        "/api/auth/google/login/", "/auth/google/login/",  # OAuth login initiation
+        "/api/auth/login/", "/api/auth/register/", "/api/auth/validate-password/", "/api/auth/config/",
+        "/auth/login/", "/auth/register/", "/auth/validate-password/", "/auth/config/",
+        "/api/auth/session/validate",  # Session validation endpoint (silent reauth check)
+        "/api/auth/me/", "/auth/me/"  # User info endpoint (needs auth but different validation)
+    ]
 )
 
 # Rate Limiting
@@ -190,7 +268,7 @@ app.include_router(health_router)
 
 # Core Features
 app.include_router(query_router)
-app.include_router(concurrent_query_router)  # Concurrent execution support
+app.include_router(concurrent_query_router)
 app.include_router(documents_router)
 
 # Grading Features (Teachers only)
@@ -203,7 +281,7 @@ app.include_router(ml_router)
 app.include_router(videos_router)
 
 # Authentication (Public - no auth required)
-app.include_router(auth_router)
+app.include_router(auth_router)  # Comprehensive authentication with security features
 app.include_router(legacy_auth_router)  # Legacy /auth prefix for backward compatibility
 
 # User Management & Settings

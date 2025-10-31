@@ -10,9 +10,9 @@ Endpoints for user help and support including:
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from datetime import datetime
-from utils.auth.jwt_handler import get_current_user  # Use Google OAuth JWT authentication
+from api.routers.auth import get_current_user  # Use unified authentication (supports both JWT and database tokens)
 
 router = APIRouter(prefix="/api/help", tags=["help"])
 
@@ -225,7 +225,7 @@ async def get_faq_item(faq_id: int):
 
 
 @router.post("/faq/{faq_id}/helpful")
-async def mark_faq_helpful(faq_id: int, current_user: dict = Depends(get_current_user)):
+async def mark_faq_helpful(faq_id: int, current_user: Dict[str, Any] = Depends(get_current_user)):
     """
     Mark an FAQ item as helpful.
     
@@ -270,7 +270,7 @@ TICKET_COUNTER = 0
 @router.post("/support/ticket")
 async def create_support_ticket(
     ticket: SupportTicketRequest,
-    current_user: dict = Depends(get_current_user)
+    current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """
     Create a new support ticket.
@@ -326,7 +326,7 @@ async def create_support_ticket(
 
 
 @router.get("/support/tickets")
-async def get_user_tickets(current_user: dict = Depends(get_current_user)):
+async def get_user_tickets(current_user: Dict[str, Any] = Depends(get_current_user)):
     """
     Get all support tickets for the current user.
     
@@ -368,7 +368,7 @@ async def get_user_tickets(current_user: dict = Depends(get_current_user)):
 @router.get("/support/tickets/{ticket_id}")
 async def get_ticket_details(
     ticket_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """
     Get details of a specific support ticket.
