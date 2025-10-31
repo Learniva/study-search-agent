@@ -737,25 +737,27 @@ async def google_callback(
         
         logger.info(f"🔄 Processing user: {email} (Google ID: {google_id})")
         
-        # Check if user exists
+        # Optimized: Check for user by Google ID OR email in single query
+        from sqlalchemy import or_
         result = await db.execute(
-            select(User).where(User.google_id == google_id)
+            select(User).where(
+                or_(
+                    User.google_id == google_id,
+                    User.email == email
+                )
+            )
         )
         user = result.scalar_one_or_none()
         
-        if not user:
-            logger.info(f"👤 User not found by Google ID, checking by email...")
-            # Check by email
-            result = await db.execute(
-                select(User).where(User.email == email)
-            )
-            user = result.scalar_one_or_none()
+        if user:
+            # Check if this is a first-time Google account linking
+            is_first_time_linking = user.google_id is None
             
-            if user:
-                # Check if this is a first-time Google account linking
+            if user.google_id != google_id:
+                # User exists but needs Google ID linking
                 is_first_time_linking = user.google_id is None
-                
                 logger.info(f"✅ Found existing user by email, updating with Google ID")
+                
                 # Update existing user with Google ID
                 user.google_id = google_id
                 user.picture = picture
@@ -767,7 +769,7 @@ async def google_callback(
                 if is_first_time_linking:
                     logger.info(f"🔗 First-time Google account linking detected for {email}")
                     
-                    # Create audit log entry
+                    # Create audit log entry (optimized - added to current transaction)
                     try:
                         audit_entry = AuditLog(
                             user_id=user.user_id,
@@ -789,55 +791,63 @@ async def google_callback(
                             success=True
                         )
                         db.add(audit_entry)
-                        logger.info(f"✅ Audit log created for account linking")
+                        logger.info(f"✅ Audit log entry prepared (will be committed with user)")
                     except Exception as audit_error:
                         logger.error(f"❌ Failed to create audit log: {audit_error}")
                         # Don't fail the OAuth flow if audit fails
                     
-                    # Send notification email for first-time account linking
-                    try:
-                        from utils.email import email_service
-                        
-                        # Send account linking notification email
-                        email_sent = email_service.send_account_linked_email(
-                            to_email=email,
-                            username=user.username or email.split('@')[0],
-                            linked_service="Google"
-                        )
-                        
-                        if email_sent:
-                            logger.info(f"✅ Account linking notification email sent to {email}")
-                        else:
-                            logger.warning(f"⚠️ Failed to send account linking notification to {email}")
-                    except Exception as e:
-                        logger.error(f"❌ Error sending account linking email: {e}")
-                        # Don't fail the OAuth flow if email fails
+                    # Schedule notification email for first-time account linking (non-blocking)
+                    # This prevents the OAuth redirect from being delayed by email sending
+                    import asyncio
+                    
+                    async def send_linking_notification():
+                        """Background task to send account linking notification"""
+                        try:
+                            from utils.email import email_service
+                            
+                            # Send account linking notification email
+                            email_sent = email_service.send_account_linked_email(
+                                to_email=email,
+                                username=user.username or email.split('@')[0],
+                                linked_service="Google"
+                            )
+                            
+                            if email_sent:
+                                logger.info(f"✅ Account linking notification email sent to {email}")
+                            else:
+                                logger.warning(f"⚠️ Failed to send account linking notification to {email}")
+                        except Exception as e:
+                            logger.error(f"❌ Error sending account linking email: {e}")
+                    
+                    # Fire and forget - don't wait for email to be sent
+                    asyncio.create_task(send_linking_notification())
+                    logger.info(f"📧 Account linking notification scheduled for {email}")
             else:
-                logger.info(f"👤 Creating new user from Google OAuth")
-                # Create new user from Google OAuth
-                username = email.split('@')[0] if email else name.replace(' ', '_').lower()
-                
-                user = User(
-                    user_id=email,  # Use email as user_id
-                    email=email,
-                    username=username,
-                    name=name,
-                    display_name=name,
-                    picture=picture,
-                    profile_picture=picture,
-                    google_id=google_id,
-                    role=UserRole.STUDENT,  # Default role
-                    is_verified=email_verified,
-                    is_active=True,
-                    last_login=datetime.now(timezone.utc),
-                    settings={}  # Initialize empty settings
-                )
-                db.add(user)
-                logger.info(f"✅ New user created: {username}")
+                # User found by Google ID, just update last login
+                logger.info(f"✅ Found existing user by Google ID, updating last login")
+                user.last_login = datetime.now(timezone.utc)
         else:
-            logger.info(f"✅ Found existing user, updating last login")
-            # Update last login
-            user.last_login = datetime.now(timezone.utc)
+            # No existing user found - create new user from Google OAuth
+            logger.info(f"👤 Creating new user from Google OAuth")
+            username = email.split('@')[0] if email else name.replace(' ', '_').lower()
+            
+            user = User(
+                user_id=email,  # Use email as user_id
+                email=email,
+                username=username,
+                name=name,
+                display_name=name,
+                picture=picture,
+                profile_picture=picture,
+                google_id=google_id,
+                role=UserRole.STUDENT,  # Default role
+                is_verified=email_verified,
+                is_active=True,
+                last_login=datetime.now(timezone.utc),
+                settings={}  # Initialize empty settings
+            )
+            db.add(user)
+            logger.info(f"✅ New user created: {username}")
         
         logger.info(f"💾 Committing user to database...")
         await db.commit()

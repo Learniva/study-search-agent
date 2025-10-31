@@ -15,6 +15,7 @@ from typing import Optional, Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.routers.auth import get_current_user  # Use unified authentication (supports both JWT and database tokens)
+from api.models import ProfileResponse  # Import ProfileResponse from central models
 from database.core.async_connection import get_session
 from database.operations.user_ops import (
     get_user_by_id,
@@ -60,20 +61,6 @@ class UpdateAccountRequest(BaseModel):
     display_name: Optional[str] = None
     location: Optional[str] = None
     website: Optional[str] = None
-
-
-class ProfileResponse(BaseModel):
-    """Profile response."""
-    id: str
-    username: str
-    email: str
-    first_name: Optional[str]
-    last_name: Optional[str]
-    display_name: Optional[str]
-    location: Optional[str]
-    website: Optional[str]
-    profile_picture: Optional[str]
-    role: str
 
 
 # ============================================================================

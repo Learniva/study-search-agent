@@ -47,6 +47,20 @@ async def create_user(
         # Settings JSONB should only contain user preferences, NOT sensitive data
         user_settings = kwargs.get('settings', {})
         
+        # Auto-generate display_name if not provided
+        display_name = kwargs.get('display_name')
+        if not display_name:
+            first_name = kwargs.get('first_name', '')
+            last_name = kwargs.get('last_name', '')
+            if first_name and last_name:
+                display_name = f"{first_name} {last_name}"
+            elif first_name:
+                display_name = first_name
+            elif last_name:
+                display_name = last_name
+            else:
+                display_name = username
+        
         # Create user
         user = User(
             user_id=email,  # Use email as user_id for now
@@ -56,7 +70,7 @@ async def create_user(
             name=kwargs.get('name', ''),  # Full name field
             first_name=kwargs.get('first_name', ''),
             last_name=kwargs.get('last_name', ''),
-            display_name=kwargs.get('display_name', username),
+            display_name=display_name,
             profile_picture=kwargs.get('profile_picture'),
             location=kwargs.get('location'),
             website=kwargs.get('website'),
@@ -259,14 +273,39 @@ async def update_user_profile(
         if not filtered_updates:
             return await get_user_by_id(session, user_id)
         
-        await session.execute(
-            update(User)
-            .where(User.user_id == user_id)
-            .values(**filtered_updates)
+        # Fetch the user object first
+        result = await session.execute(
+            select(User).where(User.user_id == user_id)
         )
+        user = result.scalars().first()
+        
+        if not user:
+            logger.warning(f"⚠️  User not found for update: {user_id}")
+            return None
+        
+        # Update the user object attributes
+        for key, value in filtered_updates.items():
+            setattr(user, key, value)
+        
+        # Auto-generate display_name if first_name or last_name changed and display_name not explicitly set
+        if ('first_name' in filtered_updates or 'last_name' in filtered_updates) and 'display_name' not in filtered_updates:
+            first_name = user.first_name or ''
+            last_name = user.last_name or ''
+            if first_name and last_name:
+                user.display_name = f"{first_name} {last_name}"
+            elif first_name:
+                user.display_name = first_name
+            elif last_name:
+                user.display_name = last_name
+            else:
+                user.display_name = user.username
+        
+        # Commit the changes
         await session.commit()
         
-        user = await get_user_by_id(session, user_id)
+        # Refresh to ensure we have the latest state
+        await session.refresh(user)
+        
         logger.info(f"✅ User profile updated: {user_id}")
         return user
         
@@ -293,25 +332,33 @@ async def update_user_settings(
         True if updated successfully
     """
     try:
-        user = await get_user_by_id(session, user_id)
+        # Fetch the user object first
+        result = await session.execute(
+            select(User).where(User.user_id == user_id)
+        )
+        user = result.scalars().first()
+        
         if not user:
+            logger.warning(f"⚠️  User not found for settings update: {user_id}")
             return False
         
         # Merge settings
         current_settings = user.settings or {}
         updated_settings = {**current_settings, **settings}
         
-        await session.execute(
-            update(User)
-            .where(User.user_id == user_id)
-            .values(settings=updated_settings)
-        )
+        # Update the user object
+        user.settings = updated_settings
+        
+        # Commit the changes
         await session.commit()
         
         logger.info(f"✅ User settings updated: {user_id}")
         return True
         
     except Exception as e:
+        logger.error(f"❌ Error updating user settings: {e}")
+        await session.rollback()
+        return False
         logger.error(f"❌ Error updating user settings: {e}")
         await session.rollback()
         return False

@@ -1,321 +1,276 @@
 """
-Authentication Gateway Middleware
+Authentication Gateway Middleware.
 
-This module provides a comprehensive authentication gateway middleware for FastAPI
-applications. It implements a paranoid security model with multiple layers of
-protection including tenant validation, JWT verification, and CORS handling.
+Enforces tenant-aware authentication for all requests:
+- Validates X-Tenant-ID header presence
+- Validates tenant_id claim in JWT token
+- Ensures tenant_id consistency between header and token
+- Treats missing tenant context as hard failure (401)
 
-Security Features:
-- Global authentication enforcement for all routes (except exempt paths)
-- Tenant-first validation using ULID_STRICT format
-- Strict JWT Bearer token validation
-- CORS preflight handling with origin whitelisting
-- Structured JSON logging for security events
-- Environment-aware error responses (silent in prod, detailed in dev)
-- Signature anomaly detection and audit logging
-- Request context injection for downstream handlers
+Security Invariants:
+- No partial authentication allowed
+- Missing tenant guard reflected in logs
+- Tenant validation occurs before application logic
+- All authentication failures are logged
 
-Architecture:
-The middleware follows a tenant-first approach where tenant validation occurs
-before JWT verification, ensuring that all requests are properly scoped to
-valid tenants before processing authentication tokens.
-
-Usage:
-    from middleware.auth_gateway import AuthGatewayMiddleware
-    app.add_middleware(AuthGatewayMiddleware, exempt_paths=["/auth/google/callback"])
-
-Author: Study Search Agent Team
-Version: 1.0.0
+Issue Reference: #10
 """
 
-import json
 import logging
-import traceback
+import json
+from typing import Set, Optional, Dict, Any
 from datetime import datetime, timezone
-from typing import Dict, List, Optional
-
 from fastapi import Request, Response
-from fastapi.responses import JSONResponse, PlainTextResponse
 from starlette.middleware.base import BaseHTTPMiddleware
-
-from config import settings
+from starlette.responses import JSONResponse
 from utils.auth.jwt_handler import verify_access_token
-from utils.auth.tenant_id_validator import validate_tenant_ulid_or_raise
 
-# Module-level logger
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 
 def _log_auth_event(
-    status: str,
-    reason: str,
+    event_type: str,
     request: Request,
-    trace_id: Optional[str] = None,
-    extra: Optional[Dict] = None
+    details: Dict[str, Any],
+    status_code: int = 200
 ) -> None:
     """
-    Log structured authentication events in JSON format.
-    
-    This function creates structured log entries for security auditing and
-    monitoring purposes. All authentication events are logged with consistent
-    structure for easy parsing and analysis.
+    Log authentication events in structured format.
     
     Args:
-        status: Authentication status ("pass", "fail")
-        reason: Reason for the status (e.g., "auth_ok", "tenant_validation")
-        request: The incoming HTTP request
-        trace_id: Optional trace ID for request correlation
-        extra: Additional metadata to include in the log entry
-        
-    Examples:
-        >>> _log_auth_event("pass", "auth_ok", request, "trace-123", {"user_id": "user-456"})
-        # Logs: {"event": "auth", "status": "pass", "reason": "auth_ok", ...}
+        event_type: Type of auth event (e.g., "auth_success", "auth_failure")
+        request: FastAPI request object
+        details: Additional event details
+        status_code: HTTP status code
     """
-    entry = {
-        "event": "auth",
-        "status": status,
-        "reason": reason,
+    log_entry = {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "event": event_type,
         "path": request.url.path,
         "method": request.method,
-        "client": request.client.host if request.client else None,
-        "time": datetime.now(timezone.utc).isoformat(),
-        "env": getattr(settings, "ENV", "prod"),
+        "status_code": status_code,
+        **details
     }
     
-    if trace_id:
-        entry["trace_id"] = trace_id
-    
-    if extra:
-        entry["meta"] = extra
-    
-    # Emit structured JSON log entry
-    logger.info(json.dumps(entry))
-
-
-def _is_cors_allowed(origin: Optional[str]) -> bool:
-    """
-    Check if the given origin is allowed for CORS requests.
-    
-    Args:
-        origin: The origin header value from the request
-        
-    Returns:
-        True if the origin is in the allowed list, False otherwise
-        
-    Examples:
-        >>> _is_cors_allowed("https://example.com")
-        True
-        >>> _is_cors_allowed("https://malicious.com")
-        False
-        >>> _is_cors_allowed(None)
-        False
-    """
-    if not origin:
-        return False
-    
-    allowed_origins = getattr(settings, "CORS_ALLOWED_ORIGINS", [])
-    return origin in allowed_origins
-
-
-def _create_error_response(
-    request: Request,
-    status_code: int,
-    content: Dict,
-    trace_id: Optional[str] = None
-) -> Response:
-    """
-    Create an appropriate error response based on environment and Accept header.
-    
-    Args:
-        request: The incoming HTTP request
-        status_code: HTTP status code for the response
-        content: Error content dictionary
-        trace_id: Optional trace ID for logging
-        
-    Returns:
-        Appropriate Response object (JSON or PlainText)
-    """
-    env = getattr(settings, "ENV", "prod")
-    accept_header = request.headers.get("accept", "")
-    
-    # In production, return silent 401 responses
-    if env == "prod":
-        return Response(status_code=status_code)
-    
-    # In development/staging, return detailed responses
-    if "application/json" in accept_header:
-        return JSONResponse(status_code=status_code, content=content)
-    
-    return PlainTextResponse(status_code=status_code, content=content["message"])
+    if status_code >= 400:
+        logger.warning(f"🔒 Auth Event: {json.dumps(log_entry)}")
+    else:
+        logger.debug(f"✅ Auth Event: {json.dumps(log_entry)}")
 
 
 class AuthGatewayMiddleware(BaseHTTPMiddleware):
     """
-    Authentication Gateway Middleware for FastAPI applications.
+    Authentication Gateway Middleware with Tenant Validation.
     
-    This middleware implements a comprehensive authentication system with the
-    following security features:
-    
-    - Tenant validation using ULID_STRICT format
-    - JWT Bearer token verification
-    - CORS preflight handling
-    - Structured security logging
-    - Environment-aware error responses
-    - Request context injection
-    
-    The middleware follows a paranoid security model where all requests are
-    authenticated unless explicitly exempted.
-    
-    Attributes:
-        exempt_paths: Set of paths that bypass authentication
-        
-    Examples:
-        >>> middleware = AuthGatewayMiddleware(app, exempt_paths=["/health", "/docs"])
-        >>> app.add_middleware(AuthGatewayMiddleware, exempt_paths=["/auth/callback"])
+    Enforces tenant-aware authentication:
+    - Validates X-Tenant-ID header
+    - Validates tenant_id in JWT token
+    - Ensures consistency between header and token
+    - Rejects requests without valid tenant context
     """
     
-    def __init__(self, app, *, exempt_paths: Optional[List[str]] = None):
+    def __init__(
+        self,
+        app,
+        exempt_paths: Optional[Set[str]] = None,
+    ):
         """
-        Initialize the authentication gateway middleware.
+        Initialize authentication gateway middleware.
         
         Args:
-            app: The FastAPI application instance
-            exempt_paths: List of paths that should bypass authentication
+            app: FastAPI application
+            exempt_paths: Paths exempt from authentication
         """
         super().__init__(app)
-        self.exempt_paths = set(exempt_paths or [])
-        logger.info(f"AuthGatewayMiddleware initialized with exempt paths: {self.exempt_paths}")
+        self.exempt_paths = exempt_paths or set()
     
-    async def dispatch(self, request: Request, call_next):
+    def _is_exempt(self, path: str) -> bool:
         """
-        Process incoming requests through the authentication gateway.
-        
-        This method implements the main authentication flow:
-        1. Check if path is exempt from authentication
-        2. Handle CORS preflight requests
-        3. Validate tenant ID header
-        4. Validate and verify JWT token
-        5. Inject user context into request state
-        6. Proceed to route handler
+        Check if path is exempt from authentication.
         
         Args:
-            request: The incoming HTTP request
-            call_next: The next middleware/handler in the chain
+            path: Request path
             
         Returns:
-            HTTP response from the next handler or authentication error response
+            True if exempt, False otherwise
         """
-        # Extract trace ID for request correlation
-        trace_id = (
-            request.headers.get("X-Correlation-ID") or 
-            request.headers.get("X-Trace-ID")
-        )
+        # Exact match
+        if path in self.exempt_paths:
+            return True
         
-        # Check if path is exempt from authentication
-        if request.url.path in self.exempt_paths:
-            logger.debug(f"Exempt path accessed: {request.url.path}")
+        # Prefix match (for paths with trailing slashes or query params)
+        for exempt_path in self.exempt_paths:
+            if path.startswith(exempt_path.rstrip("/")):
+                return True
+        
+        return False
+    
+    async def dispatch(self, request: Request, call_next) -> Response:
+        """
+        Process request through authentication gateway.
+        
+        Args:
+            request: FastAPI request
+            call_next: Next middleware in chain
+            
+        Returns:
+            Response from next middleware or error response
+        """
+        # Skip exempt paths
+        if self._is_exempt(request.url.path):
             return await call_next(request)
         
-        # Handle CORS preflight requests
-        if request.method == "OPTIONS":
-            origin = request.headers.get("origin")
-            if _is_cors_allowed(origin):
-                logger.debug(f"CORS preflight allowed for origin: {origin}")
-                return await call_next(request)
-            else:
-                logger.warning(f"CORS preflight denied for origin: {origin}")
-                # Fall through to require authentication
+        # Extract X-Tenant-ID header
+        tenant_id_header = request.headers.get("X-Tenant-ID")
         
-        # Tenant validation (tenant-first approach)
-        tenant_header = request.headers.get("X-Tenant-ID")
+        # Extract Authorization header
+        authorization = request.headers.get("Authorization")
+        
+        # Validate tenant_id header presence
+        if not tenant_id_header or not tenant_id_header.strip():
+            _log_auth_event(
+                "auth_failure",
+                request,
+                {"reason": "missing_tenant_header", "message": "X-Tenant-ID header is required"},
+                401
+            )
+            return JSONResponse(
+                status_code=401,
+                content={
+                    "error": "unauthorized",
+                    "message": "X-Tenant-ID header is required"
+                }
+            )
+        
+        # Validate Authorization header presence
+        if not authorization:
+            _log_auth_event(
+                "auth_failure",
+                request,
+                {
+                    "reason": "missing_authorization",
+                    "message": "Authorization header is required",
+                    "tenant_id": tenant_id_header
+                },
+                401
+            )
+            return JSONResponse(
+                status_code=401,
+                content={
+                    "error": "unauthorized",
+                    "message": "Authorization header is required"
+                }
+            )
+        
+        # Extract JWT token
         try:
-            validated_tenant = validate_tenant_ulid_or_raise(
-                tenant_header,
-                env=getattr(settings, "ENV", "prod"),
-                trace_id=trace_id
-            )
-        except Exception as e:
-            error_detail = getattr(e, "detail", str(e))
+            parts = authorization.split(maxsplit=1)
+            if len(parts) == 2:
+                scheme, token = parts
+                if scheme.lower() not in ["bearer", "token"]:
+                    raise ValueError("Invalid scheme")
+            else:
+                token = authorization
+        except (ValueError, AttributeError):
             _log_auth_event(
-                "fail",
-                "tenant_validation",
+                "auth_failure",
                 request,
-                trace_id,
-                {"error": str(error_detail)}
+                {
+                    "reason": "invalid_authorization_format",
+                    "message": "Invalid authorization header format",
+                    "tenant_id": tenant_id_header
+                },
+                401
             )
-            
-            content = {
-                "code": "AUTH_INVALID_TENANT",
-                "message": "Invalid or missing tenant ID",
-                "meta": {"hint": "X-Tenant-ID header required with valid ULID"}
-            }
-            
-            return _create_error_response(request, 401, content, trace_id)
-        
-        # Authorization header validation
-        auth_header = request.headers.get("Authorization")
-        if not auth_header or not auth_header.startswith("Bearer "):
-            _log_auth_event("fail", "missing_or_malformed_authorization", request, trace_id)
-            
-            content = {
-                "code": "AUTH_INVALID",
-                "message": "Authorization header required",
-                "meta": {"hint": "Use exact 'Bearer <token>' header"}
-            }
-            
-            return _create_error_response(request, 401, content, trace_id)
-        
-        # Extract and validate Bearer token
-        auth_parts = auth_header.split(" ", 1)
-        if len(auth_parts) != 2:
-            _log_auth_event("fail", "malformed_authorization", request, trace_id)
-            return Response(status_code=401)
-        
-        scheme, token = auth_parts
-        if scheme != "Bearer":
-            _log_auth_event(
-                "fail",
-                "authorization_scheme_mismatch",
-                request,
-                trace_id,
-                {"scheme": scheme}
+            return JSONResponse(
+                status_code=401,
+                content={
+                    "error": "unauthorized",
+                    "message": "Invalid authorization header format"
+                }
             )
-            return Response(status_code=401)
         
-        # JWT token verification
+        # Verify JWT token and extract tenant_id
         try:
             payload = verify_access_token(token)
+            tenant_id_token = payload.get("tenant_id")
         except Exception as e:
-            # Log signature anomalies and other JWT verification failures
             _log_auth_event(
-                "fail",
-                "token_verify_failed",
+                "auth_failure",
                 request,
-                trace_id,
-                {"error": str(e)}
+                {
+                    "reason": "invalid_token",
+                    "message": "Invalid or expired token",
+                    "tenant_id": tenant_id_header,
+                    "error": str(e)
+                },
+                401
             )
-            
-            # TODO: Integrate throttling/IP blacklisting hooks here for active defense
-            logger.warning(f"JWT verification failed: {str(e)}")
-            return Response(status_code=401)
+            return JSONResponse(
+                status_code=401,
+                content={
+                    "error": "unauthorized",
+                    "message": "Invalid or expired token"
+                }
+            )
         
-        # Inject user and tenant context into request state
-        request.state.user = payload
-        request.state.tenant = validated_tenant
+        # Validate tenant_id claim in token
+        if not tenant_id_token or not str(tenant_id_token).strip():
+            _log_auth_event(
+                "auth_failure",
+                request,
+                {
+                    "reason": "missing_tenant_claim",
+                    "message": "tenant_id claim is missing or empty in token",
+                    "tenant_id": tenant_id_header
+                },
+                401
+            )
+            return JSONResponse(
+                status_code=401,
+                content={
+                    "error": "unauthorized",
+                    "message": "Invalid token: missing tenant_id claim"
+                }
+            )
         
-        # Log successful authentication
+        # Validate tenant_id consistency
+        if str(tenant_id_header).strip() != str(tenant_id_token).strip():
+            _log_auth_event(
+                "auth_failure",
+                request,
+                {
+                    "reason": "tenant_mismatch",
+                    "message": "tenant_id mismatch between header and token",
+                    "header_tenant_id": tenant_id_header,
+                    "token_tenant_id": tenant_id_token
+                },
+                401
+            )
+            return JSONResponse(
+                status_code=401,
+                content={
+                    "error": "unauthorized",
+                    "message": "Tenant ID mismatch between header and token"
+                }
+            )
+        
+        # Authentication successful
         _log_auth_event(
-            "pass",
-            "auth_ok",
+            "auth_success",
             request,
-            trace_id,
             {
+                "tenant_id": tenant_id_header,
                 "user_id": payload.get("user_id"),
-                "role": payload.get("role"),
-                "tenant": validated_tenant
-            }
+                "email": payload.get("email")
+            },
+            200
         )
         
-        # Proceed to the next handler in the chain
+        # Attach tenant_id and user info to request state for downstream use
+        request.state.tenant_id = tenant_id_header
+        request.state.user_id = payload.get("user_id")
+        request.state.user_email = payload.get("email")
+        request.state.user_role = payload.get("role")
+        
         return await call_next(request)
