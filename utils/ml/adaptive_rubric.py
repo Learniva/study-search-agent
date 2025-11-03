@@ -56,7 +56,7 @@ class AdaptiveRubric:
         self.professor_adjustments = 0
         self.total_error = 0.0
         
-        print(f"📋 Adaptive Rubric initialized: {rubric_id}")
+        print(f" Adaptive Rubric initialized: {rubric_id}")
     
     def adapt_from_feedback(
         self,
@@ -77,7 +77,7 @@ class AdaptiveRubric:
             submission_context: Optional context about the submission
         """
         if criterion_name not in self.learned_weights:
-            print(f"⚠️  Unknown criterion: {criterion_name}")
+            print(f"  Unknown criterion: {criterion_name}")
             return
         
         # Calculate error
@@ -114,7 +114,7 @@ class AdaptiveRubric:
         self.professor_adjustments += 1
         self.total_error += abs(error)
         
-        print(f"📊 Adapted '{criterion_name}': weight {old_weight:.2f} → {new_weight:.2f} "
+        print(f" Adapted '{criterion_name}': weight {old_weight:.2f} → {new_weight:.2f} "
               f"(error: {error:+.1f})")
     
     def get_adapted_rubric(self) -> Dict[str, Any]:
@@ -201,7 +201,7 @@ class AdaptiveRubric:
         with open(filepath, 'w') as f:
             json.dump(data, f, indent=2)
         
-        print(f"💾 Adaptive rubric saved: {filepath}")
+        print(f" Adaptive rubric saved: {filepath}")
     
     @classmethod
     def load_from_file(cls, filepath: str) -> 'AdaptiveRubric':
@@ -222,7 +222,7 @@ class AdaptiveRubric:
         rubric.professor_adjustments = stats.get('professor_adjustments', 0)
         rubric.total_error = stats.get('total_error', 0.0)
         
-        print(f"📂 Adaptive rubric loaded: {filepath}")
+        print(f" Adaptive rubric loaded: {filepath}")
         return rubric
 
 
@@ -334,23 +334,23 @@ class ConsistencyChecker:
     ) -> str:
         """Generate recommendation based on metrics."""
         if avg_diff < 3 and agreement > 90:
-            return "✅ Excellent consistency - AI is well-calibrated"
+            return " Excellent consistency - AI is well-calibrated"
         
         elif abs(bias) > 7:
             direction = "lower" if bias > 0 else "higher"
-            return f"⚠️  Systematic bias detected: AI tends to grade {abs(bias):.1f} points {direction}. Consider rubric adjustment."
+            return f"  Systematic bias detected: AI tends to grade {abs(bias):.1f} points {direction}. Consider rubric adjustment."
         
         elif agreement < 70:
-            return "⚠️  Low agreement rate. Review rubric criteria with AI to improve alignment."
+            return "  Low agreement rate. Review rubric criteria with AI to improve alignment."
         
         elif consistency < 60:
-            return "⚠️  High variance in differences. Grading criteria may need clarification."
+            return "  High variance in differences. Grading criteria may need clarification."
         
         elif avg_diff < 5 and agreement > 80:
-            return "✅ Good consistency - Minor improvements possible"
+            return " Good consistency - Minor improvements possible"
         
         else:
-            return "💡 Moderate consistency - Continue monitoring and adjusting"
+            return " Moderate consistency - Continue monitoring and adjusting"
 
 
 class AdaptiveRubricManager:
@@ -374,7 +374,7 @@ class AdaptiveRubricManager:
         # Consistency checkers per professor
         self.consistency_checkers = defaultdict(ConsistencyChecker)
         
-        print(f"📋 Adaptive Rubric Manager initialized (storage: {storage_dir})")
+        print(f" Adaptive Rubric Manager initialized (storage: {storage_dir})")
     
     def get_or_create_rubric(
         self,
@@ -437,7 +437,7 @@ class AdaptiveRubricManager:
         key = (professor_id, rubric_type)
         
         if key not in self.rubrics:
-            print(f"⚠️  No rubric found for {professor_id}/{rubric_type}")
+            print(f"  No rubric found for {professor_id}/{rubric_type}")
             return
         
         rubric = self.rubrics[key]

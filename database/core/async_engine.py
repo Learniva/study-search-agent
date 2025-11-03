@@ -76,19 +76,19 @@ class AsyncDatabaseEngine:
         def receive_connect(dbapi_conn, connection_record):
             """Track new connections."""
             if settings.debug:
-                logger.debug("📊 Database: New connection established")
+                logger.debug(" Database: New connection established")
         
         @event.listens_for(engine, "checkout")
         def receive_checkout(dbapi_conn, connection_record, connection_proxy):
             """Track connection checkout from pool."""
             if settings.debug:
-                logger.debug("📊 Database: Connection checked out from pool")
+                logger.debug(" Database: Connection checked out from pool")
         
         @event.listens_for(engine, "checkin")
         def receive_checkin(dbapi_conn, connection_record):
             """Track connection checkin to pool."""
             if settings.debug:
-                logger.debug("📊 Database: Connection returned to pool")
+                logger.debug(" Database: Connection returned to pool")
     
     @property
     def engine(self) -> AsyncEngine:
@@ -167,7 +167,7 @@ class AsyncDatabaseEngine:
                 await session.execute(text("SELECT 1"))
             return True
         except Exception as e:
-            logger.error(f"❌ Database health check failed: {e}")
+            logger.error(f" Database health check failed: {e}")
             return False
     
     async def close(self):
@@ -176,7 +176,7 @@ class AsyncDatabaseEngine:
             await self._engine.dispose()
             self._engine = None
             self._session_factory = None
-            logger.info("📊 Database: Engine closed and connections cleaned up")
+            logger.info(" Database: Engine closed and connections cleaned up")
 
 
 # Global async database engine

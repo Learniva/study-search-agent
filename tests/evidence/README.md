@@ -63,26 +63,26 @@ python -m pytest tests/test_bruteforce_lockout_qa.py::TestBruteforceLoginLockout
 
 ## Test Results Summary
 
-### ✅ All Tests Passed (4/4)
+###  All Tests Passed (4/4)
 
 ```
-✅ test_bruteforce_attack_triggers_lockout
+ test_bruteforce_attack_triggers_lockout
    - Core lockout mechanism verification
    - Simulates 10 rapid failed login attempts
    - Verifies lockout at 5 attempts
    - Confirms cooldown enforcement
 
-✅ test_progressive_lockout_levels
+ test_progressive_lockout_levels
    - Multi-level threshold testing
    - Verifies 4 progressive lockout levels
    - Confirms escalating durations
 
-✅ test_lockout_duration_verified
+ test_lockout_duration_verified
    - Duration calculation accuracy
    - Verifies 5-minute cooldown
    - Timestamp validation
 
-✅ test_ip_based_lockout
+ test_ip_based_lockout
    - IP isolation verification
    - Confirms independent tracking
    - Tests multi-IP scenarios
@@ -92,10 +92,10 @@ python -m pytest tests/test_bruteforce_lockout_qa.py::TestBruteforceLoginLockout
 
 All 4 criteria **VERIFIED** and **PASSED**:
 
-1. ✅ Lockout triggered after threshold failures
-2. ✅ Subsequent attempts produce correct error/status  
-3. ✅ Cooldown period fully enforced
-4. ✅ Logs show lockout event
+1.  Lockout triggered after threshold failures
+2.  Subsequent attempts produce correct error/status  
+3.  Cooldown period fully enforced
+4.  Logs show lockout event
 
 ## Evidence Structure
 
@@ -109,10 +109,10 @@ All 4 criteria **VERIFIED** and **PASSED**:
 ```
 
 ### Results
-- **Lockout Trigger Point:** Attempt #5 ✓
-- **Cooldown Enforced:** 100% success rate ✓
-- **Response Times:** < 0.1ms average ✓
-- **Security Logs:** Timestamped events ✓
+- **Lockout Trigger Point:** Attempt #5 
+- **Cooldown Enforced:** 100% success rate 
+- **Response Times:** < 0.1ms average 
+- **Security Logs:** Timestamped events 
 
 ## Implementation
 
@@ -129,14 +129,14 @@ LOCKOUT_DURATIONS_MINUTES = [5, 10, 30, 60]
 
 ## Production Status
 
-**Status:** ✅ **APPROVED - Ready for Deployment**
+**Status:**  **APPROVED - Ready for Deployment**
 
 **Recommendations:**
-- ✅ All acceptance criteria met
-- ✅ Comprehensive test coverage
-- ✅ Evidence documented
-- 🔄 Consider Redis integration for distributed systems
-- 🔄 Optional: Add email notifications
+-  All acceptance criteria met
+-  Comprehensive test coverage
+-  Evidence documented
+-  Consider Redis integration for distributed systems
+-  Optional: Add email notifications
 
 ## Questions?
 

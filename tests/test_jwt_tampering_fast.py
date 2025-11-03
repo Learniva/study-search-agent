@@ -150,17 +150,17 @@ class TestPayloadMutationDirect:
         tampered_token = tamper_jwt_payload(valid_token, {"user_id": "attacker@example.com"})
         
         tampered_payload = decode_jwt_without_verification(tampered_token)
-        print(f"✓ Tampered user_id: {tampered_payload['user_id']}")
+        print(f" Tampered user_id: {tampered_payload['user_id']}")
         
         with pytest.raises(Exception) as exc_info:
             verify_access_token(tampered_token)
         
-        print(f"✓ Exception type: {type(exc_info.value).__name__}")
-        print(f"✓ Status code: {getattr(exc_info.value, 'status_code', 'N/A')}")
-        print(f"✓ Message: {str(exc_info.value)}")
+        print(f" Exception type: {type(exc_info.value).__name__}")
+        print(f" Status code: {getattr(exc_info.value, 'status_code', 'N/A')}")
+        print(f" Message: {str(exc_info.value)}")
         
         assert "401" in str(exc_info.value) or "credentials" in str(exc_info.value).lower()
-        print("✓ Cryptographic validation REJECTED tampering")
+        print(" Cryptographic validation REJECTED tampering")
         print("="*80)
     
     def test_role_escalation_mutation_rejected(self, valid_token):
@@ -177,16 +177,16 @@ class TestPayloadMutationDirect:
         tampered_token = tamper_jwt_payload(valid_token, {"role": "admin"})
         
         tampered_payload = decode_jwt_without_verification(tampered_token)
-        print(f"✓ Tampered role: {tampered_payload['role']}")
+        print(f" Tampered role: {tampered_payload['role']}")
         
         with pytest.raises(Exception) as exc_info:
             verify_access_token(tampered_token)
         
-        print(f"✓ Exception type: {type(exc_info.value).__name__}")
-        print(f"✓ Message: {str(exc_info.value)}")
+        print(f" Exception type: {type(exc_info.value).__name__}")
+        print(f" Message: {str(exc_info.value)}")
         
         assert "401" in str(exc_info.value) or "credentials" in str(exc_info.value).lower()
-        print("✓ Privilege escalation PREVENTED at cryptographic layer")
+        print(" Privilege escalation PREVENTED at cryptographic layer")
         print("="*80)
     
     def test_multiple_claims_mutation_rejected(self, valid_token):
@@ -208,16 +208,16 @@ class TestPayloadMutationDirect:
         tampered_token = tamper_jwt_payload(valid_token, mutations)
         
         tampered_payload = decode_jwt_without_verification(tampered_token)
-        print(f"✓ Tampered user_id: {tampered_payload['user_id']}")
-        print(f"✓ Tampered role: {tampered_payload['role']}")
-        print(f"✓ Tampered email: {tampered_payload['email']}")
+        print(f" Tampered user_id: {tampered_payload['user_id']}")
+        print(f" Tampered role: {tampered_payload['role']}")
+        print(f" Tampered email: {tampered_payload['email']}")
         
         with pytest.raises(Exception) as exc_info:
             verify_access_token(tampered_token)
         
-        print(f"✓ Exception type: {type(exc_info.value).__name__}")
+        print(f" Exception type: {type(exc_info.value).__name__}")
         assert "401" in str(exc_info.value) or "credentials" in str(exc_info.value).lower()
-        print("✓ ALL mutations REJECTED at cryptographic layer")
+        print(" ALL mutations REJECTED at cryptographic layer")
         print("="*80)
 
 
@@ -240,16 +240,16 @@ class TestSignatureTamperingDirect:
         print("="*80)
         
         tampered_token = create_wrong_signature_token(valid_token)
-        print("✓ Created token with invalid signature")
+        print(" Created token with invalid signature")
         
         with pytest.raises(Exception) as exc_info:
             verify_access_token(tampered_token)
         
-        print(f"✓ Exception type: {type(exc_info.value).__name__}")
-        print(f"✓ Message: {str(exc_info.value)}")
+        print(f" Exception type: {type(exc_info.value).__name__}")
+        print(f" Message: {str(exc_info.value)}")
         
         assert "401" in str(exc_info.value) or "credentials" in str(exc_info.value).lower()
-        print("✓ Invalid signature REJECTED at cryptographic layer")
+        print(" Invalid signature REJECTED at cryptographic layer")
         print("="*80)
     
     def test_signature_swapping_rejected(self, valid_token_payload):
@@ -275,14 +275,14 @@ class TestSignatureTamperingDirect:
         parts_b = token_b.split('.')
         hybrid_token = f"{parts_a[0]}.{parts_a[1]}.{parts_b[2]}"
         
-        print("✓ Created hybrid token (A's payload + B's signature)")
+        print(" Created hybrid token (A's payload + B's signature)")
         
         with pytest.raises(Exception) as exc_info:
             verify_access_token(hybrid_token)
         
-        print(f"✓ Exception type: {type(exc_info.value).__name__}")
+        print(f" Exception type: {type(exc_info.value).__name__}")
         assert "401" in str(exc_info.value) or "credentials" in str(exc_info.value).lower()
-        print("✓ Signature mismatch DETECTED at cryptographic layer")
+        print(" Signature mismatch DETECTED at cryptographic layer")
         print("="*80)
 
 
@@ -309,16 +309,16 @@ class TestAlgorithmAttacksDirect:
         payload["iat"] = datetime.now(timezone.utc)
         
         none_token = create_none_algorithm_token(payload)
-        print("✓ Created token with alg='none' (no signature)")
+        print(" Created token with alg='none' (no signature)")
         
         with pytest.raises(Exception) as exc_info:
             verify_access_token(none_token)
         
-        print(f"✓ Exception type: {type(exc_info.value).__name__}")
-        print(f"✓ Message: {str(exc_info.value)}")
+        print(f" Exception type: {type(exc_info.value).__name__}")
+        print(f" Message: {str(exc_info.value)}")
         
         assert "401" in str(exc_info.value) or "credentials" in str(exc_info.value).lower()
-        print("✓ 'None' algorithm REJECTED at cryptographic layer")
+        print(" 'None' algorithm REJECTED at cryptographic layer")
         print("="*80)
     
     def test_wrong_algorithm_rejected(self, valid_token_payload):
@@ -339,16 +339,16 @@ class TestAlgorithmAttacksDirect:
                 algorithm="HS512"
             )
             
-            print("✓ Created token with HS512 (expected HS256)")
+            print(" Created token with HS512 (expected HS256)")
             
             with pytest.raises(Exception) as exc_info:
                 verify_access_token(wrong_algo_token)
             
-            print(f"✓ Exception type: {type(exc_info.value).__name__}")
+            print(f" Exception type: {type(exc_info.value).__name__}")
             assert "401" in str(exc_info.value) or "credentials" in str(exc_info.value).lower()
-            print("✓ Wrong algorithm REJECTED at cryptographic layer")
+            print(" Wrong algorithm REJECTED at cryptographic layer")
         except Exception as e:
-            print(f"✓ Token creation/verification failed (also acceptable): {e}")
+            print(f" Token creation/verification failed (also acceptable): {e}")
         
         print("="*80)
 
@@ -373,15 +373,15 @@ class TestValidTokenAccepted:
         try:
             payload = verify_access_token(valid_token)
             
-            print(f"✓ Valid token ACCEPTED")
-            print(f"✓ Payload user_id: {payload.get('user_id')}")
-            print(f"✓ Payload role: {payload.get('role')}")
+            print(f" Valid token ACCEPTED")
+            print(f" Payload user_id: {payload.get('user_id')}")
+            print(f" Payload role: {payload.get('role')}")
             
             assert payload is not None
             assert payload.get('user_id') == "tamper_test@example.com"
             assert payload.get('role') == "student"
             
-            print("✓ Cryptographic verification working correctly")
+            print(" Cryptographic verification working correctly")
         except Exception as e:
             pytest.fail(f"Valid token was rejected: {e}")
         
@@ -425,15 +425,15 @@ class TestTimingConsistency:
             pass
         time2 = time.perf_counter() - start
         
-        print(f"✓ Wrong signature rejection: {time1*1000:.2f}ms")
-        print(f"✓ Tampered payload rejection: {time2*1000:.2f}ms")
-        print(f"✓ Both rejected in < 10ms (cryptographic layer)")
+        print(f" Wrong signature rejection: {time1*1000:.2f}ms")
+        print(f" Tampered payload rejection: {time2*1000:.2f}ms")
+        print(f" Both rejected in < 10ms (cryptographic layer)")
         
         # Both should be very fast (< 10ms)
         assert time1 < 0.01, "Rejection should be sub-10ms"
         assert time2 < 0.01, "Rejection should be sub-10ms"
         
-        print("✓ Timing attack prevention: Consistent fast rejection")
+        print(" Timing attack prevention: Consistent fast rejection")
         print("="*80)
 
 
@@ -448,13 +448,13 @@ def test_evidence_summary():
     print("\n" + "="*80)
     print("JWT TAMPERING PROTECTION - EVIDENCE SUMMARY")
     print("="*80)
-    print("\n✅ SECURITY INVARIANTS VERIFIED:")
+    print("\n SECURITY INVARIANTS VERIFIED:")
     print("   1. Invalid signature → 401 at cryptographic layer")
     print("   2. Payload tampering → Rejected before application logic")
     print("   3. Algorithm confusion → Prevented")
     print("   4. Signature validation → Happens FIRST")
     print("   5. Timing attacks → Mitigated (consistent rejection)")
-    print("\n✅ ATTACK SCENARIOS TESTED:")
+    print("\n ATTACK SCENARIOS TESTED:")
     print("   • User ID mutation")
     print("   • Role escalation (student → admin)")
     print("   • Email tampering")
@@ -463,18 +463,18 @@ def test_evidence_summary():
     print("   • Signature swapping between tokens")
     print("   • 'None' algorithm attack")
     print("   • Wrong algorithm (HS512 vs HS256)")
-    print("\n✅ VALIDATION LAYER:")
+    print("\n VALIDATION LAYER:")
     print("   • verify_access_token() - Pure cryptographic validation")
     print("   • Uses jose.jwt.decode() with strict algorithm enforcement")
     print("   • No downstream components touched on failure")
     print("   • Sub-10ms rejection time (cryptographic speed)")
-    print("\n✅ EVIDENCE ARTIFACTS:")
+    print("\n EVIDENCE ARTIFACTS:")
     print("   • All tampering attempts rejected with 401")
     print("   • Exception messages: 'Could not validate credentials'")
     print("   • Valid tokens still accepted (sanity verified)")
     print("   • Evidence logs in tests/evidence/")
     print("="*80)
-    print("\n🔒 CONCLUSION: JWT tampering is detected and rejected")
+    print("\n CONCLUSION: JWT tampering is detected and rejected")
     print("              at the cryptographic layer BEFORE any")
     print("              downstream application logic executes.")
     print("="*80)

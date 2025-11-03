@@ -10,19 +10,19 @@
 
 ## Features
 
-### 📚 Study Agent (All Users)
+###  Study Agent (All Users)
 Multi-step planning • Document Q&A • **Web search with source citations** • Python REPL • Manim animations • **Code generation** • Context-aware follow-ups • **Real-time streaming**
 
-### 🎓 Grading Agent (Teachers)
+###  Grading Agent (Teachers)
 19 rubrics • Essay/Code/MCQ grading • Self-reflection • Adaptive learning from corrections • **Google Classroom Integration**
 
-### 🤖 Agentic RAG
+###  Agentic RAG
 - **Adaptive Retrieval** - Decides when RAG is needed
 - **Self-Correction** - Grades context quality, refines if poor
 - **L2 Vector Store** - Semantic search (pgvector)
 - **L3 Learning Store** - Learns from errors
 
-### 🔒 RBAC
+###  RBAC
 Role-based access control: Students → Study only | Teachers → Study + Grading
 
 ---
@@ -83,7 +83,7 @@ curl localhost:8000/grading/history/prof123 \
   -H "X-User-Role: teacher"
 ```
 
-📖 **Full API docs:** http://localhost:8000/docs
+ **Full API docs:** http://localhost:8000/docs
 
 ---
 
@@ -143,7 +143,7 @@ See [PostgreSQL Guide](docs/POSTGRESQL.md) for details.
 
 ## Documentation
 
-### 📖 Complete Guide
+###  Complete Guide
 - **[COMPLETE USER GUIDE](COMPLETE_USER_GUIDE.md)** - **All documentation in one file** ⭐
   - Quick start & installation
   - Grading & Study agent features
@@ -182,14 +182,14 @@ See [PostgreSQL Guide](docs/POSTGRESQL.md) for details.
 
 ## Key Features
 
-### 🚀 Performance
+###  Performance
 - **80-90% LLM reduction** via pattern-based routing
 - **Token-by-token streaming** with real-time indicators
 - **Result caching** with configurable TTL
 - **40-50% token reduction** via smart context
 - **Resilient database** with retry logic & exponential backoff
 
-### 🧠 Intelligence
+###  Intelligence
 - **Adaptive rubrics** learn from professor corrections
 - **Self-improving RAG** grades and refines context
 - **Source citations** for all web search responses
@@ -197,7 +197,7 @@ See [PostgreSQL Guide](docs/POSTGRESQL.md) for details.
 - **User profiling** for personalized feedback
 - **Multi-step planning** for complex queries
 
-### 🏗️ Architecture
+###  Architecture
 - **Domain-driven design** with clean separation
 - **Modular routers** for horizontal scaling
 - **Async operations** throughout
@@ -222,11 +222,11 @@ See [PostgreSQL Guide](docs/POSTGRESQL.md) for details.
 
 ## Project Status
 
-✅ **Phase 1** - L2/L3 memory, RBAC, streaming  
-✅ **Phase 2** - Self-correcting RAG, context-aware follow-ups  
-✅ **Phase 3** - Adaptive grading, professor style matching  
-✅ **Phase 4** - Source citations, code generation, resilient database  
-✅ **Clean Architecture** - Domain-driven, modular design
+ **Phase 1** - L2/L3 memory, RBAC, streaming  
+ **Phase 2** - Self-correcting RAG, context-aware follow-ups  
+ **Phase 3** - Adaptive grading, professor style matching  
+ **Phase 4** - Source citations, code generation, resilient database  
+ **Clean Architecture** - Domain-driven, modular design
 
 **Latest:** v2.0 - Real-time streaming, source citations, code generation (Oct 2025)
 
@@ -236,4 +236,4 @@ See [PostgreSQL Guide](docs/POSTGRESQL.md) for details.
 
 MIT © 2025 Anthony Maniko
 
-**Built with** LangGraph, LangChain, and Gemini AI 🤖
+**Built with** LangGraph, LangChain, and Gemini AI 

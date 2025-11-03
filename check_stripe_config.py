@@ -17,10 +17,10 @@ print()
 def check_env_var(name, value, placeholder=None):
     """Check if an environment variable is properly set."""
     if not value:
-        print(f"❌ {name}: NOT SET")
+        print(f" {name}: NOT SET")
         return False
     elif placeholder and value == placeholder:
-        print(f"⚠️  {name}: PLACEHOLDER VALUE")
+        print(f"  {name}: PLACEHOLDER VALUE")
         print(f"   Current: {value}")
         print(f"   Action Required: Replace with actual value")
         return False
@@ -30,7 +30,7 @@ def check_env_var(name, value, placeholder=None):
             masked = f"{value[:10]}...{value[-4:]}"
         else:
             masked = value[:4] + "..."
-        print(f"✅ {name}: {masked}")
+        print(f" {name}: {masked}")
         return True
 
 # Check all Stripe environment variables
@@ -57,23 +57,23 @@ all_good &= check_env_var(
 
 webhook_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
 if not webhook_secret or webhook_secret == "whsec_your_webhook_secret_here":
-    print(f"⚠️  STRIPE_WEBHOOK_SECRET: PLACEHOLDER (OK for now, required for production)")
+    print(f"  STRIPE_WEBHOOK_SECRET: PLACEHOLDER (OK for now, required for production)")
 else:
     masked = webhook_secret[:10] + "..." if len(webhook_secret) > 10 else "..."
-    print(f"✅ STRIPE_WEBHOOK_SECRET: {masked}")
+    print(f" STRIPE_WEBHOOK_SECRET: {masked}")
 
 print()
 print("=" * 70)
 
 if all_good:
-    print("✅ Configuration looks good!")
+    print(" Configuration looks good!")
     print()
     print("Next step: Run test script to verify")
     print("  python test_stripe_integration.py")
 else:
-    print("⚠️  Configuration issues detected")
+    print("  Configuration issues detected")
     print()
-    print("🔧 Quick Fix:")
+    print(" Quick Fix:")
     print()
     
     price_id = os.getenv("STRIPE_PRICE_ID")
@@ -88,7 +88,7 @@ else:
         print()
         print("4. Restart your backend server")
         print()
-        print("📖 See FIX_STRIPE_PRICE_ID.md for detailed instructions")
+        print(" See FIX_STRIPE_PRICE_ID.md for detailed instructions")
 
 print("=" * 70)
 

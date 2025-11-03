@@ -18,7 +18,7 @@ Ensure that restarting the service during an OAuth handshake prevents completion
 
 ## Test Coverage
 
-### ✅ Implemented Test Cases
+###  Implemented Test Cases
 
 1. **OAuth State Cleared on Restart** - `test_oauth_state_cleared_on_restart`
    - Validates: In-memory state is cleared when service restarts
@@ -28,7 +28,7 @@ Ensure that restarting the service during an OAuth handshake prevents completion
 2. **Callback After Restart Rejected** - `test_callback_after_restart_rejected`
    - Attack: Complete OAuth callback after service restart
    - Expected: Callback rejected due to missing/invalid state
-   - Current: Callback may succeed (no state validation) ❌
+   - Current: Callback may succeed (no state validation) 
    - Evidence: Demonstrates security gap in current implementation
 
 3. **No Ghost Session After Restart** - `test_no_ghost_session_after_restart`
@@ -53,26 +53,26 @@ Ensure that restarting the service during an OAuth handshake prevents completion
 
 ## Current Status
 
-### ✅ **SECURITY GAPS FIXED** (October 29, 2025)
+###  **SECURITY GAPS FIXED** (October 29, 2025)
 
 All critical security gaps have been addressed with the implementation of OAuth state parameter:
 
-✅ **OAuth State Parameter Implemented**  
-✅ **Redis-Backed State Storage**  
-✅ **State Validation on Callback**  
-✅ **CSRF Protection Active**  
-✅ **Service Restart Detection**  
-✅ **Replay Attack Prevention**
+ **OAuth State Parameter Implemented**  
+ **Redis-Backed State Storage**  
+ **State Validation on Callback**  
+ **CSRF Protection Active**  
+ **Service Restart Detection**  
+ **Replay Attack Prevention**
 
 ### Security Invariants
 
 | Invariant | Status | Implementation |
 |-----------|--------|----------------|
-| Handshake state invalid after restart | ✅ **FIXED** | State stored in Redis, validated on callback |
-| Resume attempt denied | ✅ **FIXED** | Invalid/expired state rejected |
-| No ghost session | ✅ Verified | No users/tokens created on failure |
-| Logs show invalidated state | ✅ Verified | Comprehensive security logging |
-| CSRF protection | ✅ **NEW** | State parameter prevents CSRF attacks |
+| Handshake state invalid after restart |  **FIXED** | State stored in Redis, validated on callback |
+| Resume attempt denied |  **FIXED** | Invalid/expired state rejected |
+| No ghost session |  Verified | No users/tokens created on failure |
+| Logs show invalidated state |  Verified | Comprehensive security logging |
+| CSRF protection |  **NEW** | State parameter prevents CSRF attacks |
 
 ### Test Results
 
@@ -97,18 +97,18 @@ tests/test_oauth_restart_handshake.py::test_full_restart_attack_scenario FAILED 
 
 ## Security Gaps Identified
 
-### ✅ FIXED: OAuth State Parameter Now Implemented
+###  FIXED: OAuth State Parameter Now Implemented
 
 **Implementation Date**: October 29, 2025
 
 **What Was Implemented**:
-1. ✅ State parameter generation on `/google/login/`
-2. ✅ Redis storage with 5-minute TTL
-3. ✅ State validation on `/google/callback/`
-4. ✅ Missing state rejection (CSRF protection)
-5. ✅ Invalid/expired state rejection (restart detection)
-6. ✅ One-time use enforcement (replay prevention)
-7. ✅ Comprehensive security logging
+1.  State parameter generation on `/google/login/`
+2.  Redis storage with 5-minute TTL
+3.  State validation on `/google/callback/`
+4.  Missing state rejection (CSRF protection)
+5.  Invalid/expired state rejection (restart detection)
+6.  One-time use enforcement (replay prevention)
+7.  Comprehensive security logging
 
 **Evidence**:
 ```python
@@ -175,11 +175,11 @@ async def google_callback(
     state: str,  # ← Add this parameter
     db: AsyncSession = Depends(get_async_db),
 ):
-    logger.info(f"🔐 OAuth callback received with state: {state[:10]}...")
+    logger.info(f" OAuth callback received with state: {state[:10]}...")
     
     # Validate state parameter exists
     if not state:
-        logger.error("❌ Missing state parameter (potential CSRF attack)")
+        logger.error(" Missing state parameter (potential CSRF attack)")
         raise HTTPException(status_code=400, detail="Missing state parameter")
     
     # Validate state from Redis
@@ -188,14 +188,14 @@ async def google_callback(
         stored_state = redis_client.get(f"oauth:state:{state}")
         
         if not stored_state:
-            logger.error("❌ Invalid state parameter (expired or service restarted)")
+            logger.error(" Invalid state parameter (expired or service restarted)")
             raise HTTPException(status_code=400, detail="Invalid or expired state")
         
         # Delete state (one-time use)
         redis_client.delete(f"oauth:state:{state}")
-        logger.info("✅ State validated and consumed")
+        logger.info(" State validated and consumed")
     else:
-        logger.warning("⚠️  Redis unavailable - cannot validate state")
+        logger.warning("  Redis unavailable - cannot validate state")
         # In production, should reject if Redis unavailable
     
     # Continue with normal OAuth flow...
@@ -206,7 +206,7 @@ async def google_callback(
 ```python
 # Redirect to error page with security context
 error_url = f"{FRONTEND_URL}/auth/error?reason=invalid_state&message=Session+expired"
-logger.warning(f"🔒 SECURITY: OAuth state validation failed - potential restart or attack")
+logger.warning(f" SECURITY: OAuth state validation failed - potential restart or attack")
 return RedirectResponse(url=error_url)
 ```
 
@@ -250,12 +250,12 @@ tests/test_oauth_restart_handshake.py::TestOAuthRestartHandshake::test_full_rest
 Sample log output from test execution:
 
 ```
-🔐 OAuth callback received. Code length: 32
-⚠️  SECURITY GAP: OAuth state parameter not implemented
-⚠️  Current system cannot track handshake state across restarts
-❌ Google token error (status 400): invalid_grant
-↪️  Redirecting to error page: http://localhost:3000/auth/error?message=...
-✅ No ghost sessions - 0 users, 0 tokens
+ OAuth callback received. Code length: 32
+  SECURITY GAP: OAuth state parameter not implemented
+  Current system cannot track handshake state across restarts
+ Google token error (status 400): invalid_grant
+↪  Redirecting to error page: http://localhost:3000/auth/error?message=...
+ No ghost sessions - 0 users, 0 tokens
 ```
 
 ### Files Analyzed
@@ -269,11 +269,11 @@ Sample log output from test execution:
 
 | Criteria | Status | Evidence |
 |----------|--------|----------|
-| Resume attempt denied | ✅ **PASS** | Invalid/expired state blocks callback completion |
-| No ghost session | ✅ Pass | No users/tokens created on callback failure (verified) |
-| Logs show invalidated state | ✅ Pass | Comprehensive OAuth security logging implemented |
-| CSRF protection | ✅ **NEW** | State parameter prevents cross-site request forgery |
-| Restart detection | ✅ **NEW** | Service restart invalidates pending OAuth states |
+| Resume attempt denied |  **PASS** | Invalid/expired state blocks callback completion |
+| No ghost session |  Pass | No users/tokens created on callback failure (verified) |
+| Logs show invalidated state |  Pass | Comprehensive OAuth security logging implemented |
+| CSRF protection |  **NEW** | State parameter prevents cross-site request forgery |
+| Restart detection |  **NEW** | Service restart invalidates pending OAuth states |
 
 ### Implementation Evidence
 
@@ -299,20 +299,20 @@ tests/test_oauth_restart_handshake.py::test_invalidated_state_logging PASSED
 
 ## Conclusion
 
-### Current Protection Level: **✅ SECURE** 
+### Current Protection Level: ** SECURE** 
 
 **Implementation Complete**: OAuth state parameter with Redis-backed storage
 
 **What's Working**:
-- ✅ OAuth state parameter generated (256-bit entropy)
-- ✅ State stored in Redis with 5-minute TTL
-- ✅ State validated on callback
-- ✅ Service restart detection functional
-- ✅ CSRF attack prevention active
-- ✅ Replay attack prevention (one-time use)
-- ✅ No ghost sessions created on failure  
-- ✅ Comprehensive security logging
-- ✅ Graceful degradation if Redis unavailable
+-  OAuth state parameter generated (256-bit entropy)
+-  State stored in Redis with 5-minute TTL
+-  State validated on callback
+-  Service restart detection functional
+-  CSRF attack prevention active
+-  Replay attack prevention (one-time use)
+-  No ghost sessions created on failure  
+-  Comprehensive security logging
+-  Graceful degradation if Redis unavailable
 
 **Security Posture**: All critical vulnerabilities addressed
 
@@ -330,10 +330,10 @@ tests/test_oauth_restart_handshake.py::test_invalidated_state_logging PASSED
 
 ### Implementation Summary
 
-✅ **Complete** - All security gaps addressed  
-✅ **Tested** - Comprehensive test coverage  
-✅ **Documented** - Full implementation guide  
-✅ **Production Ready** - Ready for deployment
+ **Complete** - All security gaps addressed  
+ **Tested** - Comprehensive test coverage  
+ **Documented** - Full implementation guide  
+ **Production Ready** - Ready for deployment
 
 ### Deployment Checklist
 
@@ -353,4 +353,4 @@ tests/test_oauth_restart_handshake.py::test_invalidated_state_logging PASSED
 **Evidence Doc**: `tests/evidence/oauth_restart_handshake_qa.md`  
 **Implementation Doc**: `OAUTH_STATE_IMPLEMENTATION.md`  
 **Related Issue**: #13 - Restart-in-handshake → resume blocked  
-**Status**: ✅ **RESOLVED**
+**Status**:  **RESOLVED**

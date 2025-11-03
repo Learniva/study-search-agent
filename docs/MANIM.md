@@ -147,24 +147,24 @@ class ConceptAnimation(Scene):
 
 ```
 ============================================================
-🎬 Multi-Stage Animation Pipeline: 'Pythagorean theorem'
+ Multi-Stage Animation Pipeline: 'Pythagorean theorem'
 ============================================================
 
-📚 STAGE 0: RAG - Retrieving source material...
-✓ Retrieved context (456 chars)
+ STAGE 0: RAG - Retrieving source material...
+ Retrieved context (456 chars)
 
-📋 STAGE 1: Planning - Creating structured plan...
-✓ Plan: 5 steps, 3 text elements
+ STAGE 1: Planning - Creating structured plan...
+ Plan: 5 steps, 3 text elements
 
-🐍 STAGE 2: Code Gen - Converting to Python...
-✓ Generated 1847 chars of code
+ STAGE 2: Code Gen - Converting to Python...
+ Generated 1847 chars of code
 
 ============================================================
-✅ Pipeline Complete!
+ Pipeline Complete!
 ============================================================
 
-🎥 Executing Manim (30-60s)...
-✓ Video: /path/to/pythagorean_theorem.mp4
+ Executing Manim (30-60s)...
+ Video: /path/to/pythagorean_theorem.mp4
 ```
 
 ## Examples

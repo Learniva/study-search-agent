@@ -31,7 +31,7 @@ def confirm_reset() -> bool:
         True if user confirms, False otherwise
     """
     print("\n" + "=" * 60)
-    print("⚠️  DATABASE RESET WARNING")
+    print("  DATABASE RESET WARNING")
     print("=" * 60)
     print("\nThis will DELETE ALL DATA in the database:")
     print("  • All users and authentication data")
@@ -39,7 +39,7 @@ def confirm_reset() -> bool:
     print("  • All payment and subscription records")
     print("  • All audit logs and RAG data")
     print("  • All tokens and sessions")
-    print("\n❌ THIS ACTION CANNOT BE UNDONE!")
+    print("\n THIS ACTION CANNOT BE UNDONE!")
     print("=" * 60)
     
     response = input("\nType 'RESET' to confirm: ").strip()
@@ -48,7 +48,7 @@ def confirm_reset() -> bool:
 
 def drop_all_tables():
     """Drop all tables in the database."""
-    print("\n🗑️  Dropping all tables (CASCADE)...")
+    print("\n  Dropping all tables (CASCADE)...")
     try:
         with engine.connect() as conn:
             # Get all table names
@@ -64,34 +64,34 @@ def drop_all_tables():
                     conn.execute(text(f'DROP TABLE IF EXISTS "{table}" CASCADE;'))
                 conn.execute(text("SET session_replication_role = 'origin';"))
                 conn.commit()
-                print(f"✅ Dropped tables: {', '.join(tables)}")
+                print(f" Dropped tables: {', '.join(tables)}")
             else:
-                print("ℹ️ No tables found to drop.")
+                print("ℹ No tables found to drop.")
         # Also call SQLAlchemy drop_all for metadata consistency
         Base.metadata.drop_all(bind=engine)
-        print("✅ All tables dropped successfully (CASCADE)")
+        print(" All tables dropped successfully (CASCADE)")
         return True
     except Exception as e:
-        print(f"❌ Error dropping tables: {e}")
+        print(f" Error dropping tables: {e}")
         return False
 
 
 def create_all_tables():
     """Create all tables from models."""
-    print("\n📦 Creating all tables...")
+    print("\n Creating all tables...")
     try:
         # Enable pgvector extension first
         with engine.connect() as conn:
             try:
                 conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
                 conn.commit()
-                print("✅ pgvector extension enabled")
+                print(" pgvector extension enabled")
             except Exception as e:
-                print(f"⚠️  Could not enable pgvector: {e}")
+                print(f"  Could not enable pgvector: {e}")
         
         # Create all tables
         Base.metadata.create_all(bind=engine)
-        print("✅ All tables created successfully")
+        print(" All tables created successfully")
         
         # List created tables
         with engine.connect() as conn:
@@ -103,25 +103,25 @@ def create_all_tables():
             """))
             tables = [row[0] for row in result]
             
-        print(f"\n📋 Created {len(tables)} tables:")
+        print(f"\n Created {len(tables)} tables:")
         for table in tables:
             print(f"   • {table}")
         
         return True
     except Exception as e:
-        print(f"❌ Error creating tables: {e}")
+        print(f" Error creating tables: {e}")
         return False
 
 
 def verify_database():
     """Verify database connection and structure."""
-    print("\n🔍 Verifying database...")
+    print("\n Verifying database...")
     try:
         with engine.connect() as conn:
             # Check connection
             result = conn.execute(text("SELECT version()"))
             version = result.scalar()
-            print(f"✅ Connected to PostgreSQL: {version.split(',')[0]}")
+            print(f" Connected to PostgreSQL: {version.split(',')[0]}")
             
             # Check tables
             result = conn.execute(text("""
@@ -130,7 +130,7 @@ def verify_database():
                 WHERE table_schema = 'public'
             """))
             table_count = result.scalar()
-            print(f"✅ Database has {table_count} tables")
+            print(f" Database has {table_count} tables")
             
             # Check pgvector
             result = conn.execute(text("""
@@ -140,19 +140,19 @@ def verify_database():
             """))
             has_pgvector = result.scalar()
             if has_pgvector:
-                print("✅ pgvector extension is enabled")
+                print(" pgvector extension is enabled")
             else:
-                print("⚠️  pgvector extension is NOT enabled")
+                print("  pgvector extension is NOT enabled")
             
         return True
     except Exception as e:
-        print(f"❌ Verification failed: {e}")
+        print(f" Verification failed: {e}")
         return False
 
 
 def create_test_data():
     """Create minimal test data (optional)."""
-    print("\n🧪 Creating test data...")
+    print("\n Creating test data...")
     try:
         from database.core.connection import get_db
         from database.models import User
@@ -172,18 +172,18 @@ def create_test_data():
             )
             db.add(test_user)
             db.commit()
-            print("✅ Created test user: test@example.com")
+            print(" Created test user: test@example.com")
         
         return True
     except Exception as e:
-        print(f"⚠️  Could not create test data: {e}")
+        print(f"  Could not create test data: {e}")
         return False
 
 
 def main():
     """Main function to reset the database."""
-    print("\n🔧 Database Reset Script")
-    print(f"📍 Database URL: {os.getenv('DATABASE_URL', 'postgresql://localhost/grading_system')}")
+    print("\n Database Reset Script")
+    print(f" Database URL: {os.getenv('DATABASE_URL', 'postgresql://localhost/grading_system')}")
     
     # Check if running with --force flag (skip confirmation)
     force = '--force' in sys.argv or '-f' in sys.argv
@@ -191,24 +191,24 @@ def main():
     
     if not force:
         if not confirm_reset():
-            print("\n✋ Database reset cancelled")
+            print("\n Database reset cancelled")
             sys.exit(0)
     
-    print("\n🚀 Starting database reset...")
+    print("\n Starting database reset...")
     
     # Step 1: Drop all tables
     if not drop_all_tables():
-        print("\n❌ Reset failed at drop tables step")
+        print("\n Reset failed at drop tables step")
         sys.exit(1)
     
     # Step 2: Create all tables
     if not create_all_tables():
-        print("\n❌ Reset failed at create tables step")
+        print("\n Reset failed at create tables step")
         sys.exit(1)
     
     # Step 3: Verify database
     if not verify_database():
-        print("\n❌ Reset failed at verification step")
+        print("\n Reset failed at verification step")
         sys.exit(1)
     
     # Step 4: Create test data (optional)
@@ -216,15 +216,15 @@ def main():
         create_test_data()
     
     print("\n" + "=" * 60)
-    print("✅ DATABASE RESET COMPLETE")
+    print(" DATABASE RESET COMPLETE")
     print("=" * 60)
-    print("\n📝 Next steps:")
+    print("\n Next steps:")
     print("  1. Start the application: python main.py")
     print("  2. Create your first user via the API")
     print("  3. Configure your environment variables")
     
     if create_test:
-        print("\n🧪 Test data created:")
+        print("\n Test data created:")
         print("  • Email: test@example.com")
         print("  • Password: password123")
     

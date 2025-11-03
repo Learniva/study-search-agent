@@ -4,12 +4,12 @@ Test Suite for Cookie-Based Authentication.
 Tests httpOnly cookie issuance, validation, and security properties.
 
 Security Properties Tested:
-✓ httpOnly flag prevents JavaScript access
-✓ Secure flag for HTTPS-only (in production)
-✓ SameSite=strict prevents CSRF
-✓ Cookies cleared on logout
-✓ CSRF token validation
-✓ Backward compatibility with Authorization header
+ httpOnly flag prevents JavaScript access
+ Secure flag for HTTPS-only (in production)
+ SameSite=strict prevents CSRF
+ Cookies cleared on logout
+ CSRF token validation
+ Backward compatibility with Authorization header
 """
 
 import pytest
@@ -45,7 +45,7 @@ class TestCookieAuthentication:
         # Verify httpOnly flag (can't be directly tested, but FastAPI sets it)
         # This would be visible in browser dev tools but not accessible via document.cookie
         
-        logger.info("✅ Login issues httpOnly access_token cookie")
+        logger.info(" Login issues httpOnly access_token cookie")
     
     def test_register_issues_httponly_cookie(self, client):
         """Test that register endpoint issues httpOnly access_token cookie."""
@@ -65,7 +65,7 @@ class TestCookieAuthentication:
         cookies = response.cookies
         assert "access_token" in cookies, "access_token cookie not set on registration"
         
-        logger.info("✅ Register issues httpOnly access_token cookie")
+        logger.info(" Register issues httpOnly access_token cookie")
     
     def test_login_issues_csrf_token_cookie(self, client):
         """Test that login endpoint issues CSRF token cookie (not httpOnly)."""
@@ -97,7 +97,7 @@ class TestCookieAuthentication:
         # CSRF token should NOT be httpOnly (needs to be readable by JS)
         # This can't be directly tested in unit tests, but is visible in Set-Cookie header
         
-        logger.info("✅ Login issues CSRF token cookie")
+        logger.info(" Login issues CSRF token cookie")
     
     def test_cookie_based_authentication_works(self, client):
         """Test that authenticated requests work with cookie instead of header."""
@@ -124,7 +124,7 @@ class TestCookieAuthentication:
         data = profile_response.json()
         assert data["username"] == "authcookieuser"
         
-        logger.info("✅ Cookie-based authentication works without Authorization header")
+        logger.info(" Cookie-based authentication works without Authorization header")
     
     def test_logout_clears_cookies(self, client):
         """Test that logout endpoint clears authentication cookies."""
@@ -153,7 +153,7 @@ class TestCookieAuthentication:
         # Should be unauthorized since cookies were cleared
         # Note: TestClient behavior may vary, but in real browser this would fail
         
-        logger.info("✅ Logout clears authentication cookies")
+        logger.info(" Logout clears authentication cookies")
     
     def test_backward_compatibility_with_authorization_header(self, client):
         """Test that Authorization header still works for backward compatibility."""
@@ -186,7 +186,7 @@ class TestCookieAuthentication:
         data = profile_response.json()
         assert data["username"] == "headeruser"
         
-        logger.info("✅ Backward compatibility with Authorization header works")
+        logger.info(" Backward compatibility with Authorization header works")
     
     def test_cookie_attributes_security(self, client):
         """Test that cookies have correct security attributes."""
@@ -224,7 +224,7 @@ class TestCookieAuthentication:
         assert "Path=/" in access_token_cookie or "path=/" in access_token_cookie.lower(), \
             "access_token cookie missing Path=/"
         
-        logger.info("✅ Cookie security attributes are correctly set")
+        logger.info(" Cookie security attributes are correctly set")
     
     def test_csrf_token_in_response_header(self, client):
         """Test that CSRF token is also sent in response header for client convenience."""
@@ -247,7 +247,7 @@ class TestCookieAuthentication:
         # Note: The middleware may also send it in header for client convenience
         # This is tested in the CSRF protection middleware tests
         
-        logger.info("✅ CSRF token available in cookie")
+        logger.info(" CSRF token available in cookie")
     
     def test_cookie_max_age_setting(self, client):
         """Test that cookies have appropriate max-age values."""
@@ -280,7 +280,7 @@ class TestCookieAuthentication:
         assert "Max-Age=" in access_token_cookie or "max-age=" in access_token_cookie.lower(), \
             "access_token cookie missing max-age attribute"
         
-        logger.info("✅ Cookie max-age is set correctly")
+        logger.info(" Cookie max-age is set correctly")
 
 
 class TestCSRFProtection:
@@ -309,7 +309,7 @@ class TestCSRFProtection:
         # Note: This depends on which endpoints enforce CSRF
         # For now, just verify the token exists
         
-        logger.info("✅ CSRF token issued for state-changing operation protection")
+        logger.info(" CSRF token issued for state-changing operation protection")
     
     def test_csrf_token_validation_with_cookie_auth(self, client):
         """Test that CSRF token from cookie must match header."""
@@ -331,7 +331,7 @@ class TestCSRFProtection:
         
         assert csrf_token is not None
         
-        logger.info("✅ CSRF token validation setup complete")
+        logger.info(" CSRF token validation setup complete")
 
 
 class TestCookieSecurityProperties:
@@ -358,7 +358,7 @@ class TestCookieSecurityProperties:
         assert "token" in data
         assert "access_token" in response.cookies
         
-        logger.info("✅ Token available in both cookie and response (backward compatibility)")
+        logger.info(" Token available in both cookie and response (backward compatibility)")
     
     def test_cookie_domain_setting(self, client):
         """Test that cookie domain is properly configured."""
@@ -379,7 +379,7 @@ class TestCookieSecurityProperties:
         # Domain should be None (current domain) or explicitly set
         # This is configured in COOKIE_DOMAIN environment variable
         
-        logger.info("✅ Cookie domain configuration verified")
+        logger.info(" Cookie domain configuration verified")
     
     def test_cookie_path_restriction(self, client):
         """Test that cookies are restricted to appropriate path."""
@@ -405,7 +405,7 @@ class TestCookieSecurityProperties:
         assert access_token_cookie is not None
         assert "Path=/" in access_token_cookie or "path=/" in access_token_cookie.lower()
         
-        logger.info("✅ Cookie path restriction verified")
+        logger.info(" Cookie path restriction verified")
 
 
 @pytest.fixture(scope="function")

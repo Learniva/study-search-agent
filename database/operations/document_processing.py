@@ -118,9 +118,9 @@ class DocumentProcessor:
                     tokenizer=None,  # Use default tokenizer
                     max_tokens=self.chunk_size // 4,  # ~200 tokens per chunk (800/4)
                 )
-                logger.info("✅ Docling initialized with HybridChunker (chunk_size=800 for 40-70+ chunks)")
+                logger.info(" Docling initialized with HybridChunker (chunk_size=800 for 40-70+ chunks)")
             except Exception as e:
-                logger.warning(f"⚠️ Docling initialization failed: {e}, falling back to PyMuPDF")
+                logger.warning(f" Docling initialization failed: {e}, falling back to PyMuPDF")
                 self.use_docling = False
         
         # Initialize text splitter
@@ -147,13 +147,13 @@ class DocumentProcessor:
             )
             embedding_dim = len(test_result['embedding'])
             
-            logger.info(f"✅ Google Gemini embeddings initialized: {embedding_model} ({embedding_dim}D)")
+            logger.info(f" Google Gemini embeddings initialized: {embedding_model} ({embedding_dim}D)")
             
             if embedding_dim != 768:
-                logger.warning(f"⚠️  Expected 768D, got {embedding_dim}D")
+                logger.warning(f"  Expected 768D, got {embedding_dim}D")
                 
         except Exception as e:
-            logger.error(f"❌ Failed to initialize Google Gemini embeddings: {e}")
+            logger.error(f" Failed to initialize Google Gemini embeddings: {e}")
             raise
     
     def extract_text(self, file_path: str) -> tuple[str, Dict[str, Any]]:
@@ -217,7 +217,7 @@ class DocumentProcessor:
             try:
                 return self._extract_pdf_with_docling(file_path)
             except Exception as e:
-                logger.warning(f"⚠️ Docling extraction failed: {e}, falling back to PyMuPDF")
+                logger.warning(f" Docling extraction failed: {e}, falling back to PyMuPDF")
         
         # Fallback to PyMuPDF for simple text extraction
         return self._extract_pdf_with_pymupdf(file_path)
@@ -237,7 +237,7 @@ class DocumentProcessor:
             Tuple of (extracted text, metadata about extraction)
         """
         try:
-            logger.info(f"📄 Using Docling with HybridChunker for advanced PDF parsing: {file_path.name}")
+            logger.info(f" Using Docling with HybridChunker for advanced PDF parsing: {file_path.name}")
             
             # Convert document using Docling
             result = self.docling_converter.convert(str(file_path))
@@ -249,7 +249,7 @@ class DocumentProcessor:
             table_count = 0
             if hasattr(doc, 'tables') and doc.tables:
                 table_count = len(doc.tables)
-                logger.info(f"📊 Detected {table_count} tables in PDF")
+                logger.info(f" Detected {table_count} tables in PDF")
             
             # Export to markdown for storage
             # HybridChunker will handle this document intelligently later
@@ -273,7 +273,7 @@ class DocumentProcessor:
                 'uses_hybrid_chunker': True
             }
             
-            logger.info(f"✅ Docling extraction successful: {len(markdown_text)} chars, {table_count} tables")
+            logger.info(f" Docling extraction successful: {len(markdown_text)} chars, {table_count} tables")
             return markdown_text, metadata
             
         except Exception as e:
@@ -291,7 +291,7 @@ class DocumentProcessor:
             raise ImportError("PyMuPDF not available. Install with: pip install pymupdf")
         
         try:
-            logger.info(f"📄 Using PyMuPDF for PDF extraction: {file_path.name}")
+            logger.info(f" Using PyMuPDF for PDF extraction: {file_path.name}")
             doc = fitz.open(file_path)
             text_parts = []
             
@@ -313,7 +313,7 @@ class DocumentProcessor:
                 'markdown_format': False
             }
             
-            logger.info(f"✅ PyMuPDF extraction successful: {len(result)} chars")
+            logger.info(f" PyMuPDF extraction successful: {len(result)} chars")
             return result, metadata
         except Exception as e:
             logger.error(f"PyMuPDF extraction failed: {e}")
@@ -377,7 +377,7 @@ class DocumentProcessor:
         if use_hybrid:
             # Use HybridChunker for intelligent document-aware chunking
             try:
-                logger.info("📝 Using HybridChunker for intelligent document chunking")
+                logger.info(" Using HybridChunker for intelligent document chunking")
                 doc = self._current_docling_doc
                 
                 # Chunk the DoclingDocument
@@ -406,20 +406,20 @@ class DocumentProcessor:
                 delattr(self, '_current_docling_doc')
                 
                 chunk_count = len(result)
-                logger.info(f"✅ HybridChunker created {chunk_count} context-aware chunks")
+                logger.info(f" HybridChunker created {chunk_count} context-aware chunks")
                 
                 # Provide feedback on chunk count
                 if chunk_count < 40:
-                    logger.info(f"   ℹ️  Document is relatively short ({chunk_count} chunks)")
+                    logger.info(f"   ℹ  Document is relatively short ({chunk_count} chunks)")
                 elif 40 <= chunk_count <= 70:
-                    logger.info(f"   ✅ Optimal chunk count for RAG ({chunk_count} chunks)")
+                    logger.info(f"    Optimal chunk count for RAG ({chunk_count} chunks)")
                 elif chunk_count > 70:
-                    logger.info(f"   ℹ️  Large document with {chunk_count} chunks")
+                    logger.info(f"   ℹ  Large document with {chunk_count} chunks")
                 
                 return result
                 
             except Exception as e:
-                logger.warning(f"⚠️ HybridChunker failed: {e}, falling back to RecursiveCharacterTextSplitter")
+                logger.warning(f" HybridChunker failed: {e}, falling back to RecursiveCharacterTextSplitter")
                 # Fall through to standard chunking
                 if hasattr(self, '_current_docling_doc'):
                     delattr(self, '_current_docling_doc')
@@ -569,19 +569,19 @@ class DocumentProcessor:
             
             # Log indexing results with chunk count analysis
             chunk_count = len(chunks)
-            logger.info(f"✅ Document indexed: {document_name}")
-            logger.info(f"   📊 Chunks: {chunk_count} | Vectors: {vectors_stored}")
-            logger.info(f"   📝 Method: {extraction_metadata.get('extraction_method')}")
-            logger.info(f"   🔧 Chunking: {extraction_metadata.get('chunking_method', 'unknown')}")
+            logger.info(f" Document indexed: {document_name}")
+            logger.info(f"    Chunks: {chunk_count} | Vectors: {vectors_stored}")
+            logger.info(f"    Method: {extraction_metadata.get('extraction_method')}")
+            logger.info(f"    Chunking: {extraction_metadata.get('chunking_method', 'unknown')}")
             
             # Warn if chunk count is outside optimal range
             if chunk_count < 40:
-                logger.warning(f"⚠️  Low chunk count ({chunk_count}). Expected 40-70+ for typical documents.")
+                logger.warning(f"  Low chunk count ({chunk_count}). Expected 40-70+ for typical documents.")
                 logger.warning(f"   This might reduce RAG accuracy. Document may be too short.")
             elif chunk_count > 200:
-                logger.warning(f"⚠️  High chunk count ({chunk_count}). Consider increasing chunk_size.")
+                logger.warning(f"  High chunk count ({chunk_count}). Consider increasing chunk_size.")
             else:
-                logger.info(f"✅ Chunk count in optimal range: {chunk_count}")
+                logger.info(f" Chunk count in optimal range: {chunk_count}")
             
             return {
                 'success': True,
@@ -675,19 +675,19 @@ class DocumentProcessor:
             
             # Log indexing results with chunk count analysis
             chunk_count = len(chunks)
-            logger.info(f"✅ Document indexed: {document_name}")
-            logger.info(f"   📊 Chunks: {chunk_count} | Vectors: {vectors_stored}")
-            logger.info(f"   📝 Method: {extraction_metadata.get('extraction_method')}")
-            logger.info(f"   🔧 Chunking: {extraction_metadata.get('chunking_method', 'unknown')}")
+            logger.info(f" Document indexed: {document_name}")
+            logger.info(f"    Chunks: {chunk_count} | Vectors: {vectors_stored}")
+            logger.info(f"    Method: {extraction_metadata.get('extraction_method')}")
+            logger.info(f"    Chunking: {extraction_metadata.get('chunking_method', 'unknown')}")
             
             # Warn if chunk count is outside optimal range
             if chunk_count < 40:
-                logger.warning(f"⚠️  Low chunk count ({chunk_count}). Expected 40-70+ for typical documents.")
+                logger.warning(f"  Low chunk count ({chunk_count}). Expected 40-70+ for typical documents.")
                 logger.warning(f"   This might reduce RAG accuracy. Document may be too short.")
             elif chunk_count > 200:
-                logger.warning(f"⚠️  High chunk count ({chunk_count}). Consider increasing chunk_size.")
+                logger.warning(f"  High chunk count ({chunk_count}). Consider increasing chunk_size.")
             else:
-                logger.info(f"✅ Chunk count in optimal range: {chunk_count}")
+                logger.info(f" Chunk count in optimal range: {chunk_count}")
             
             return {
                 'success': True,
@@ -753,7 +753,7 @@ def remove_document_from_vector_store(
             db.delete(vector)
         
         db.commit()
-        logger.info(f"✅ Removed {len(vectors)} vectors for: {document_name}")
+        logger.info(f" Removed {len(vectors)} vectors for: {document_name}")
         return True
         
     except Exception as e:

@@ -7,13 +7,13 @@ Autonomous grading with rubric evaluation, consistency checking, and quality ass
 AI-powered academic grading for essays, code, and MCQs with built-in quality control.
 
 **Key Capabilities:**
-- ✍️ Essay grading with rubrics
-- 💻 Code review and analysis
-- ✅ MCQ auto-grading
-- 📊 Custom rubric evaluation
-- 💬 Detailed feedback generation
-- 🎯 Consistency checking
-- 🔍 Bias detection
+-  Essay grading with rubrics
+-  Code review and analysis
+-  MCQ auto-grading
+-  Custom rubric evaluation
+-  Detailed feedback generation
+-  Consistency checking
+-  Bias detection
 
 **Tools:** Essay Grading • Code Review • MCQ Auto-grading • Rubric Evaluation • Feedback Generation
 
@@ -94,17 +94,17 @@ result = agent.query(question=json.dumps(rubric), professor_id="prof123")
 Grade: 85/100
 
 ─────────────────────────────────────────
-📊 Breakdown: Thesis (22/25) • Evidence (26/30) • Organization (18/20)
+ Breakdown: Thesis (22/25) • Evidence (26/30) • Organization (18/20)
 
-💪 Strengths: Well-researched, clear writing
-📈 Improvements: Add primary sources, fix citations
+ Strengths: Well-researched, clear writing
+ Improvements: Add primary sources, fix citations
 
-✅ Confidence: 85% • Consistency: 92%
-⚠️  AI-generated - Review and adjust as needed
+ Confidence: 85% • Consistency: 92%
+  AI-generated - Review and adjust as needed
 ─────────────────────────────────────────
 ```
 
-**If flagged:** `⚠️ FLAGGED FOR REVIEW • Reasons: Low confidence (58%), unusual format`
+**If flagged:** ` FLAGGED FOR REVIEW • Reasons: Low confidence (58%), unusual format`
 
 ## State
 

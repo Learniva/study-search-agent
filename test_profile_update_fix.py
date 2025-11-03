@@ -43,7 +43,7 @@ async def test_profile_update():
     SessionLocal = await setup_test_database()
     
     # Test 1: Create a user
-    print("✓ Test 1: Creating test user...")
+    print(" Test 1: Creating test user...")
     async with SessionLocal() as session:
         user = await create_user(
             session=session,
@@ -56,21 +56,21 @@ async def test_profile_update():
         )
         
         if user:
-            print(f"  ✓ User created: {user.username}")
-            print(f"  ✓ ID: {user.id}")
-            print(f"  ✓ Email: {user.email}")
-            print(f"  ✓ Name: {user.first_name} {user.last_name}")
-            print(f"  ✓ Display Name: {user.display_name}")
-            print(f"  ✓ Location: {user.location}")
+            print(f"   User created: {user.username}")
+            print(f"   ID: {user.id}")
+            print(f"   Email: {user.email}")
+            print(f"   Name: {user.first_name} {user.last_name}")
+            print(f"   Display Name: {user.display_name}")
+            print(f"   Location: {user.location}")
             user_id = user.user_id
         else:
-            print("  ✗ Failed to create user")
+            print("   Failed to create user")
             return
     
     print()
     
     # Test 2: Update user profile
-    print("✓ Test 2: Updating user profile...")
+    print(" Test 2: Updating user profile...")
     try:
         async with SessionLocal() as session:
             updated_user = await update_user_profile(
@@ -84,32 +84,32 @@ async def test_profile_update():
             )
             
             if updated_user:
-                print(f"  ✓ Profile updated successfully")
-                print(f"  ✓ New Name: {updated_user.first_name} {updated_user.last_name}")
-                print(f"  ✓ New Display Name: {updated_user.display_name}")
-                print(f"  ✓ New Location: {updated_user.location}")
-                print(f"  ✓ New Website: {updated_user.website}")
+                print(f"   Profile updated successfully")
+                print(f"   New Name: {updated_user.first_name} {updated_user.last_name}")
+                print(f"   New Display Name: {updated_user.display_name}")
+                print(f"   New Location: {updated_user.location}")
+                print(f"   New Website: {updated_user.website}")
             else:
-                print("  ✗ Failed to update profile")
+                print("   Failed to update profile")
                 return
     except Exception as e:
-        print(f"  ✗ ERROR: {e}")
-        print(f"  ✗ Session error occurred during profile update")
+        print(f"   ERROR: {e}")
+        print(f"   Session error occurred during profile update")
         return
     
     print()
     
     # Test 3: Verify update persisted
-    print("✓ Test 3: Verifying update persisted...")
+    print(" Test 3: Verifying update persisted...")
     async with SessionLocal() as session:
         fetched_user = await get_user_by_id(session, user_id)
         
         if fetched_user:
-            print(f"  ✓ User fetched from database")
-            print(f"  ✓ Name: {fetched_user.first_name} {fetched_user.last_name}")
-            print(f"  ✓ Display Name: {fetched_user.display_name}")
-            print(f"  ✓ Location: {fetched_user.location}")
-            print(f"  ✓ Website: {fetched_user.website}")
+            print(f"   User fetched from database")
+            print(f"   Name: {fetched_user.first_name} {fetched_user.last_name}")
+            print(f"   Display Name: {fetched_user.display_name}")
+            print(f"   Location: {fetched_user.location}")
+            print(f"   Website: {fetched_user.website}")
             
             # Verify values
             assert fetched_user.first_name == "Jane"
@@ -118,15 +118,15 @@ async def test_profile_update():
             assert fetched_user.location == "San Francisco, CA"
             assert fetched_user.website == "https://example.com"
             
-            print("  ✓ All values match expected results")
+            print("   All values match expected results")
         else:
-            print("  ✗ Failed to fetch user")
+            print("   Failed to fetch user")
             return
     
     print()
     
     # Test 4: Multiple updates
-    print("✓ Test 4: Testing multiple consecutive updates...")
+    print(" Test 4: Testing multiple consecutive updates...")
     for i in range(3):
         async with SessionLocal() as session:
             updated_user = await update_user_profile(
@@ -136,14 +136,14 @@ async def test_profile_update():
             )
             
             if updated_user:
-                print(f"  ✓ Update #{i+1}: {updated_user.location}")
+                print(f"   Update #{i+1}: {updated_user.location}")
             else:
-                print(f"  ✗ Update #{i+1} failed")
+                print(f"   Update #{i+1} failed")
                 return
     
     print()
     print("=" * 70)
-    print("🎉 All tests passed! Database session handling is correct.")
+    print(" All tests passed! Database session handling is correct.")
     print("=" * 70)
 
 

@@ -41,10 +41,10 @@ class RedisClient:
                 # Test connection
                 cls._instance.ping()
                 cls._connected = True
-                logger.info("✅ Redis client initialized successfully")
+                logger.info(" Redis client initialized successfully")
             except (redis.ConnectionError, redis.TimeoutError) as e:
-                logger.warning(f"⚠️  Redis connection failed: {e}")
-                logger.info("📝 Falling back to in-memory storage")
+                logger.warning(f"  Redis connection failed: {e}")
+                logger.info(" Falling back to in-memory storage")
                 cls._instance = None
                 cls._connected = False
         
@@ -62,7 +62,7 @@ class RedisClient:
             cls._instance.close()
             cls._instance = None
             cls._connected = False
-            logger.info("🔌 Redis connection closed")
+            logger.info(" Redis connection closed")
 
 
 class TokenStore:
@@ -90,15 +90,15 @@ class TokenStore:
                 key = f"{self.prefix}{token}"
                 value = json.dumps(data)
                 self.redis_client.setex(key, ttl, value)
-                logger.debug(f"🔑 Token stored in Redis: {token[:20]}...")
+                logger.debug(f" Token stored in Redis: {token[:20]}...")
                 return True
             else:
                 # Fallback to in-memory
                 self._memory_store[token] = data
-                logger.debug(f"🔑 Token stored in memory: {token[:20]}...")
+                logger.debug(f" Token stored in memory: {token[:20]}...")
                 return True
         except Exception as e:
-            logger.error(f"❌ Failed to store token: {e}")
+            logger.error(f" Failed to store token: {e}")
             # Emergency fallback
             self._memory_store[token] = data
             return True
@@ -118,20 +118,20 @@ class TokenStore:
                 key = f"{self.prefix}{token}"
                 value = self.redis_client.get(key)
                 if value:
-                    logger.debug(f"🔍 Token found in Redis: {token[:20]}...")
+                    logger.debug(f" Token found in Redis: {token[:20]}...")
                     return json.loads(value)
-                logger.debug(f"🔍 Token not found in Redis: {token[:20]}...")
+                logger.debug(f" Token not found in Redis: {token[:20]}...")
                 return None
             else:
                 # Fallback to in-memory
                 data = self._memory_store.get(token)
                 if data:
-                    logger.debug(f"🔍 Token found in memory: {token[:20]}...")
+                    logger.debug(f" Token found in memory: {token[:20]}...")
                 else:
-                    logger.debug(f"🔍 Token not found in memory: {token[:20]}...")
+                    logger.debug(f" Token not found in memory: {token[:20]}...")
                 return data
         except Exception as e:
-            logger.error(f"❌ Failed to retrieve token: {e}")
+            logger.error(f" Failed to retrieve token: {e}")
             return self._memory_store.get(token)
     
     def delete(self, token: str) -> bool:
@@ -148,16 +148,16 @@ class TokenStore:
             if self.redis_client:
                 key = f"{self.prefix}{token}"
                 self.redis_client.delete(key)
-                logger.debug(f"🗑️  Token deleted from Redis: {token[:20]}...")
+                logger.debug(f"  Token deleted from Redis: {token[:20]}...")
                 return True
             else:
                 # Fallback to in-memory
                 if token in self._memory_store:
                     del self._memory_store[token]
-                    logger.debug(f"🗑️  Token deleted from memory: {token[:20]}...")
+                    logger.debug(f"  Token deleted from memory: {token[:20]}...")
                 return True
         except Exception as e:
-            logger.error(f"❌ Failed to delete token: {e}")
+            logger.error(f" Failed to delete token: {e}")
             if token in self._memory_store:
                 del self._memory_store[token]
             return True
@@ -171,7 +171,7 @@ class TokenStore:
             else:
                 return token in self._memory_store
         except Exception as e:
-            logger.error(f"❌ Failed to check token existence: {e}")
+            logger.error(f" Failed to check token existence: {e}")
             return token in self._memory_store
     
     def count(self) -> int:
@@ -183,7 +183,7 @@ class TokenStore:
             else:
                 return len(self._memory_store)
         except Exception as e:
-            logger.error(f"❌ Failed to count tokens: {e}")
+            logger.error(f" Failed to count tokens: {e}")
             return len(self._memory_store)
     
     def clear_all(self):
@@ -193,12 +193,12 @@ class TokenStore:
                 pattern = f"{self.prefix}*"
                 for key in self.redis_client.scan_iter(match=pattern):
                     self.redis_client.delete(key)
-                logger.warning("⚠️  All tokens cleared from Redis")
+                logger.warning("  All tokens cleared from Redis")
             else:
                 self._memory_store.clear()
-                logger.warning("⚠️  All tokens cleared from memory")
+                logger.warning("  All tokens cleared from memory")
         except Exception as e:
-            logger.error(f"❌ Failed to clear tokens: {e}")
+            logger.error(f" Failed to clear tokens: {e}")
             self._memory_store.clear()
 
 

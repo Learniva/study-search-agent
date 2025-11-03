@@ -41,11 +41,11 @@ class GoogleClassroomService:
     def _initialize_service(self):
         """Initialize the Google Classroom API service with authentication."""
         if not settings.enable_google_classroom:
-            print("ℹ️  Google Classroom integration is disabled")
+            print("ℹ  Google Classroom integration is disabled")
             return
         
         if not settings.google_classroom_credentials_file:
-            print("⚠️  Google Classroom credentials file not configured")
+            print("  Google Classroom credentials file not configured")
             return
         
         creds = None
@@ -65,28 +65,28 @@ class GoogleClassroomService:
                 error_msg = str(e).lower()
                 # Handle scope mismatch errors by deleting the token and re-authenticating
                 if 'scope' in error_msg or 'scopes' in error_msg:
-                    print(f"⚠️  OAuth scope mismatch detected: {e}")
-                    print(f"🔄 Deleting token file and re-authenticating...")
+                    print(f"  OAuth scope mismatch detected: {e}")
+                    print(f" Deleting token file and re-authenticating...")
                     try:
                         os.remove(token_file)
-                        print(f"✅ Deleted {token_file}")
+                        print(f" Deleted {token_file}")
                     except Exception as delete_error:
-                        print(f"⚠️  Could not delete token file: {delete_error}")
+                        print(f"  Could not delete token file: {delete_error}")
                     creds = None
                 else:
-                    print(f"⚠️  Error loading token: {e}")
+                    print(f"  Error loading token: {e}")
                     creds = None
         
         # Refresh or get new credentials
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
                 try:
-                    print("🔄 Refreshing expired token...")
+                    print(" Refreshing expired token...")
                     creds.refresh(Request())
-                    print("✅ Token refreshed successfully")
+                    print(" Token refreshed successfully")
                 except Exception as e:
-                    print(f"⚠️  Error refreshing token: {e}")
-                    print("🔄 Will request new authentication...")
+                    print(f"  Error refreshing token: {e}")
+                    print(" Will request new authentication...")
                     creds = None
             
             if not creds:
@@ -95,8 +95,8 @@ class GoogleClassroomService:
                         f"Credentials file not found: {settings.google_classroom_credentials_file}"
                     )
                 
-                print("🔐 Starting OAuth authentication flow...")
-                print(f"📋 Requesting {len(sorted_scopes)} OAuth scopes...")
+                print(" Starting OAuth authentication flow...")
+                print(f" Requesting {len(sorted_scopes)} OAuth scopes...")
                 
                 try:
                     flow = InstalledAppFlow.from_client_secrets_file(
@@ -105,13 +105,13 @@ class GoogleClassroomService:
                     )
                     # prompt='consent' forces re-consent to update scopes
                     creds = flow.run_local_server(port=0, prompt='consent')
-                    print("✅ Authentication successful")
+                    print(" Authentication successful")
                 except Exception as oauth_error:
                     error_msg = str(oauth_error).lower()
                     if 'scope' in error_msg or 'scopes' in error_msg:
-                        print(f"\n⚠️  OAuth scope mismatch during authorization!")
-                        print("💡 This happens when previously authorized scopes don't match current scopes.")
-                        print("\n🔧 Solutions:")
+                        print(f"\n  OAuth scope mismatch during authorization!")
+                        print(" This happens when previously authorized scopes don't match current scopes.")
+                        print("\n Solutions:")
                         print("   1. Visit: https://myaccount.google.com/permissions")
                         print("   2. Find 'Study Search Agent' and remove access")
                         print("   3. Run this script again to re-authorize with correct scopes")
@@ -119,7 +119,7 @@ class GoogleClassroomService:
                         
                         # Try one more time with force consent
                         try:
-                            print("\n🔄 Attempting automatic scope update with forced re-consent...")
+                            print("\n Attempting automatic scope update with forced re-consent...")
                             flow = InstalledAppFlow.from_client_secrets_file(
                                 settings.google_classroom_credentials_file,
                                 sorted_scopes
@@ -131,9 +131,9 @@ class GoogleClassroomService:
                                 success_message='Authentication successful! You can close this window.',
                                 open_browser=True
                             )
-                            print("✅ Re-authorization successful with updated scopes")
+                            print(" Re-authorization successful with updated scopes")
                         except Exception as retry_error:
-                            print(f"❌ Automatic retry failed: {retry_error}")
+                            print(f" Automatic retry failed: {retry_error}")
                             raise oauth_error
                     else:
                         raise
@@ -142,18 +142,18 @@ class GoogleClassroomService:
             try:
                 with open(token_file, 'w') as token:
                     token.write(creds.to_json())
-                print(f"💾 Saved credentials to {token_file}")
+                print(f" Saved credentials to {token_file}")
             except Exception as e:
-                print(f"⚠️  Could not save token: {e}")
+                print(f"  Could not save token: {e}")
         
         self.credentials = creds
         
         try:
             self.service = build('classroom', 'v1', credentials=creds)
             self.drive_service = build('drive', 'v3', credentials=creds)
-            print("✅ Google Classroom and Drive services initialized successfully")
+            print(" Google Classroom and Drive services initialized successfully")
         except Exception as e:
-            print(f"❌ Error building Classroom service: {e}")
+            print(f" Error building Classroom service: {e}")
             raise
     
     def is_available(self) -> bool:
@@ -192,7 +192,7 @@ class GoogleClassroomService:
             
             return courses
         except HttpError as e:
-            print(f"❌ Error listing courses: {e}")
+            print(f" Error listing courses: {e}")
             return []
     
     def get_course(self, course_id: str) -> Optional[Dict[str, Any]]:
@@ -212,7 +212,7 @@ class GoogleClassroomService:
             course = self.service.courses().get(id=course_id).execute()
             return course
         except HttpError as e:
-            print(f"❌ Error getting course {course_id}: {e}")
+            print(f" Error getting course {course_id}: {e}")
             return None
     
     def list_course_work(
@@ -234,20 +234,20 @@ class GoogleClassroomService:
             return []
         
         try:
-            print(f"🔍 Fetching coursework for course ID: {course_id}")
+            print(f" Fetching coursework for course ID: {course_id}")
             results = self.service.courses().courseWork().list(
                 courseId=course_id,
                 pageSize=page_size
             ).execute()
             
-            print(f"📦 Raw API response: {json.dumps(results, indent=2)}")
+            print(f" Raw API response: {json.dumps(results, indent=2)}")
             
             coursework = results.get('courseWork', [])
-            print(f"📚 Found {len(coursework)} coursework items")
+            print(f" Found {len(coursework)} coursework items")
             return coursework
         except HttpError as e:
-            print(f"❌ Error listing coursework for course {course_id}: {e}")
-            print(f"❌ Error details: {e.error_details if hasattr(e, 'error_details') else 'N/A'}")
+            print(f" Error listing coursework for course {course_id}: {e}")
+            print(f" Error details: {e.error_details if hasattr(e, 'error_details') else 'N/A'}")
             return []
     
     def list_course_work_materials(
@@ -269,20 +269,20 @@ class GoogleClassroomService:
             return []
         
         try:
-            print(f"🔍 Fetching coursework materials for course ID: {course_id}")
+            print(f" Fetching coursework materials for course ID: {course_id}")
             results = self.service.courses().courseWorkMaterials().list(
                 courseId=course_id,
                 pageSize=page_size
             ).execute()
             
-            print(f"📦 Raw materials API response: {json.dumps(results, indent=2)}")
+            print(f" Raw materials API response: {json.dumps(results, indent=2)}")
             
             materials = results.get('courseWorkMaterial', [])
-            print(f"📚 Found {len(materials)} material items")
+            print(f" Found {len(materials)} material items")
             return materials
         except HttpError as e:
-            print(f"❌ Error listing materials for course {course_id}: {e}")
-            print(f"❌ Error details: {e.error_details if hasattr(e, 'error_details') else 'N/A'}")
+            print(f" Error listing materials for course {course_id}: {e}")
+            print(f" Error details: {e.error_details if hasattr(e, 'error_details') else 'N/A'}")
             return []
     
     def get_course_work(
@@ -310,7 +310,7 @@ class GoogleClassroomService:
             ).execute()
             return coursework
         except HttpError as e:
-            print(f"❌ Error getting coursework {coursework_id}: {e}")
+            print(f" Error getting coursework {coursework_id}: {e}")
             return None
     
     def list_student_submissions(
@@ -343,7 +343,7 @@ class GoogleClassroomService:
             submissions = results.get('studentSubmissions', [])
             return submissions
         except HttpError as e:
-            print(f"❌ Error listing submissions: {e}")
+            print(f" Error listing submissions: {e}")
             return []
     
     def get_student_submission(
@@ -374,7 +374,7 @@ class GoogleClassroomService:
             ).execute()
             return submission
         except HttpError as e:
-            print(f"❌ Error getting submission {submission_id}: {e}")
+            print(f" Error getting submission {submission_id}: {e}")
             return None
     
     def grade_submission(
@@ -427,11 +427,11 @@ class GoogleClassroomService:
                 id=submission_id
             ).execute()
             
-            print(f"✅ Successfully graded submission {submission_id}")
+            print(f" Successfully graded submission {submission_id}")
             return True
             
         except HttpError as e:
-            print(f"❌ Error grading submission: {e}")
+            print(f" Error grading submission: {e}")
             return False
     
     def list_students(self, course_id: str, page_size: int = 100) -> List[Dict[str, Any]]:
@@ -457,7 +457,7 @@ class GoogleClassroomService:
             students = results.get('students', [])
             return students
         except HttpError as e:
-            print(f"❌ Error listing students: {e}")
+            print(f" Error listing students: {e}")
             return []
     
     def get_rubric(
@@ -488,7 +488,7 @@ class GoogleClassroomService:
             ).execute()
             return rubric
         except HttpError as e:
-            print(f"❌ Error getting rubric: {e}")
+            print(f" Error getting rubric: {e}")
             return None
     
     def list_rubrics(
@@ -518,7 +518,7 @@ class GoogleClassroomService:
             rubrics = results.get('rubrics', [])
             return rubrics
         except HttpError as e:
-            print(f"❌ Error listing rubrics: {e}")
+            print(f" Error listing rubrics: {e}")
             return []
     
     def get_drive_document_content(self, file_id: str) -> Optional[str]:
@@ -535,7 +535,7 @@ class GoogleClassroomService:
             return None
         
         try:
-            print(f"📄 Fetching Google Drive document content for file ID: {file_id}")
+            print(f" Fetching Google Drive document content for file ID: {file_id}")
             
             # Export the Google Doc as plain text
             request = self.drive_service.files().export_media(
@@ -553,14 +553,14 @@ class GoogleClassroomService:
             
             # Get the text content
             content = file_content.getvalue().decode('utf-8')
-            print(f"✅ Successfully fetched document content ({len(content)} characters)")
+            print(f" Successfully fetched document content ({len(content)} characters)")
             return content
             
         except HttpError as e:
-            print(f"❌ Error fetching Drive document {file_id}: {e}")
+            print(f" Error fetching Drive document {file_id}: {e}")
             return None
         except Exception as e:
-            print(f"❌ Unexpected error fetching Drive document {file_id}: {e}")
+            print(f" Unexpected error fetching Drive document {file_id}: {e}")
             return None
 
 

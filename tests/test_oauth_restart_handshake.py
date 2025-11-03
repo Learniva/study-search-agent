@@ -111,7 +111,7 @@ class TestOAuthRestartHandshake:
         redirect_url = response.headers.get("location", "")
         assert "accounts.google.com" in redirect_url, "Should redirect to Google"
         
-        logger.info(f"✅ OAuth login initiated: {redirect_url[:100]}...")
+        logger.info(f" OAuth login initiated: {redirect_url[:100]}...")
         
         # Step 2: Check if state parameter exists (currently not implemented)
         # NOTE: Current implementation doesn't use state parameter
@@ -124,18 +124,18 @@ class TestOAuthRestartHandshake:
         token_cache = await get_token_cache()
         await token_cache.clear()
         
-        logger.info("✅ In-memory cache cleared (simulating restart)")
+        logger.info(" In-memory cache cleared (simulating restart)")
         
         # Step 4: Verify state is invalidated
         logger.info("Step 3: Verifying OAuth state is invalidated...")
         
         # Since we don't have state parameter implementation yet,
         # we document this as a security recommendation
-        logger.warning("⚠️  SECURITY GAP: OAuth state parameter not implemented")
-        logger.warning("⚠️  Current system cannot track handshake state across restarts")
-        logger.warning("⚠️  RECOMMENDATION: Implement OAuth state parameter with Redis storage")
+        logger.warning("  SECURITY GAP: OAuth state parameter not implemented")
+        logger.warning("  Current system cannot track handshake state across restarts")
+        logger.warning("  RECOMMENDATION: Implement OAuth state parameter with Redis storage")
         
-        logger.info("✅ PASS: Test identifies lack of state parameter protection")
+        logger.info(" PASS: Test identifies lack of state parameter protection")
     
     # ========================================================================
     # 2. Callback Completion After Restart - Should Fail
@@ -169,7 +169,7 @@ class TestOAuthRestartHandshake:
         token_cache = await get_token_cache()
         await token_cache.clear()
         
-        logger.info("✅ Service 'restarted' - all in-memory state cleared")
+        logger.info(" Service 'restarted' - all in-memory state cleared")
         
         # Step 2: Attempt OAuth callback with code (no prior state)
         logger.info("Step 2: Attempting OAuth callback with stale authorization code...")
@@ -210,25 +210,25 @@ class TestOAuthRestartHandshake:
             if response.status_code == 307:
                 # Callback succeeded (current behavior - INSECURE)
                 location = response.headers.get("location", "")
-                logger.warning("⚠️  SECURITY GAP: Callback succeeded after restart!")
-                logger.warning(f"⚠️  Redirect: {location}")
-                logger.warning("⚠️  This means handshake can complete after service restart")
-                logger.warning("⚠️  RECOMMENDATION: Implement state parameter validation")
+                logger.warning("  SECURITY GAP: Callback succeeded after restart!")
+                logger.warning(f"  Redirect: {location}")
+                logger.warning("  This means handshake can complete after service restart")
+                logger.warning("  RECOMMENDATION: Implement state parameter validation")
                 
                 # Verify no token in redirect (defense in depth check)
                 if "token=" in location:
-                    logger.error("❌ CRITICAL: Token was issued after restart without state validation!")
+                    logger.error(" CRITICAL: Token was issued after restart without state validation!")
                 else:
-                    logger.info("✅ At least no token was immediately issued")
+                    logger.info(" At least no token was immediately issued")
             else:
                 # Callback failed (desired behavior)
-                logger.info(f"✅ PASS: Callback rejected with status {response.status_code}")
+                logger.info(f" PASS: Callback rejected with status {response.status_code}")
                 
                 # Verify error was logged
                 error_logged = any("OAuth" in record.message or "error" in record.message.lower()
                                  for record in caplog.records)
                 if error_logged:
-                    logger.info("✅ PASS: Error was logged for audit trail")
+                    logger.info(" PASS: Error was logged for audit trail")
     
     # ========================================================================
     # 3. No Ghost Session After Failed Handshake
@@ -297,14 +297,14 @@ class TestOAuthRestartHandshake:
             assert user_count_after == user_count_before, "No new users should be created"
             assert token_count_after == token_count_before, "No new tokens should be created"
             
-            logger.info(f"✅ PASS: No ghost sessions - {user_count_after} users, {token_count_after} tokens")
+            logger.info(f" PASS: No ghost sessions - {user_count_after} users, {token_count_after} tokens")
             
             # Verify redirect to error page (not success)
             if response.status_code == 307:
                 location = response.headers.get("location", "")
                 assert "error" in location or "token=" not in location, \
                     "Should redirect to error or not include token"
-                logger.info(f"✅ PASS: Redirected to error page: {location}")
+                logger.info(f" PASS: Redirected to error page: {location}")
             
             break  # Exit after first session
     
@@ -354,26 +354,26 @@ class TestOAuthRestartHandshake:
         oauth_received = any("OAuth callback received" in record.message 
                            for record in caplog.records)
         assert oauth_received, "OAuth callback receipt should be logged"
-        logger.info("✅ OAuth callback receipt logged")
+        logger.info(" OAuth callback receipt logged")
         
         # Check for error logging
         error_logged = any("error" in record.message.lower() or "failed" in record.message.lower()
                          for record in caplog.records)
         assert error_logged, "OAuth error should be logged"
-        logger.info("✅ OAuth error logged")
+        logger.info(" OAuth error logged")
         
         # Check that we don't log sensitive data
         sensitive_logged = any("token=" in record.message or "password" in record.message.lower()
                              for record in caplog.records)
         assert not sensitive_logged, "Sensitive data should not be logged"
-        logger.info("✅ No sensitive data in logs")
+        logger.info(" No sensitive data in logs")
         
         # Log sample of security events
         logger.info("\nSample security events logged:")
         for record in caplog.records[:5]:
             logger.info(f"  [{record.levelname}] {record.message[:100]}")
         
-        logger.info("✅ PASS: Handshake invalidation properly logged")
+        logger.info(" PASS: Handshake invalidation properly logged")
     
     # ========================================================================
     # 5. Redis State Persistence (If Enabled)
@@ -401,8 +401,8 @@ class TestOAuthRestartHandshake:
         redis_client = RedisClient.get_instance()
         
         if redis_client is None:
-            logger.warning("⚠️  Redis not configured - skipping persistence test")
-            logger.info("📋 This test will validate state persistence when Redis is available")
+            logger.warning("  Redis not configured - skipping persistence test")
+            logger.info(" This test will validate state persistence when Redis is available")
             pytest.skip("Redis not available")
             return
         
@@ -413,8 +413,8 @@ class TestOAuthRestartHandshake:
         # 4. Validate state matches expected value
         # 5. Verify TTL expiration cleans up old state
         
-        logger.warning("⚠️  FUTURE ENHANCEMENT: OAuth state parameter with Redis backend")
-        logger.info("📋 Recommended implementation:")
+        logger.warning("  FUTURE ENHANCEMENT: OAuth state parameter with Redis backend")
+        logger.info(" Recommended implementation:")
         logger.info("  1. Generate unique state parameter on /google/login/")
         logger.info("  2. Store state in Redis with 5-minute TTL")
         logger.info("  3. Validate state on callback")
@@ -462,7 +462,7 @@ class TestOAuthRestartHandshake:
         
         token_cache = await get_token_cache()
         await token_cache.clear()
-        logger.info("✅ Service restarted - state cleared")
+        logger.info(" Service restarted - state cleared")
         
         # Phase 3: Attacker attempts completion
         logger.info("\nPHASE 3: Attacker attempts to complete OAuth with stale code...")
@@ -489,26 +489,26 @@ class TestOAuthRestartHandshake:
             
             # Check if redirected to error page (defense worked)
             if "/error" in location or "token=" not in location:
-                logger.info("✅ PASS: Attack blocked - redirected to error page")
+                logger.info(" PASS: Attack blocked - redirected to error page")
             else:
-                logger.error("❌ FAIL: Attack may have succeeded - unexpected redirect")
+                logger.error(" FAIL: Attack may have succeeded - unexpected redirect")
         else:
-            logger.info(f"✅ PASS: Attack blocked with status {response.status_code}")
+            logger.info(f" PASS: Attack blocked with status {response.status_code}")
         
         # Verify security logging
         oauth_logs = [r for r in caplog.records if "OAuth" in r.message or "error" in r.message.lower()]
         assert len(oauth_logs) > 0, "Security events should be logged"
         
-        logger.info(f"✅ PASS: {len(oauth_logs)} security events logged")
+        logger.info(f" PASS: {len(oauth_logs)} security events logged")
         
         logger.info("\n" + "="*70)
         logger.info("ATTACK SCENARIO SUMMARY")
         logger.info("="*70)
         logger.info("Current Protection Level: PARTIAL")
-        logger.info("  ✅ Token exchange failures are handled")
-        logger.info("  ✅ Errors are logged")
-        logger.info("  ❌ No state parameter validation (SECURITY GAP)")
-        logger.info("  ❌ Cannot detect restart during handshake (SECURITY GAP)")
+        logger.info("   Token exchange failures are handled")
+        logger.info("   Errors are logged")
+        logger.info("   No state parameter validation (SECURITY GAP)")
+        logger.info("   Cannot detect restart during handshake (SECURITY GAP)")
         logger.info("\nRECOMMENDATIONS:")
         logger.info("  1. Implement OAuth state parameter")
         logger.info("  2. Store state in Redis with short TTL (5 minutes)")
@@ -525,30 +525,30 @@ class TestOAuthRestartHandshake:
 def pytest_sessionfinish(session, exitstatus):
     """Generate security test summary report."""
     logger.info("\n" + "="*70)
-    logger.info("🔒 OAuth Restart-in-Handshake Security Test Summary")
+    logger.info(" OAuth Restart-in-Handshake Security Test Summary")
     logger.info("="*70)
     logger.info("Test Coverage:")
-    logger.info("  ✅ OAuth state invalidation on restart")
-    logger.info("  ✅ Callback completion after restart")
-    logger.info("  ✅ No ghost sessions verification")
-    logger.info("  ✅ Security event logging")
-    logger.info("  ✅ Redis state persistence (future)")
-    logger.info("  ✅ Full attack scenario simulation")
+    logger.info("   OAuth state invalidation on restart")
+    logger.info("   Callback completion after restart")
+    logger.info("   No ghost sessions verification")
+    logger.info("   Security event logging")
+    logger.info("   Redis state persistence (future)")
+    logger.info("   Full attack scenario simulation")
     
-    logger.info("\n🔐 Security Invariants Tested:")
-    logger.info("  ✓ Handshake state cleared on restart")
-    logger.info("  ✓ No user session on failed callback")
-    logger.info("  ✓ No tokens created on failure")
-    logger.info("  ✓ Security events logged for audit")
-    logger.info("  ⚠️  State parameter NOT validated (current gap)")
+    logger.info("\n Security Invariants Tested:")
+    logger.info("   Handshake state cleared on restart")
+    logger.info("   No user session on failed callback")
+    logger.info("   No tokens created on failure")
+    logger.info("   Security events logged for audit")
+    logger.info("    State parameter NOT validated (current gap)")
     
-    logger.info("\n📋 SECURITY GAPS IDENTIFIED:")
+    logger.info("\n SECURITY GAPS IDENTIFIED:")
     logger.info("  1. OAuth state parameter not implemented")
     logger.info("  2. Cannot detect service restart during handshake")
     logger.info("  3. No persistent state storage (Redis)")
     logger.info("  4. Handshake can potentially complete after restart")
     
-    logger.info("\n✅ RECOMMENDATIONS:")
+    logger.info("\n RECOMMENDATIONS:")
     logger.info("  Priority 1: Implement OAuth state parameter")
     logger.info("  Priority 2: Store state in Redis with TTL")
     logger.info("  Priority 3: Validate state on all callbacks")

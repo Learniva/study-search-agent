@@ -209,14 +209,14 @@ if settings.rate_limit_enabled:
         per_hour=settings.rate_limit_per_hour
     )
     logger.info(
-        f"✅ Rate limiting enabled: {settings.rate_limit_per_minute}/min, "
+        f" Rate limiting enabled: {settings.rate_limit_per_minute}/min, "
         f"{settings.rate_limit_per_hour}/hour"
     )
 
 # Distributed Tracing
 if settings.enable_tracing if hasattr(settings, 'enable_tracing') else False:
     app.add_middleware(TracingMiddleware)
-    logger.info("✅ Distributed tracing enabled")
+    logger.info(" Distributed tracing enabled")
 
 
 # ============================================================================
@@ -298,9 +298,9 @@ try:
     from api.routers.learniva_workspaces import router as learniva_workspaces_router
     app.include_router(learniva_auth_router)
     app.include_router(learniva_workspaces_router)
-    logger.info("✅ Learniva integration endpoints enabled")
+    logger.info(" Learniva integration endpoints enabled")
 except ImportError:
-    logger.info("ℹ️  Learniva integration endpoints not available (optional)")
+    logger.info("ℹ  Learniva integration endpoints not available (optional)")
 
 
 # ============================================================================
@@ -328,7 +328,7 @@ app.mount(
     name="animations"
 )
 
-logger.info("✅ Static file serving enabled for /downloads and /animations")
+logger.info(" Static file serving enabled for /downloads and /animations")
 
 
 # ============================================================================

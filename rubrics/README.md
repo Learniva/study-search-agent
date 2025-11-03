@@ -2,7 +2,7 @@
 
 This directory contains rubric templates for the AI Grading Agent's RAG system.
 
-## 📋 Format
+##  Format
 
 Each rubric should be a JSON file with the following structure:
 
@@ -30,14 +30,14 @@ Each rubric should be a JSON file with the following structure:
 }
 ```
 
-## 🔍 How It Works
+##  How It Works
 
 1. **Storage**: Rubrics are stored as JSON files in this directory
 2. **Indexing**: On initialization, rubrics are indexed in ChromaDB with vector embeddings
 3. **Retrieval**: When grading, the system performs semantic search to find the best matching rubric
 4. **Usage**: Retrieved rubrics are used to guide the AI's grading evaluation
 
-## 📚 Available Rubrics
+##  Available Rubrics
 
 The system includes comprehensive discipline-specific rubrics:
 
@@ -66,7 +66,7 @@ The system includes comprehensive discipline-specific rubrics:
 ### General
 - **`essay_general.json`** - General essay grading (thesis, evidence, organization, style)
 
-## 🎯 Citation Style Guide
+##  Citation Style Guide
 
 ### APA 7th Edition (Social Sciences)
 - **Used for:** Psychology, Sociology, Political Science, Economics, Education
@@ -86,7 +86,7 @@ The system includes comprehensive discipline-specific rubrics:
 - **Bibliography:** Alphabetized, hanging indents
 - **Example:** Footnote with full citation first, shortened form after
 
-## 📊 Rubric Selection Guide
+##  Rubric Selection Guide
 
 ### For Introductory Courses (100-200 level)
 - `computer_science_intro.json` - Intro programming
@@ -111,20 +111,20 @@ The system includes comprehensive discipline-specific rubrics:
 **Humanities:** Intro Essay → Advanced Essay → History Research (primary sources)  
 **Mathematics:** Intro Math (computational) → Calculus (applications) → Proofs (theoretical)
 
-## ✏️ Creating Custom Rubrics
+##  Creating Custom Rubrics
 
 1. Create a new `.json` file in this directory
 2. Follow the format above
 3. Restart the agent to re-index rubrics
 4. Your rubric will be automatically available via RAG
 
-## 🎯 Example Use Cases
+##  Example Use Cases
 
 - **Subject-specific**: Create rubrics for specific subjects (history essays, lab reports)
 - **Assignment-specific**: Create rubrics for specific assignments (research paper, final project)
 - **Course-specific**: Create rubrics tailored to your course requirements
 
-## 🔄 Updating Rubrics
+##  Updating Rubrics
 
 To update rubrics:
 1. Modify the JSON file

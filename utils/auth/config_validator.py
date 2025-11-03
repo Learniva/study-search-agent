@@ -121,22 +121,22 @@ class AuthConfigValidator:
         all_valid = True
         
         for component, (is_valid, errors) in results.items():
-            status = "✅ VALID" if is_valid else "❌ INVALID"
+            status = " VALID" if is_valid else " INVALID"
             print(f"{component.upper().replace('_', ' ')}: {status}")
             
             if not is_valid:
                 all_valid = False
                 for error in errors:
-                    print(f"  ⚠️  {error}")
+                    print(f"    {error}")
             
             print()
         
         print("="*70)
         
         if all_valid:
-            print("✅ All configurations are valid!")
+            print(" All configurations are valid!")
         else:
-            print("❌ Some configurations need attention")
+            print(" Some configurations need attention")
             print("\nPlease update your .env file with the correct values")
         
         print("="*70 + "\n")

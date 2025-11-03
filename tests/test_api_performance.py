@@ -46,7 +46,7 @@ class TestAuthenticationPerformance:
         
         assert result == user_data
         assert duration < PERFORMANCE_TARGETS["auth_cache_hit"]
-        print(f"✅ Token cache hit: {duration*1000:.2f}ms")
+        print(f" Token cache hit: {duration*1000:.2f}ms")
     
     @pytest.mark.asyncio
     async def test_token_cache_miss_vs_hit(self):
@@ -75,7 +75,7 @@ class TestAuthenticationPerformance:
         
         assert result == user_data
         assert hit_duration < PERFORMANCE_TARGETS["auth_cache_hit"]
-        print(f"✅ Cache hit ({hit_duration*1000:.2f}ms) vs miss ({miss_duration*1000:.2f}ms)")
+        print(f" Cache hit ({hit_duration*1000:.2f}ms) vs miss ({miss_duration*1000:.2f}ms)")
     
     def test_token_cache_hit_rate(self):
         """Token cache should achieve high hit rate."""
@@ -113,7 +113,7 @@ class TestAuthenticationPerformance:
         hit_rate = hits / (hits + misses) * 100
         
         assert hit_rate >= 85  # Should achieve >85% hit rate
-        print(f"✅ Token cache hit rate: {hit_rate:.1f}%")
+        print(f" Token cache hit rate: {hit_rate:.1f}%")
 
 
 class TestResponseCaching:
@@ -137,7 +137,7 @@ class TestResponseCaching:
         
         assert result == response
         assert duration < 0.001  # Cache lookup is nearly instant
-        print(f"✅ Response cache hit: {duration*1000:.2f}ms")
+        print(f" Response cache hit: {duration*1000:.2f}ms")
     
     def test_response_cache_key_normalization(self):
         """Cache should normalize queries (case, whitespace)."""
@@ -152,7 +152,7 @@ class TestResponseCaching:
         # Should match with different formatting
         result = cache.get("what is python?", "student", "thread1")
         assert result == response
-        print("✅ Response cache normalizes keys correctly")
+        print(" Response cache normalizes keys correctly")
     
     def test_response_cache_stats(self):
         """Cache stats should track hits/misses."""
@@ -179,8 +179,8 @@ class TestResponseCaching:
         
         assert hit_rate >= 50  # Should achieve >50% hit rate
         assert "time_saved_estimate_seconds" in stats
-        print(f"✅ Response cache hit rate: {hit_rate}%")
-        print(f"✅ Estimated time saved: {stats['time_saved_estimate_seconds']}s")
+        print(f" Response cache hit rate: {hit_rate}%")
+        print(f" Estimated time saved: {stats['time_saved_estimate_seconds']}s")
 
 
 class TestAsyncRouting:
@@ -238,7 +238,7 @@ class TestAsyncRouting:
         
         assert result["intent"] == "STUDY"
         assert duration < PERFORMANCE_TARGETS["routing_async"] + 0.5  # +0.5s for LLM mock
-        print(f"✅ Async routing overhead: {duration*1000:.2f}ms")
+        print(f" Async routing overhead: {duration*1000:.2f}ms")
     
     @pytest.mark.asyncio
     async def test_async_routing_parallel_execution(self):
@@ -299,7 +299,7 @@ class TestAsyncRouting:
         # Should take ~100ms (parallel) not ~500ms (serial)
         assert duration < 0.25  # Allow 2.5x overhead
         assert len(results) == 5
-        print(f"✅ Parallel routing (5 requests): {duration*1000:.2f}ms")
+        print(f" Parallel routing (5 requests): {duration*1000:.2f}ms")
 
 
 class TestOverallPerformance:
@@ -323,8 +323,8 @@ class TestOverallPerformance:
         
         assert "hit_rate" in token_stats
         assert "hit_rate" in response_stats
-        print(f"✅ Token cache: {token_stats['size']} items")
-        print(f"✅ Response cache: {response_stats['size']} items")
+        print(f" Token cache: {token_stats['size']} items")
+        print(f" Response cache: {response_stats['size']} items")
     
     def test_performance_summary(self):
         """Print performance summary."""

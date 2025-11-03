@@ -1,4 +1,4 @@
-## ✅ Security QA Verification Complete
+##  Security QA Verification Complete
 
 ### Summary
 All acceptance criteria **VERIFIED** and **PASSED**. The bruteforce login lockout mechanism is working correctly and ready for production.
@@ -9,10 +9,10 @@ All acceptance criteria **VERIFIED** and **PASSED**. The bruteforce login lockou
 
 | Criteria | Status | Evidence |
 |----------|--------|----------|
-| Lockout triggered after threshold failures | ✅ **PASS** | Triggers at exactly 5 failed attempts |
-| Subsequent attempts produce correct error/status | ✅ **PASS** | Returns HTTP 423 with clear message |
-| Cooldown period fully enforced | ✅ **PASS** | Progressive: 5min → 10min → 30min → 60min |
-| Logs show lockout event | ✅ **PASS** | Structured JSON logs with timestamps |
+| Lockout triggered after threshold failures |  **PASS** | Triggers at exactly 5 failed attempts |
+| Subsequent attempts produce correct error/status |  **PASS** | Returns HTTP 423 with clear message |
+| Cooldown period fully enforced |  **PASS** | Progressive: 5min → 10min → 30min → 60min |
+| Logs show lockout event |  **PASS** | Structured JSON logs with timestamps |
 
 ---
 
@@ -21,16 +21,16 @@ All acceptance criteria **VERIFIED** and **PASSED**. The bruteforce login lockou
 **Scenario:** 10 rapid invalid login attempts on single user
 
 ```
-Attempt  1: HTTP 401 ✗ (invalid_credentials)
-Attempt  2: HTTP 401 ✗ (invalid_credentials)
-Attempt  3: HTTP 401 ✗ (invalid_credentials)
-Attempt  4: HTTP 401 ✗ (invalid_credentials)
-Attempt  5: HTTP 423 🔒 (account_locked) ← LOCKOUT TRIGGERED
-Attempt  6: HTTP 423 🔒 (account_locked)
-Attempt  7: HTTP 423 🔒 (account_locked)
-Attempt  8: HTTP 423 🔒 (account_locked)
-Attempt  9: HTTP 423 🔒 (account_locked)
-Attempt 10: HTTP 423 🔒 (account_locked)
+Attempt  1: HTTP 401  (invalid_credentials)
+Attempt  2: HTTP 401  (invalid_credentials)
+Attempt  3: HTTP 401  (invalid_credentials)
+Attempt  4: HTTP 401  (invalid_credentials)
+Attempt  5: HTTP 423  (account_locked) ← LOCKOUT TRIGGERED
+Attempt  6: HTTP 423  (account_locked)
+Attempt  7: HTTP 423  (account_locked)
+Attempt  8: HTTP 423  (account_locked)
+Attempt  9: HTTP 423  (account_locked)
+Attempt 10: HTTP 423  (account_locked)
 ```
 
 **Statistics:**
@@ -80,23 +80,23 @@ HTTP 423 Locked
 ### Additional Verification
 
 **Progressive Lockout Levels:**
-- ✅ Level 1: 5 attempts → 5 minutes
-- ✅ Level 2: 10 attempts → 10 minutes
-- ✅ Level 3: 15 attempts → 30 minutes
-- ✅ Level 4: 20+ attempts → 60 minutes
+-  Level 1: 5 attempts → 5 minutes
+-  Level 2: 10 attempts → 10 minutes
+-  Level 3: 15 attempts → 30 minutes
+-  Level 4: 20+ attempts → 60 minutes
 
 **IP-Based Isolation:**
-- ✅ Different IPs maintain independent lockout states
-- ✅ Lockout applies to user+IP combination
+-  Different IPs maintain independent lockout states
+-  Lockout applies to user+IP combination
 
 **Test Coverage:**
 ```bash
 $ python -m pytest tests/test_bruteforce_lockout_qa.py -v
 
-✅ test_bruteforce_attack_triggers_lockout
-✅ test_progressive_lockout_levels
-✅ test_lockout_duration_verified
-✅ test_ip_based_lockout
+ test_bruteforce_attack_triggers_lockout
+ test_progressive_lockout_levels
+ test_lockout_duration_verified
+ test_ip_based_lockout
 
 4 passed in 3.88s
 ```
@@ -105,14 +105,14 @@ $ python -m pytest tests/test_bruteforce_lockout_qa.py -v
 
 ### Invariant Verification
 
-> **✅ CONFIRMED:** Users **CANNOT** brute-force credentials without lockout kicking in.
+> ** CONFIRMED:** Users **CANNOT** brute-force credentials without lockout kicking in.
 
 The system successfully prevents brute-force attacks through:
-1. ✅ Threshold-based detection (5 attempts)
-2. ✅ Immediate lockout activation
-3. ✅ Progressive penalty escalation
-4. ✅ Cooldown period enforcement
-5. ✅ Comprehensive security logging
+1.  Threshold-based detection (5 attempts)
+2.  Immediate lockout activation
+3.  Progressive penalty escalation
+4.  Cooldown period enforcement
+5.  Comprehensive security logging
 
 ---
 
@@ -139,6 +139,6 @@ LOCKOUT_DURATIONS_MINUTES = [5, 10, 30, 60]
 
 ---
 
-**Status:** ✅ **APPROVED - Ready for Production Deployment**  
+**Status:**  **APPROVED - Ready for Production Deployment**  
 **Date:** October 28, 2025  
 **Branch:** `auth_hardening`

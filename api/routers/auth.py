@@ -383,7 +383,7 @@ async def _get_current_user_from_token(
         )
     
     user_dict = {
-        "user_id": str(user.id),  # ✅ Use UUID id, not user_id (which is email)
+        "user_id": str(user.id),  #  Use UUID id, not user_id (which is email)
         "username": user.username,
         "email": user.email,
         "full_name": user.name or f"{user.first_name or ''} {user.last_name or ''}".strip() or None,
@@ -446,7 +446,7 @@ async def get_current_user(
             user = await get_user_by_id(session, token_data.user_id)
             if user and user.is_active:
                 user_dict = {
-                    "user_id": str(user.id),  # ✅ Use UUID id, not user_id (which is email)
+                    "user_id": str(user.id),  #  Use UUID id, not user_id (which is email)
                     "username": user.username,
                     "email": user.email,
                     "full_name": user.name or f"{user.first_name or ''} {user.last_name or ''}".strip() or None,
@@ -491,7 +491,7 @@ async def get_current_user(
         
         if user and user.is_active:
             user_dict = {
-                "user_id": str(user.id),  # ✅ Use UUID id, not user_id (which is email)
+                "user_id": str(user.id),  #  Use UUID id, not user_id (which is email)
                 "username": user.username,
                 "email": user.email,
                 "full_name": user.name or f"{user.first_name or ''} {user.last_name or ''}".strip() or None,
@@ -573,14 +573,14 @@ async def google_login():
                 300,  # 5 minutes TTL
                 json.dumps(state_data)
             )
-            logger.info(f"🔐 OAuth state generated and stored: {state[:10]}... (TTL: 5min)")
+            logger.info(f" OAuth state generated and stored: {state[:10]}... (TTL: 5min)")
         except Exception as e:
-            logger.error(f"❌ Failed to store OAuth state in Redis: {e}")
+            logger.error(f" Failed to store OAuth state in Redis: {e}")
             # In production, you may want to reject OAuth flow if Redis is unavailable
             # For now, we'll continue but log the security warning
-            logger.warning("⚠️  SECURITY WARNING: OAuth state not stored - CSRF protection degraded")
+            logger.warning("  SECURITY WARNING: OAuth state not stored - CSRF protection degraded")
     else:
-        logger.warning("⚠️  Redis unavailable - OAuth state parameter cannot be validated on restart")
+        logger.warning("  Redis unavailable - OAuth state parameter cannot be validated on restart")
     
     # Build authorization URL with state parameter
     from urllib.parse import urlencode
@@ -595,7 +595,7 @@ async def google_login():
     }
     
     auth_url = f"https://accounts.google.com/o/oauth2/v2/auth?{urlencode(params)}"
-    logger.info(f"↪️  Redirecting to Google OAuth with state parameter")
+    logger.info(f"↪  Redirecting to Google OAuth with state parameter")
     
     return RedirectResponse(url=auth_url)
 
@@ -624,22 +624,22 @@ async def google_callback(
     Returns:
         Redirect to frontend with token or error
     """
-    logger.info(f"🔐 OAuth callback received. Code length: {len(code) if code else 0}, State: {state[:10] if state else 'MISSING'}...")
-    logger.info(f"🔐 Using redirect URI: {GOOGLE_REDIRECT_URI}")
-    logger.info(f"🔐 Frontend URL: {FRONTEND_URL}")
+    logger.info(f" OAuth callback received. Code length: {len(code) if code else 0}, State: {state[:10] if state else 'MISSING'}...")
+    logger.info(f" Using redirect URI: {GOOGLE_REDIRECT_URI}")
+    logger.info(f" Frontend URL: {FRONTEND_URL}")
     
     # ========================================================================
     # SECURITY: Validate required parameters
     # ========================================================================
     
     if not code:
-        logger.error("❌ SECURITY: Missing authorization code")
+        logger.error(" SECURITY: Missing authorization code")
         error_url = f"{FRONTEND_URL}/auth/error?reason=missing_code&message=Missing+authorization+code"
         return RedirectResponse(url=error_url)
     
     if not state:
-        logger.error("❌ SECURITY: Missing state parameter - potential CSRF attack or old OAuth flow")
-        logger.warning("🔒 SECURITY ALERT: OAuth callback without state parameter")
+        logger.error(" SECURITY: Missing state parameter - potential CSRF attack or old OAuth flow")
+        logger.warning(" SECURITY ALERT: OAuth callback without state parameter")
         error_url = f"{FRONTEND_URL}/auth/error?reason=missing_state&message=Invalid+request+-+missing+state"
         return RedirectResponse(url=error_url)
     
@@ -658,39 +658,39 @@ async def google_callback(
             
             if not stored_state:
                 # State not found - either expired, invalid, or service restarted
-                logger.error(f"❌ SECURITY: Invalid or expired state parameter: {state[:10]}...")
-                logger.warning("🔒 SECURITY ALERT: OAuth state validation failed - possible attack or service restart")
-                logger.info("🔍 Possible scenarios: 1) CSRF attack, 2) State expired (>5min), 3) Service restarted during handshake")
+                logger.error(f" SECURITY: Invalid or expired state parameter: {state[:10]}...")
+                logger.warning(" SECURITY ALERT: OAuth state validation failed - possible attack or service restart")
+                logger.info(" Possible scenarios: 1) CSRF attack, 2) State expired (>5min), 3) Service restarted during handshake")
                 
                 error_url = f"{FRONTEND_URL}/auth/error?reason=invalid_state&message=Session+expired+or+invalid+request"
                 return RedirectResponse(url=error_url)
             
             # State is valid - delete it immediately (one-time use, prevents replay)
             redis_client.delete(state_key)
-            logger.info(f"✅ State validated and consumed: {state[:10]}...")
+            logger.info(f" State validated and consumed: {state[:10]}...")
             
             # Parse state metadata for audit trail
             try:
                 state_data = json.loads(stored_state)
                 created_at = state_data.get("created_at")
-                logger.info(f"📋 State created at: {created_at}")
+                logger.info(f" State created at: {created_at}")
             except Exception:
                 pass  # Metadata parsing is optional
                 
         except Exception as e:
-            logger.error(f"❌ Redis error during state validation: {e}")
-            logger.warning("⚠️  Proceeding without state validation (Redis unavailable)")
+            logger.error(f" Redis error during state validation: {e}")
+            logger.warning("  Proceeding without state validation (Redis unavailable)")
             # In production, you might want to reject if Redis is required
     else:
-        logger.warning("⚠️  Redis unavailable - cannot validate state parameter")
-        logger.warning("⚠️  SECURITY DEGRADED: Proceeding without state validation")
+        logger.warning("  Redis unavailable - cannot validate state parameter")
+        logger.warning("  SECURITY DEGRADED: Proceeding without state validation")
         # In production with strict security, you should reject here
     
     try:
         # Exchange code for tokens
         client = get_http_client()
         try:
-            logger.info("🔄 Exchanging code for access token...")
+            logger.info(" Exchanging code for access token...")
             token_response = await client.post(
                 "https://oauth2.googleapis.com/token",
                 data={
@@ -704,28 +704,28 @@ async def google_callback(
             
             if token_response.status_code != 200:
                 error_detail = token_response.text
-                logger.error(f"❌ Google token error (status {token_response.status_code}): {error_detail}")
+                logger.error(f" Google token error (status {token_response.status_code}): {error_detail}")
                 raise HTTPException(status_code=400, detail=f"Failed to get access token: {error_detail}")
             
             tokens = token_response.json()
             access_token = tokens.get("access_token")
-            logger.info("✅ Successfully got access token from Google")
+            logger.info(" Successfully got access token from Google")
             
             # Get user info from Google
-            logger.info("🔄 Fetching user info from Google...")
+            logger.info(" Fetching user info from Google...")
             user_info_response = await client.get(
                 "https://www.googleapis.com/oauth2/v2/userinfo",
                 headers={"Authorization": f"Bearer {access_token}"},
             )
             
             if user_info_response.status_code != 200:
-                logger.error(f"❌ Failed to get user info (status {user_info_response.status_code})")
+                logger.error(f" Failed to get user info (status {user_info_response.status_code})")
                 raise HTTPException(status_code=400, detail="Failed to get user info")
             
             user_data = user_info_response.json()
-            logger.info(f"✅ Got user info: {user_data.get('email')}")
+            logger.info(f" Got user info: {user_data.get('email')}")
         except Exception as e:
-            logger.error(f"❌ HTTP request error during OAuth: {e}", exc_info=True)
+            logger.error(f" HTTP request error during OAuth: {e}", exc_info=True)
             raise
         
         # Extract user information
@@ -735,7 +735,7 @@ async def google_callback(
         picture = user_data.get("picture")
         email_verified = user_data.get("verified_email", False)
         
-        logger.info(f"🔄 Processing user: {email} (Google ID: {google_id})")
+        logger.info(f" Processing user: {email} (Google ID: {google_id})")
         
         # Optimized: Check for user by Google ID OR email in single query
         from sqlalchemy import or_
@@ -756,7 +756,7 @@ async def google_callback(
             if user.google_id != google_id:
                 # User exists but needs Google ID linking
                 is_first_time_linking = user.google_id is None
-                logger.info(f"✅ Found existing user by email, updating with Google ID")
+                logger.info(f" Found existing user by email, updating with Google ID")
                 
                 # Update existing user with Google ID
                 user.google_id = google_id
@@ -767,7 +767,7 @@ async def google_callback(
                 
                 # Log security event for account linking
                 if is_first_time_linking:
-                    logger.info(f"🔗 First-time Google account linking detected for {email}")
+                    logger.info(f" First-time Google account linking detected for {email}")
                     
                     # Create audit log entry (optimized - added to current transaction)
                     try:
@@ -791,9 +791,9 @@ async def google_callback(
                             success=True
                         )
                         db.add(audit_entry)
-                        logger.info(f"✅ Audit log entry prepared (will be committed with user)")
+                        logger.info(f" Audit log entry prepared (will be committed with user)")
                     except Exception as audit_error:
-                        logger.error(f"❌ Failed to create audit log: {audit_error}")
+                        logger.error(f" Failed to create audit log: {audit_error}")
                         # Don't fail the OAuth flow if audit fails
                     
                     # Schedule notification email for first-time account linking (non-blocking)
@@ -813,22 +813,22 @@ async def google_callback(
                             )
                             
                             if email_sent:
-                                logger.info(f"✅ Account linking notification email sent to {email}")
+                                logger.info(f" Account linking notification email sent to {email}")
                             else:
-                                logger.warning(f"⚠️ Failed to send account linking notification to {email}")
+                                logger.warning(f" Failed to send account linking notification to {email}")
                         except Exception as e:
-                            logger.error(f"❌ Error sending account linking email: {e}")
+                            logger.error(f" Error sending account linking email: {e}")
                     
                     # Fire and forget - don't wait for email to be sent
                     asyncio.create_task(send_linking_notification())
-                    logger.info(f"📧 Account linking notification scheduled for {email}")
+                    logger.info(f" Account linking notification scheduled for {email}")
             else:
                 # User found by Google ID, just update last login
-                logger.info(f"✅ Found existing user by Google ID, updating last login")
+                logger.info(f" Found existing user by Google ID, updating last login")
                 user.last_login = datetime.now(timezone.utc)
         else:
             # No existing user found - create new user from Google OAuth
-            logger.info(f"👤 Creating new user from Google OAuth")
+            logger.info(f" Creating new user from Google OAuth")
             username = email.split('@')[0] if email else name.replace(' ', '_').lower()
             
             user = User(
@@ -847,12 +847,12 @@ async def google_callback(
                 settings={}  # Initialize empty settings
             )
             db.add(user)
-            logger.info(f"✅ New user created: {username}")
+            logger.info(f" New user created: {username}")
         
-        logger.info(f"💾 Committing user to database...")
+        logger.info(f" Committing user to database...")
         await db.commit()
         await db.refresh(user)
-        logger.info(f"✅ User saved with ID: {user.id}")
+        logger.info(f" User saved with ID: {user.id}")
         
         # Create JWT token
         token_data = {
@@ -862,21 +862,21 @@ async def google_callback(
             "name": user.name,
         }
         jwt_token = create_access_token(token_data)
-        logger.info(f"🔑 JWT token created for user {user.id}")
+        logger.info(f" JWT token created for user {user.id}")
         
         # Redirect to frontend with token
         redirect_url = f"{FRONTEND_URL}/auth/callback?token={jwt_token}"
-        logger.info(f"↪️  Redirecting to: {redirect_url}")
+        logger.info(f"↪  Redirecting to: {redirect_url}")
         return RedirectResponse(url=redirect_url)
         
     except HTTPException:
         # Re-raise HTTP exceptions as-is
         raise
     except Exception as e:
-        logger.error(f"❌ OAuth error: {str(e)}", exc_info=True)
+        logger.error(f" OAuth error: {str(e)}", exc_info=True)
         # Redirect to frontend with error instead of showing HTTP error
         error_url = f"{FRONTEND_URL}/auth/error?message={str(e)}"
-        logger.info(f"↪️  Redirecting to error page: {error_url}")
+        logger.info(f"↪  Redirecting to error page: {error_url}")
         return RedirectResponse(url=error_url)
 
 
@@ -980,14 +980,14 @@ async def login(
     else:
         # Set refresh token in httpOnly cookie
         CookieConfig.set_refresh_token_cookie(response, refresh_token_jwt)
-        logger.debug(f"✅ Refresh token created for user {user.user_id}")
+        logger.debug(f" Refresh token created for user {user.user_id}")
     
     # Update user activity
     await update_user_activity(session, user.user_id)
     
     # Prepare response
     user_dict = {
-        "user_id": str(user.id),  # ✅ Use UUID id, not user_id (which is email)
+        "user_id": str(user.id),  #  Use UUID id, not user_id (which is email)
         "username": user.username,
         "email": user.email,
         "full_name": user.name or f"{user.first_name or ''} {user.last_name or ''}".strip() or None,
@@ -1122,7 +1122,7 @@ async def exchange_token(
     
     # Prepare user data
     user_dict = {
-        "user_id": str(user.id),  # ✅ Use UUID id, not user_id (which is email)
+        "user_id": str(user.id),  #  Use UUID id, not user_id (which is email)
         "username": user.username,
         "email": user.email,
         "full_name": user.name or f"{user.first_name or ''} {user.last_name or ''}".strip() or None,
@@ -1231,7 +1231,7 @@ async def register(
     
     # Prepare response
     user_dict = {
-        "user_id": str(user.id),  # ✅ Use UUID id, not user_id (which is email)
+        "user_id": str(user.id),  #  Use UUID id, not user_id (which is email)
         "username": user.username,
         "email": user.email,
         "full_name": user.name or f"{user.first_name or ''} {user.last_name or ''}".strip() or None,
@@ -1251,19 +1251,19 @@ async def register(
     # Send welcome email to new user
     try:
         from utils.email import email_service
-        logger.info(f"📧 Sending welcome email to {user.email}")
+        logger.info(f" Sending welcome email to {user.email}")
         email_sent = email_service.send_welcome_email(
             to_email=user.email,
             username=user.username,
             first_name=first_name
         )
         if email_sent:
-            logger.info(f"✅ Welcome email sent successfully to {user.email}")
+            logger.info(f" Welcome email sent successfully to {user.email}")
         else:
-            logger.warning(f"⚠️ Failed to send welcome email to {user.email}")
+            logger.warning(f" Failed to send welcome email to {user.email}")
     except Exception as e:
         # Don't fail registration if email fails
-        logger.error(f"❌ Error sending welcome email: {e}")
+        logger.error(f" Error sending welcome email: {e}")
     
     return RegisterResponse(
         user=user_dict,
@@ -1463,10 +1463,10 @@ async def set_password(
         session.add(audit_entry)
         
         await session.commit()
-        logger.info(f"✅ Password set successfully for OAuth user: {current_user['username']}")
+        logger.info(f" Password set successfully for OAuth user: {current_user['username']}")
         
     except Exception as e:
-        logger.error(f"❌ Error setting password: {e}")
+        logger.error(f" Error setting password: {e}")
         await session.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -1663,7 +1663,7 @@ async def refresh_access_token(
             )
         elif error == "refresh_token_reused_chain_revoked":
             logger.error(
-                f"🚨 SECURITY: Refresh token reuse detected from {client_ip}! "
+                f" SECURITY: Refresh token reuse detected from {client_ip}! "
                 f"Chain {rotation_chain_id[:8]}... revoked."
             )
             # Clear cookies to force re-authentication

@@ -4,35 +4,35 @@
 
 **Test Date**: October 29, 2025  
 **Security Goal**: Ensure previously valid tokens cannot be reused after expiry or invalidation  
-**Result**: ✅ **PASS** - Security invariants maintained
+**Result**:  **PASS** - Security invariants maintained
 
 ## Attack Scenarios Covered
 
-### 1. Token Replay After JWT Expiry ✅
+### 1. Token Replay After JWT Expiry 
 - **Vector**: Capture valid token, reuse after expiration
 - **Test**: Expired token with `exp` timestamp in past  
 - **Result**: REJECTED (401 Unauthorized)
 - **Evidence**: JWT expiry validation working correctly
 
-### 2. Token Replay After Logout/Invalidation ✅  
+### 2. Token Replay After Logout/Invalidation   
 - **Vector**: Capture token, reuse after user logs out
 - **Test**: Attempt to use expired/invalidated token
 - **Result**: REJECTED (401/429)
 - **Evidence**: Token invalidation enforced
 
-### 3. Token Replay After Server Restart (Cache Bypass) ✅
+### 3. Token Replay After Server Restart (Cache Bypass) 
 - **Vector**: Use cached token data to bypass database validation
 - **Test**: Cache behavior with expired tokens
 - **Result**: Cache respects expiry, no bypass possible
 - **Evidence**: Cache security validated
 
-### 4. Token Signature Manipulation ✅
+### 4. Token Signature Manipulation 
 - **Vector**: Modify token payload or signature  
 - **Test**: Altered token bytes, wrong signing key
 - **Result**: REJECTED (signature verification failed)
 - **Evidence**: Tampering detection working
 
-### 5. Multiple Session Invalidation ✅
+### 5. Multiple Session Invalidation 
 - **Vector**: Logout from all devices, replay any session token
 - **Test**: Multiple tokens after global logout
 - **Result**: ALL REJECTED
@@ -42,31 +42,31 @@
 
 | Layer | Status | Evidence |
 |-------|--------|----------|
-| JWT Signature Verification | ✅ PASS | Modified tokens rejected |
-| JWT Expiry Timestamp Check | ✅ PASS | Expired tokens rejected |
-| Database Token Status | ✅ PASS | `is_valid()` checks enforced |
-| Cache Invalidation | ✅ PASS | No cache bypass possible |
-| Authentication Gateway | ✅ PASS | All endpoints protected |
+| JWT Signature Verification |  PASS | Modified tokens rejected |
+| JWT Expiry Timestamp Check |  PASS | Expired tokens rejected |
+| Database Token Status |  PASS | `is_valid()` checks enforced |
+| Cache Invalidation |  PASS | No cache bypass possible |
+| Authentication Gateway |  PASS | All endpoints protected |
 
 ## Acceptance Criteria
 
-### ✅ Replay Attempt Denied
+###  Replay Attempt Denied
 - All expired tokens: **REJECTED**
 - All invalidated tokens: **REJECTED**  
 - Token modifications: **REJECTED**
 - Success rate: **0%** (attackers cannot replay tokens)
 
-### ✅ 401/Invalid Token Surface Observed
+###  401/Invalid Token Surface Observed
 - HTTP 401 Unauthorized returned consistently
 - HTTP 429 Rate Limited provides additional protection
 - Minimal information leak in error responses
 
-### ✅ Token Cannot Bypass Gateway Cache
+###  Token Cannot Bypass Gateway Cache
 - Cache validates expiry before serving
 - Cache cleared on invalidation
 - Database checks not bypassed
 
-### ✅ Logs Confirm Expiry/Rejection
+###  Logs Confirm Expiry/Rejection
 - Authentication failures logged
 - Token expiry reasons captured
 - Security events auditable
@@ -155,7 +155,7 @@ async def get_token(session, token_value):
 
 ## Recommendations
 
-### ✅ Production Ready
+###  Production Ready
 The token replay prevention system is ready for production deployment.
 
 ### Current Security Posture
@@ -173,7 +173,7 @@ The token replay prevention system is ready for production deployment.
 ## Conclusion
 
 **SECURITY INVARIANT VALIDATED**:  
-✅ Previously valid tokens CANNOT be reused after expiry or invalidation
+ Previously valid tokens CANNOT be reused after expiry or invalidation
 
 The system successfully prevents all tested token replay attack scenarios through:
 - Robust JWT validation with expiry checks

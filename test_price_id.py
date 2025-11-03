@@ -14,13 +14,13 @@ print()
 
 try:
     price = stripe.Price.retrieve(price_id)
-    print(f'✅ Price ID is VALID!')
+    print(f' Price ID is VALID!')
     print(f'   Product: {price.product}')
     print(f'   Amount: ${price.unit_amount/100} {price.currency.upper()}')
     if price.recurring:
         print(f'   Interval: {price.recurring.interval}')
 except Exception as e:
-    print(f'❌ Price ID is INVALID!')
+    print(f' Price ID is INVALID!')
     print(f'   Error: {e}')
     print()
     print('The Price ID from the Stripe Dashboard was:')

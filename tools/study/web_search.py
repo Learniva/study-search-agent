@@ -31,7 +31,7 @@ try:
     TEXT_CLEANING_AVAILABLE = True
 except ImportError:
     TEXT_CLEANING_AVAILABLE = False
-    print("⚠️  Text cleaning utilities not available. Install for enhanced results.")
+    print("  Text cleaning utilities not available. Install for enhanced results.")
 
 
 def format_search_results(results: List[Dict[str, Any]], enable_spam_filter: bool = False) -> str:
@@ -173,7 +173,7 @@ def tavily_search(query: str, api_key: str, num_results: int = 5) -> Optional[Li
             return normalized
         return None
     except Exception as e:
-        print(f"❌ Tavily search error: {e}")
+        print(f" Tavily search error: {e}")
         return None
 
 
@@ -202,7 +202,7 @@ def get_web_search_tool() -> Optional[Tool]:
     has_tavily = bool(tavily_api_key)
     
     if not has_google and not has_tavily:
-        print("⚠️  No search providers configured. Set GOOGLE_SEARCH_API_KEY and GOOGLE_SEARCH_ENGINE_ID, or TAVILY_API_KEY")
+        print("  No search providers configured. Set GOOGLE_SEARCH_API_KEY and GOOGLE_SEARCH_ENGINE_ID, or TAVILY_API_KEY")
         return None
     
     def search_with_langchain(query: str) -> str:
@@ -221,11 +221,11 @@ def get_web_search_tool() -> Optional[Tool]:
         if has_google:
             # Primary: Google Custom Search
             def google_runnable(q: str) -> str:
-                print("🔍 Searching with Google Custom Search (Primary)...")
+                print(" Searching with Google Custom Search (Primary)...")
                 results = google_custom_search(q, google_api_key, google_search_engine_id, num_results=5)
                 if not results:
                     raise ValueError("Google search returned no results")
-                print("✅ Google search successful")
+                print(" Google search successful")
                 return format_search_results(results)
             
             search_chain = RunnableLambda(google_runnable)
@@ -233,11 +233,11 @@ def get_web_search_tool() -> Optional[Tool]:
             # Add Tavily as fallback if available
             if has_tavily:
                 def tavily_runnable(q: str) -> str:
-                    print("🔍 Falling back to Tavily Search...")
+                    print(" Falling back to Tavily Search...")
                     results = tavily_search(q, tavily_api_key, num_results=5)
                     if not results:
                         raise ValueError("Tavily search returned no results")
-                    print("✅ Tavily search successful (fallback)")
+                    print(" Tavily search successful (fallback)")
                     return format_search_results(results)
                 
                 # Add fallback using LangChain's with_fallbacks
@@ -246,11 +246,11 @@ def get_web_search_tool() -> Optional[Tool]:
         elif has_tavily:
             # Only Tavily available (no fallback needed)
             def tavily_runnable(q: str) -> str:
-                print("🔍 Searching with Tavily Search...")
+                print(" Searching with Tavily Search...")
                 results = tavily_search(q, tavily_api_key, num_results=5)
                 if not results:
                     raise ValueError("Tavily search returned no results")
-                print("✅ Tavily search successful")
+                print(" Tavily search successful")
                 return format_search_results(results)
             
             search_chain = RunnableLambda(tavily_runnable)
@@ -260,7 +260,7 @@ def get_web_search_tool() -> Optional[Tool]:
             return search_chain.invoke(query)
         except Exception as e:
             error_msg = str(e)
-            print(f"❌ All search providers failed: {error_msg}")
+            print(f" All search providers failed: {error_msg}")
             return "No search results found. Please try a different query or check your API keys."
     
     # Show which providers are configured
@@ -271,10 +271,10 @@ def get_web_search_tool() -> Optional[Tool]:
     else:
         config_msg = "Tavily only"
     
-    print(f"🌐 Web search configured: {config_msg}")
-    print(f"🔗 Built on LangChain's RunnableWithFallbacks for clean fallback logic")
+    print(f" Web search configured: {config_msg}")
+    print(f" Built on LangChain's RunnableWithFallbacks for clean fallback logic")
     if TEXT_CLEANING_AVAILABLE:
-        print(f"🧹 Enhanced text cleaning enabled (HTML entities, Unicode, whitespace)")
+        print(f" Enhanced text cleaning enabled (HTML entities, Unicode, whitespace)")
     
     return Tool(
         name="Web_Search",

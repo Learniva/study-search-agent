@@ -26,7 +26,7 @@ async def migrate_token_column():
     
     try:
         async with async_engine.begin() as conn:
-            logger.info("🔄 Starting token column migration...")
+            logger.info(" Starting token column migration...")
             
             # Check if tokens table exists
             result = await conn.execute(text("""
@@ -38,7 +38,7 @@ async def migrate_token_column():
             table_exists = result.scalar()
             
             if not table_exists:
-                logger.info("ℹ️  Tokens table doesn't exist yet. Will be created with correct size.")
+                logger.info("ℹ  Tokens table doesn't exist yet. Will be created with correct size.")
                 return True
             
             # Get current column size
@@ -51,11 +51,11 @@ async def migrate_token_column():
             current_size = result.scalar()
             
             if current_size == 128:
-                logger.info("✅ Token column is already 128 characters. No migration needed.")
+                logger.info(" Token column is already 128 characters. No migration needed.")
                 return True
             
-            logger.info(f"📊 Current token column size: {current_size}")
-            logger.info("🔧 Altering token column to VARCHAR(128)...")
+            logger.info(f" Current token column size: {current_size}")
+            logger.info(" Altering token column to VARCHAR(128)...")
             
             # Alter the column
             await conn.execute(text("""
@@ -63,7 +63,7 @@ async def migrate_token_column():
                 ALTER COLUMN token TYPE VARCHAR(128);
             """))
             
-            logger.info("✅ Token column successfully migrated to VARCHAR(128)")
+            logger.info(" Token column successfully migrated to VARCHAR(128)")
             
             # Verify the change
             result = await conn.execute(text("""
@@ -74,18 +74,18 @@ async def migrate_token_column():
             """))
             new_size = result.scalar()
             
-            logger.info(f"✅ Verified: Token column is now {new_size} characters")
+            logger.info(f" Verified: Token column is now {new_size} characters")
             
             # Clear existing tokens (they may be truncated)
             result = await conn.execute(text("DELETE FROM tokens;"))
             deleted_count = result.rowcount
-            logger.info(f"🗑️  Cleared {deleted_count} existing tokens (they may have been truncated)")
-            logger.info("ℹ️  Users will need to log in again after this migration")
+            logger.info(f"  Cleared {deleted_count} existing tokens (they may have been truncated)")
+            logger.info("ℹ  Users will need to log in again after this migration")
             
             return True
             
     except Exception as e:
-        logger.error(f"❌ Migration failed: {e}")
+        logger.error(f" Migration failed: {e}")
         logger.error("Please check your database connection and try again.")
         return False
 
@@ -100,7 +100,7 @@ async def main():
     
     if success:
         logger.info("=" * 60)
-        logger.info("✅ Migration completed successfully!")
+        logger.info(" Migration completed successfully!")
         logger.info("=" * 60)
         logger.info("Next steps:")
         logger.info("1. Restart your application")
@@ -109,7 +109,7 @@ async def main():
         sys.exit(0)
     else:
         logger.error("=" * 60)
-        logger.error("❌ Migration failed!")
+        logger.error(" Migration failed!")
         logger.error("=" * 60)
         logger.error("Please fix the errors above and try again.")
         sys.exit(1)

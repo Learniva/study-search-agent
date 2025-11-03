@@ -36,7 +36,7 @@ class TestPerformance:
         first_chunk = await stream.__anext__()
         ttfb_ms = (time.time() - start) * 1000
         
-        print(f"\n⏱️  TTFB: {ttfb_ms:.1f}ms")
+        print(f"\n  TTFB: {ttfb_ms:.1f}ms")
         assert ttfb_ms < 150, f"TTFB too slow: {ttfb_ms:.1f}ms (target: <100ms)"
         assert first_chunk, "First chunk should not be empty"
     
@@ -53,7 +53,7 @@ class TestPerformance:
                 break
         
         total_time = time.time() - start
-        print(f"\n⏱️  Total time: {total_time:.1f}s")
+        print(f"\n  Total time: {total_time:.1f}s")
         
         # Allow up to 5s due to external API calls, but target is 3s
         assert total_time < 5.0, f"Query too slow: {total_time:.1f}s (target: <3s)"
@@ -83,9 +83,9 @@ class TestPerformance:
         time2 = time.time() - start
         
         speedup = time1 / time2 if time2 > 0 else 1
-        print(f"\n⏱️  First query: {time1:.2f}s")
-        print(f"⏱️  Cached query: {time2:.2f}s")
-        print(f"📦 Cache speedup: {speedup:.1f}x")
+        print(f"\n  First query: {time1:.2f}s")
+        print(f"  Cached query: {time2:.2f}s")
+        print(f" Cache speedup: {speedup:.1f}x")
         
         # Cached query should be at least 2x faster
         assert speedup >= 2.0, f"Cache not effective: only {speedup:.1f}x faster"
@@ -105,7 +105,7 @@ class TestPerformance:
             tool = agent.nodes._fast_classify(question.lower())
             routing_time_ms = (time.time() - start) * 1000
             
-            print(f"\n📍 '{question[:30]}...' → {tool} ({routing_time_ms:.2f}ms)")
+            print(f"\n '{question[:30]}...' → {tool} ({routing_time_ms:.2f}ms)")
             assert routing_time_ms < 1.0, f"Routing too slow: {routing_time_ms:.2f}ms"
             assert tool == expected_tool, f"Wrong routing: {tool} != {expected_tool}"
     
@@ -129,9 +129,9 @@ class TestPerformance:
             if chunk == "[DONE]":
                 break
         
-        print(f"\n📊 Received {len(chunk_times)} chunks")
-        print(f"⏱️  First content: {first_content_time:.2f}s")
-        print(f"⏱️  Total time: {chunk_times[-1]:.2f}s")
+        print(f"\n Received {len(chunk_times)} chunks")
+        print(f"  First content: {first_content_time:.2f}s")
+        print(f"  Total time: {chunk_times[-1]:.2f}s")
         
         # Should receive multiple chunks (progressive)
         assert len(chunk_times) >= 5, "Not enough streaming chunks"
@@ -147,7 +147,7 @@ class TestPerformance:
         result = agent.query(question)
         total_time = time.time() - start
         
-        print(f"\n⏱️  Sync query time: {total_time:.1f}s")
+        print(f"\n  Sync query time: {total_time:.1f}s")
         assert result, "Should return non-empty result"
         assert isinstance(result, str), "Result should be string"
 
@@ -181,7 +181,7 @@ class TestPerformanceComparison:
         new_time = time.time() - start
         
         speedup = old_time / new_time
-        print(f"\n📊 Performance Comparison:")
+        print(f"\n Performance Comparison:")
         print(f"   Old agent: {old_time:.2f}s")
         print(f"   New agent: {new_time:.2f}s")
         print(f"   Speedup: {speedup:.1f}x faster")
@@ -238,22 +238,22 @@ if __name__ == "__main__":
     agent = FastStreamingStudyAgent()
     
     # Test 1: TTFB
-    print("\n🧪 Test 1: Time To First Byte (TTFB)")
+    print("\n Test 1: Time To First Byte (TTFB)")
     asyncio.run(TestPerformance().test_ttfb_under_100ms(agent))
     
     # Test 2: Routing Speed
-    print("\n🧪 Test 2: Routing Speed")
+    print("\n Test 2: Routing Speed")
     asyncio.run(TestPerformance().test_routing_speed(agent))
     
     # Test 3: Total Query Time
-    print("\n🧪 Test 3: Total Query Time")
+    print("\n Test 3: Total Query Time")
     asyncio.run(TestPerformance().test_simple_query_under_3s(agent))
     
     # Test 4: Cache Effectiveness
-    print("\n🧪 Test 4: Cache Effectiveness")
+    print("\n Test 4: Cache Effectiveness")
     asyncio.run(TestPerformance().test_cache_effectiveness(agent))
     
     print("\n" + "=" * 70)
-    print("✅ ALL BENCHMARKS PASSED")
+    print(" ALL BENCHMARKS PASSED")
     print("=" * 70)
 

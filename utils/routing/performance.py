@@ -156,25 +156,25 @@ class PerformanceMonitor:
         stats = self.get_stats()
         
         print("\n" + "="*70)
-        print("📊 PERFORMANCE REPORT")
+        print(" PERFORMANCE REPORT")
         print("="*70)
         
         if stats.get('message'):
             print(stats['message'])
             return
         
-        print(f"\n📈 Request Statistics:")
+        print(f"\n Request Statistics:")
         print(f"  Total Requests:     {stats['total_requests']}")
         print(f"  Avg Response Time:  {stats['avg_response_time']}")
         print(f"  Min Response Time:  {stats['min_response_time']}")
         print(f"  Max Response Time:  {stats['max_response_time']}")
         
-        print(f"\n⚡ Optimization Impact:")
+        print(f"\n Optimization Impact:")
         print(f"  Cache Hit Rate:     {stats['cache_hit_rate']}")
         print(f"  Pattern Route Rate: {stats['pattern_route_rate']}")
         print(f"  LLM Route Rate:     {stats['llm_route_rate']}")
         
-        print(f"\n💰 Cost Analysis:")
+        print(f"\n Cost Analysis:")
         print(f"  LLM Calls Made:     {stats['total_llm_calls']}")
         print(f"  LLM Calls Saved:    {stats['saved_llm_calls']}")
         print(f"  Actual Cost:        {stats['actual_cost']}")
@@ -206,7 +206,7 @@ class PerformanceMonitor:
         with open(filepath, 'w') as f:
             json.dump(data, f, indent=2)
         
-        print(f"✅ Metrics exported to {filepath}")
+        print(f" Metrics exported to {filepath}")
 
 
 # =============================================================================
@@ -432,7 +432,7 @@ class PerformanceBasedRouter:
         self.tool_load = defaultdict(int)  # Current load per tool
         self.max_concurrent_load = 5
         
-        print("🎯 Performance-Based Router initialized")
+        print(" Performance-Based Router initialized")
     
     def get_or_create_tracker(self, tool_name: str) -> ToolPerformanceTracker:
         """Get or create performance tracker for a tool."""
@@ -470,7 +470,7 @@ class PerformanceBasedRouter:
         
         # If no healthy tools, use all (with warning)
         if not healthy_tools:
-            print("⚠️  No healthy tools, using all available")
+            print("  No healthy tools, using all available")
             healthy_tools = available_tools
         
         # Score each tool
@@ -584,7 +584,7 @@ class PerformanceBasedRouter:
         if tool in self.tool_load:
             self.tool_load[tool] = max(0, self.tool_load[tool] - 1)
         
-        print(f"📊 Performance recorded: {tool} - {'✅' if success else '❌'} - {response_time:.2f}s")
+        print(f" Performance recorded: {tool} - {'' if success else ''} - {response_time:.2f}s")
     
     def get_fallback_chain(
         self,
@@ -700,7 +700,7 @@ class PerformanceBasedRouter:
         with open(filepath, 'w') as f:
             json.dump(data, f, indent=2)
         
-        print(f"💾 Performance router saved: {filepath}")
+        print(f" Performance router saved: {filepath}")
     
     @classmethod
     def load_from_file(cls, filepath: str) -> 'PerformanceBasedRouter':
@@ -733,7 +733,7 @@ class PerformanceBasedRouter:
         # Restore routing history
         router.routing_history = deque(data.get('routing_history', []), maxlen=100)
         
-        print(f"📂 Performance router loaded: {filepath}")
+        print(f" Performance router loaded: {filepath}")
         return router
 
 
@@ -778,7 +778,7 @@ def get_performance_router() -> PerformanceBasedRouter:
             try:
                 _performance_router = PerformanceBasedRouter.load_from_file(filepath)
             except Exception as e:
-                print(f"⚠️  Could not load router state: {e}")
+                print(f"  Could not load router state: {e}")
                 _performance_router = PerformanceBasedRouter()
         else:
             _performance_router = PerformanceBasedRouter()

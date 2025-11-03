@@ -282,10 +282,10 @@ Create 8-12 learning objectives across Bloom's Taxonomy levels:
 - Objective 10: Students will be able to [design/create/develop] ...
 
 **Requirements:**
-✓ Use action verbs (avoid "know", "learn", "understand" without specifics)
-✓ Make them measurable (observable outcomes)
-✓ Align with assessment methods
-✓ Progress from lower to higher cognitive levels
+ Use action verbs (avoid "know", "learn", "understand" without specifics)
+ Make them measurable (observable outcomes)
+ Align with assessment methods
+ Progress from lower to higher cognitive levels
 
 **Output Format:** Clean list of objectives organized by Bloom's level."""
 
@@ -437,11 +437,11 @@ Create comprehensive study materials with:
    - Video links (if applicable)
 
 **Formatting Guidelines:**
-✓ Use clear, student-friendly language
-✓ Include visual descriptions [e.g., "Diagram: Neural network with 3 layers"]
-✓ Add callout boxes for important concepts
-✓ Provide space for student notes
-✓ Make it printer-friendly (if handout)
+ Use clear, student-friendly language
+ Include visual descriptions [e.g., "Diagram: Neural network with 3 layers"]
+ Add callout boxes for important concepts
+ Provide space for student notes
+ Make it printer-friendly (if handout)
 
 **Output Format:** Complete study material in markdown, ready for distribution."""
 

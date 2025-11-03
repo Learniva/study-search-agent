@@ -34,7 +34,7 @@ except ImportError as e:
     # Only print warning if database is genuinely unavailable
     import sys
     if '--help' not in sys.argv:
-        print(f"⚠️  RAG Tools: Database not available - L2/L3 features disabled ({e})")
+        print(f"  RAG Tools: Database not available - L2/L3 features disabled ({e})")
 
 # Web search imports
 try:
@@ -42,10 +42,10 @@ try:
     _web_search = get_web_search_tool()
     WEB_SEARCH_AVAILABLE = _web_search is not None
     if not WEB_SEARCH_AVAILABLE:
-        print("⚠️  RAG Tools: Web search not configured (Google Custom Search or Tavily API key missing)")
+        print("  RAG Tools: Web search not configured (Google Custom Search or Tavily API key missing)")
 except ImportError as e:
     WEB_SEARCH_AVAILABLE = False
-    print(f"⚠️  RAG Tools: Web search not available ({e})")
+    print(f"  RAG Tools: Web search not available ({e})")
 
 
 def _extract_topic_from_document_context(conversation_history: Optional[str] = None) -> str:
@@ -112,7 +112,7 @@ def _reformulate_document_query(query: str, extracted_topic: str) -> str:
     # Try each pattern
     for pattern, replacement in doc_patterns:
         if re.search(pattern, query_lower):
-            print(f"🔍 [DOC QA] Reformulated: '{query}' → '{replacement}'")
+            print(f" [DOC QA] Reformulated: '{query}' → '{replacement}'")
             return replacement
     
     # Generic pronoun replacement for document queries
@@ -120,13 +120,13 @@ def _reformulate_document_query(query: str, extracted_topic: str) -> str:
     for pronoun in pronouns:
         if f' {pronoun} ' in f' {query_lower} ':
             reformulated = re.sub(rf'\b{pronoun}\b', extracted_topic, query, flags=re.IGNORECASE)
-            print(f"🔍 [DOC QA] Pronoun replaced: '{query}' → '{reformulated}'")
+            print(f" [DOC QA] Pronoun replaced: '{query}' → '{reformulated}'")
             return reformulated
     
     # If query contains chapter/section but is vague, add context
     if any(word in query_lower for word in ['chapter', 'section', 'page']) and len(query.split()) <= 5:
         enhanced = f"{query} content and main topics"
-        print(f"🔍 [DOC QA] Enhanced vague query: '{query}' → '{enhanced}'")
+        print(f" [DOC QA] Enhanced vague query: '{query}' → '{enhanced}'")
         return enhanced
     
     return query
@@ -146,7 +146,7 @@ def retrieve_from_vector_store(
     This tool performs semantic similarity search on uploaded documents using pgvector,
     with advanced query reformulation for natural follow-up questions.
     
-    🧠 Context-Aware Features:
+     Context-Aware Features:
     - Extracts topic from conversation history
     - Handles pronouns (it, this, that, them)
     - Reformulates vague follow-up questions
@@ -173,7 +173,7 @@ def retrieve_from_vector_store(
         - "Summarize it" → "summarize chapter 3"
     """
     if not DATABASE_AVAILABLE:
-        return "❌ Vector store not available. Database not configured. Please set DATABASE_URL in .env"
+        return " Vector store not available. Database not configured. Please set DATABASE_URL in .env"
     
     # INTELLIGENT CONTEXT-AWARE QUERY REFORMULATION
     original_query = query
@@ -181,24 +181,24 @@ def retrieve_from_vector_store(
     is_vague = len(query.split()) <= 5 and has_pronoun
     
     print(f"\n{'='*70}")
-    print(f"🔍 INTELLIGENT DOCUMENT QA")
+    print(f" INTELLIGENT DOCUMENT QA")
     print(f"{'='*70}")
-    print(f"📝 Original query: '{query}'")
-    print(f"🎯 Has pronoun: {has_pronoun}, Is vague: {is_vague}")
+    print(f" Original query: '{query}'")
+    print(f" Has pronoun: {has_pronoun}, Is vague: {is_vague}")
     
     if (has_pronoun or is_vague) and conversation_history:
         # Extract topic from conversation history
         extracted_topic = _extract_topic_from_document_context(conversation_history)
         
         if extracted_topic:
-            print(f"💡 Extracted topic: '{extracted_topic}'")
+            print(f" Extracted topic: '{extracted_topic}'")
             # Reformulate query with context
             query = _reformulate_document_query(query, extracted_topic)
-            print(f"✨ Reformulated query: '{query}'")
+            print(f" Reformulated query: '{query}'")
         else:
-            print(f"⚠️  No topic extracted from conversation history")
+            print(f"  No topic extracted from conversation history")
     else:
-        print(f"✅ Direct question - no reformulation needed")
+        print(f" Direct question - no reformulation needed")
     
     print(f"{'='*70}\n")
     
@@ -210,10 +210,10 @@ def retrieve_from_vector_store(
             total_docs = count_result.fetchone().count
             
             if total_docs == 0:
-                return "📚 No documents found in the vector store. Please upload documents first, or I can search the web for this information instead."
+                return " No documents found in the vector store. Please upload documents first, or I can search the web for this information instead."
         
     except Exception as e:
-        print(f"⚠️  Error checking document availability: {e}")
+        print(f"  Error checking document availability: {e}")
         # Continue to try retrieval anyway
     
     try:
@@ -231,7 +231,7 @@ def retrieve_from_vector_store(
         # Semantic search alone fails to retrieve the right chapter
         if chapter_match:
             chapter_num = chapter_match.group(1)
-            print(f"🔍 [HYBRID SEARCH] User requested Chapter {chapter_num} - using keyword + semantic hybrid search")
+            print(f" [HYBRID SEARCH] User requested Chapter {chapter_num} - using keyword + semantic hybrid search")
         
         # Remove filler phrases using word boundaries to avoid breaking words
         query_clean = query_lower
@@ -296,7 +296,7 @@ def retrieve_from_vector_store(
                 chapter_num = chapter_match.group(1)
                 # Filter for chunks that contain the chapter number
                 filters.append(f"(LOWER(content) LIKE '%chapter {chapter_num}%' OR LOWER(content) LIKE '%chapter{chapter_num}%')")
-                print(f"🔍 [HYBRID SEARCH] Added keyword filter for Chapter {chapter_num}")
+                print(f" [HYBRID SEARCH] Added keyword filter for Chapter {chapter_num}")
             
             if filters:
                 filter_sql = " AND " + " AND ".join(filters)
@@ -322,9 +322,9 @@ def retrieve_from_vector_store(
             result = db.execute(text(sql))
             results = result.fetchall()
             
-            print(f"📊 [RETRIEVAL DEBUG] Retrieved {len(results)} chunks from vector search")
+            print(f" [RETRIEVAL DEBUG] Retrieved {len(results)} chunks from vector search")
             if results and len(results) > 0:
-                print(f"📊 [RETRIEVAL DEBUG] Sample of first 5 chunks:")
+                print(f" [RETRIEVAL DEBUG] Sample of first 5 chunks:")
                 for i, row in enumerate(results[:5]):
                     try:
                         content_preview = str(row[2])[:150] if len(row) > 2 and row[2] else "No content"
@@ -340,14 +340,14 @@ def retrieve_from_vector_store(
                     for i, row in enumerate(results):
                         if len(row) > 2 and row[2] and f"chapter {chapter_num}" in str(row[2]).lower():
                             found_chapter = True
-                            print(f"✅ [RETRIEVAL DEBUG] Chapter {chapter_num} found at position {i+1}/{len(results)}")
+                            print(f" [RETRIEVAL DEBUG] Chapter {chapter_num} found at position {i+1}/{len(results)}")
                             break
                     if not found_chapter:
-                        print(f"❌ [RETRIEVAL DEBUG] Chapter {chapter_num} NOT in top {len(results)} chunks!")
+                        print(f" [RETRIEVAL DEBUG] Chapter {chapter_num} NOT in top {len(results)} chunks!")
                         print(f"   This means semantic search completely missed the target chapter.")
             
             if not results:
-                return f"📚 No relevant documents found for query: '{query}'\n\nTip: Make sure documents are uploaded and indexed in the vector store."
+                return f" No relevant documents found for query: '{query}'\n\nTip: Make sure documents are uploaded and indexed in the vector store."
             
             # Re-rank results: boost chunks with definition keywords
             # This solves the problem where concise definitions rank lower than verbose content
@@ -466,7 +466,7 @@ def retrieve_from_vector_store(
             
     except Exception as e:
         import traceback
-        return f"❌ Error retrieving from vector store: {str(e)}\n{traceback.format_exc()}"
+        return f" Error retrieving from vector store: {str(e)}\n{traceback.format_exc()}"
 
 
 @tool
@@ -493,7 +493,7 @@ def query_learning_store(
         - Learn from past failures
     """
     if not DATABASE_AVAILABLE:
-        return "❌ Learning store not available. Database not configured."
+        return " Learning store not available. Database not configured."
     
     try:
         db = get_db()
@@ -502,9 +502,9 @@ def query_learning_store(
                 insights = get_learning_insights(db, rubric_type)
                 
                 if insights.get("status") == "no_data":
-                    return "📊 No learning data available yet. System is still collecting feedback."
+                    return " No learning data available yet. System is still collecting feedback."
                 
-                formatted = f"📊 Learning Insights:\n\n"
+                formatted = f" Learning Insights:\n\n"
                 formatted += f"Total Corrections: {insights.get('total_corrections', 0)}\n"
                 formatted += f"Average Score Difference: {insights.get('avg_score_difference', 0)}\n"
                 formatted += f"Average Confidence Before: {insights.get('avg_confidence_before', 0):.2f}\n\n"
@@ -520,9 +520,9 @@ def query_learning_store(
                 stats = get_rag_performance_stats(db)
                 
                 if stats.get("status") == "no_data":
-                    return "📊 No performance data available yet."
+                    return " No performance data available yet."
                 
-                formatted = f"📊 RAG Performance Stats (Last {stats.get('period_days', 7)} days):\n\n"
+                formatted = f" RAG Performance Stats (Last {stats.get('period_days', 7)} days):\n\n"
                 formatted += f"Total Queries: {stats.get('total_queries', 0)}\n"
                 formatted += f"Retrieval Rate: {stats.get('retrieval_rate', 0)}%\n"
                 formatted += f"Context Usage Rate: {stats.get('context_usage_rate', 0)}%\n"
@@ -536,9 +536,9 @@ def query_learning_store(
                 exceptions = get_grade_exceptions(db, status='pending', limit=5)
                 
                 if not exceptions:
-                    return "✅ No pending exceptions. System is performing well!"
+                    return " No pending exceptions. System is performing well!"
                 
-                formatted = f"⚠️  Pending Exceptions ({len(exceptions)}):\n\n"
+                formatted = f"  Pending Exceptions ({len(exceptions)}):\n\n"
                 for exc in exceptions:
                     formatted += f"**{exc.exception_type}**\n"
                     formatted += f"  Query: {exc.query[:100]}...\n"
@@ -550,7 +550,7 @@ def query_learning_store(
             db.close()
             
     except Exception as e:
-        return f"❌ Error querying learning store: {str(e)}"
+        return f" Error querying learning store: {str(e)}"
 
 
 @tool
@@ -582,7 +582,7 @@ def enhanced_web_search(
         - "Best practices for RAG systems"
     """
     if not WEB_SEARCH_AVAILABLE:
-        return "❌ Web search not available. Please configure GOOGLE_SEARCH_API_KEY and GOOGLE_SEARCH_ENGINE_ID, or TAVILY_API_KEY in .env"
+        return " Web search not available. Please configure GOOGLE_SEARCH_API_KEY and GOOGLE_SEARCH_ENGINE_ID, or TAVILY_API_KEY in .env"
     
     try:
         # Enrich query with context if provided
@@ -595,17 +595,17 @@ def enhanced_web_search(
         results = web_search_tool.search(enriched_query)
         
         if not results or "error" in results.lower():
-            return f"🔍 Web search failed or returned no results for: '{query}'"
+            return f" Web search failed or returned no results for: '{query}'"
         
         # Add metadata
-        formatted = f"🔍 Web Search Results for: '{query}'\n\n"
+        formatted = f" Web Search Results for: '{query}'\n\n"
         formatted += results
         formatted += f"\n\n_Search completed (Google Custom Search with Tavily fallback)_"
         
         return formatted
         
     except Exception as e:
-        return f"❌ Error in web search: {str(e)}"
+        return f" Error in web search: {str(e)}"
 
 
 @tool

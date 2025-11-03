@@ -52,16 +52,16 @@ class EmailService:
             True if email sent successfully, False otherwise
         """
         if not self.enabled:
-            logger.warning("📧 Email sending is disabled. Enable in settings.")
-            logger.info(f"📧 Would send email to {to_email}: {subject}")
+            logger.warning(" Email sending is disabled. Enable in settings.")
+            logger.info(f" Would send email to {to_email}: {subject}")
             if self.backend == "console":
-                logger.info(f"📧 Subject: {subject}")
-                logger.info(f"📧 To: {to_email}")
-                logger.info(f"📧 Content: {text_content or html_content[:200]}...")
+                logger.info(f" Subject: {subject}")
+                logger.info(f" To: {to_email}")
+                logger.info(f" Content: {text_content or html_content[:200]}...")
             return True  # Return True in dev mode
         
         if not self.username or not self.password:
-            logger.error("❌ Email credentials not configured")
+            logger.error(" Email credentials not configured")
             return False
         
         try:
@@ -100,11 +100,11 @@ class EmailService:
             server.sendmail(self.from_address, recipients, msg.as_string())
             server.quit()
             
-            logger.info(f"✅ Email sent successfully to {to_email}")
+            logger.info(f" Email sent successfully to {to_email}")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to send email to {to_email}: {e}")
+            logger.error(f" Failed to send email to {to_email}: {e}")
             return False
     
     def send_password_reset_email(
@@ -175,7 +175,7 @@ class EmailService:
         <body>
             <div class="container">
                 <div class="header">
-                    <h1>🔐 Password Reset Request</h1>
+                    <h1> Password Reset Request</h1>
                 </div>
                 <div class="content">
                     <p>Hi {username},</p>
@@ -243,7 +243,7 @@ class EmailService:
         Returns:
             True if email sent successfully
         """
-        subject = f"🔗 {linked_service} Account Linked - LearnivaAI"
+        subject = f" {linked_service} Account Linked - LearnivaAI"
         
         html_content = f"""
         <!DOCTYPE html>
@@ -300,17 +300,17 @@ class EmailService:
         <body>
             <div class="container">
                 <div class="header">
-                    <h1>🔗 Account Successfully Linked</h1>
+                    <h1> Account Successfully Linked</h1>
                 </div>
                 <div class="content">
-                    <div class="icon">✅</div>
+                    <div class="icon"></div>
                     <p>Hi {username},</p>
                     <p>Your LearnivaAI account has been successfully linked with your <strong>{linked_service}</strong> account.</p>
                     
                     <div class="info-box">
-                        <p><strong>📧 Email:</strong> {to_email}</p>
-                        <p><strong>🔗 Linked Service:</strong> {linked_service}</p>
-                        <p><strong>📅 Date:</strong> {self._get_current_datetime()}</p>
+                        <p><strong> Email:</strong> {to_email}</p>
+                        <p><strong> Linked Service:</strong> {linked_service}</p>
+                        <p><strong> Date:</strong> {self._get_current_datetime()}</p>
                     </div>
                     
                     <h3>What This Means:</h3>
@@ -322,7 +322,7 @@ class EmailService:
                     </ul>
                     
                     <div class="warning-box">
-                        <p><strong>⚠️ Security Notice:</strong></p>
+                        <p><strong> Security Notice:</strong></p>
                         <p>If you did not authorize this account linking, please take immediate action:</p>
                         <ol>
                             <li>Change your password immediately</li>
@@ -405,7 +405,7 @@ class EmailService:
         # Use first name if provided, otherwise use username
         greeting_name = first_name if first_name else username
         
-        subject = f"🎉 Welcome to LearnivaAI, {greeting_name}!"
+        subject = f" Welcome to LearnivaAI, {greeting_name}!"
         
         html_content = f"""
         <!DOCTYPE html>
@@ -525,7 +525,7 @@ class EmailService:
                     position: relative;
                 }}
                 .tip:before {{
-                    content: "💡";
+                    content: "";
                     position: absolute;
                     left: 0;
                 }}
@@ -559,7 +559,7 @@ class EmailService:
             <div class="container">
                 <div class="inner-container">
                     <div class="header">
-                        <div class="emoji-banner">🎓✨</div>
+                        <div class="emoji-banner"></div>
                         <h1>Welcome to LearnivaAI!</h1>
                     </div>
                     
@@ -569,7 +569,7 @@ class EmailService:
                         </p>
                         
                         <p class="welcome-text">
-                            We're absolutely thrilled to have you join the LearnivaAI community! 🎉
+                            We're absolutely thrilled to have you join the LearnivaAI community! 
                         </p>
                         
                         <div class="highlight-box">
@@ -579,11 +579,11 @@ class EmailService:
                         
                         <div class="divider"></div>
                         
-                        <h2 style="color: #667eea; text-align: center;">✨ What Can You Do Now?</h2>
+                        <h2 style="color: #667eea; text-align: center;"> What Can You Do Now?</h2>
                         
                         <div class="features">
                             <div class="feature-item">
-                                <div class="feature-icon">🤖</div>
+                                <div class="feature-icon"></div>
                                 <div class="feature-content">
                                     <h3>AI-Powered Study Assistant</h3>
                                     <p>Get instant help with homework, assignments, and research. Our intelligent study agent adapts to your learning style.</p>
@@ -591,7 +591,7 @@ class EmailService:
                             </div>
                             
                             <div class="feature-item">
-                                <div class="feature-icon">📝</div>
+                                <div class="feature-icon"></div>
                                 <div class="feature-content">
                                     <h3>Smart Grading & Feedback</h3>
                                     <p>Submit your work and receive detailed, constructive feedback powered by AI to help you improve.</p>
@@ -599,7 +599,7 @@ class EmailService:
                             </div>
                             
                             <div class="feature-item">
-                                <div class="feature-icon">🎬</div>
+                                <div class="feature-icon"></div>
                                 <div class="feature-content">
                                     <h3>Visual Learning Animations</h3>
                                     <p>Complex concepts made simple with beautiful animations and visual explanations.</p>
@@ -607,7 +607,7 @@ class EmailService:
                             </div>
                             
                             <div class="feature-item">
-                                <div class="feature-icon">📚</div>
+                                <div class="feature-icon"></div>
                                 <div class="feature-content">
                                     <h3>Personalized Learning Path</h3>
                                     <p>Your study sessions are tracked and optimized to help you learn more effectively.</p>
@@ -617,12 +617,12 @@ class EmailService:
                         
                         <div style="text-align: center; margin: 35px 0;">
                             <a href="{settings.frontend_url}" class="cta-button">
-                                🚀 Start Learning Now
+                                 Start Learning Now
                             </a>
                         </div>
                         
                         <div class="tips-section">
-                            <h3>💡 Quick Tips to Get Started:</h3>
+                            <h3> Quick Tips to Get Started:</h3>
                             <div class="tip">Complete your profile to personalize your experience</div>
                             <div class="tip">Try asking the study agent your first question</div>
                             <div class="tip">Explore different subjects and topics</div>
@@ -638,7 +638,7 @@ class EmailService:
                         </p>
                         
                         <p style="margin-top: 30px; color: #4a5568;">
-                            Happy learning! 🎓<br>
+                            Happy learning! <br>
                             <strong>The LearnivaAI Team</strong>
                         </p>
                     </div>
@@ -663,7 +663,7 @@ class EmailService:
         """
         
         text_content = f"""
-        🎉 WELCOME TO LEARNIVA AI! 🎉
+         WELCOME TO LEARNIVA AI! 
         
         Hi {greeting_name},
         
@@ -672,23 +672,23 @@ class EmailService:
         You've just unlocked the power of AI-driven learning! Your journey to smarter, 
         more efficient studying starts right now.
         
-        ✨ WHAT CAN YOU DO NOW?
+         WHAT CAN YOU DO NOW?
         
-        🤖 AI-Powered Study Assistant
+         AI-Powered Study Assistant
            Get instant help with homework, assignments, and research. Our intelligent 
            study agent adapts to your learning style.
         
-        📝 Smart Grading & Feedback
+         Smart Grading & Feedback
            Submit your work and receive detailed, constructive feedback powered by AI 
            to help you improve.
         
-        🎬 Visual Learning Animations
+         Visual Learning Animations
            Complex concepts made simple with beautiful animations and visual explanations.
         
-        📚 Personalized Learning Path
+         Personalized Learning Path
            Your study sessions are tracked and optimized to help you learn more effectively.
         
-        💡 QUICK TIPS TO GET STARTED:
+         QUICK TIPS TO GET STARTED:
         
         • Complete your profile to personalize your experience
         • Try asking the study agent your first question
@@ -696,12 +696,12 @@ class EmailService:
         • Connect with Google for seamless access
         • Check out the help section for tutorials
         
-        🚀 Ready to start? Visit: {settings.frontend_url}
+         Ready to start? Visit: {settings.frontend_url}
         
         Need help getting started? Our support team is here for you! Just reply to 
         this email or contact us at support@learniva.ai
         
-        Happy learning! 🎓
+        Happy learning! 
         The LearnivaAI Team
         
         ---

@@ -7,25 +7,25 @@
 
 ---
 
-## 📑 Table of Contents
+##  Table of Contents
 
-1. [🚀 Quick Start](#-quick-start)
-2. [🏗️ System Overview](#️-system-overview)
-3. [📝 Grading Agent](#-grading-agent)
-4. [🎓 Study Agent](#-study-agent)
-5. [📚 Google Classroom Integration](#-google-classroom-integration)
-6. [🎯 Command Reference](#-command-reference)
-7. [🛠️ Helper Scripts](#️-helper-scripts)
-8. [👩‍🏫 Teaching Tools](#-teaching-tools)
-9. [📋 Available Rubrics](#-available-rubrics-19-total)
-10. [🔍 Troubleshooting](#-troubleshooting)
-11. [📊 Examples & Workflows](#-examples--workflows)
-12. [📚 Quick Reference](#-quick-reference)
-13. [📖 Additional Resources](#-additional-resources)
+1. [ Quick Start](#-quick-start)
+2. [ System Overview](#-system-overview)
+3. [ Grading Agent](#-grading-agent)
+4. [ Study Agent](#-study-agent)
+5. [ Google Classroom Integration](#-google-classroom-integration)
+6. [ Command Reference](#-command-reference)
+7. [ Helper Scripts](#-helper-scripts)
+8. [‍ Teaching Tools](#-teaching-tools)
+9. [ Available Rubrics](#-available-rubrics-19-total)
+10. [ Troubleshooting](#-troubleshooting)
+11. [ Examples & Workflows](#-examples--workflows)
+12. [ Quick Reference](#-quick-reference)
+13. [ Additional Resources](#-additional-resources)
 
 ---
 
-# 🚀 Quick Start
+#  Quick Start
 
 ## Installation & Setup
 
@@ -93,7 +93,7 @@ python grade_file.py intro_programming_assignment.py
 
 ---
 
-# 🏗️ System Overview
+#  System Overview
 
 ## Multi-Agent Architecture
 
@@ -114,10 +114,10 @@ User Request → Supervisor Agent
 
 | Role | Study Agent | Grading Agent | Google Classroom |
 |------|-------------|---------------|------------------|
-| **Student** | ✅ Full Access | ❌ Denied | ❌ No Access |
-| **Teacher** | ✅ Full Access | ✅ Full Access | ✅ Full Access |
-| **Professor** | ✅ Full Access | ✅ Full Access | ✅ Full Access |
-| **Admin** | ✅ Full Access | ✅ Full Access | ✅ Full Access |
+| **Student** |  Full Access |  Denied |  No Access |
+| **Teacher** |  Full Access |  Full Access |  Full Access |
+| **Professor** |  Full Access |  Full Access |  Full Access |
+| **Admin** |  Full Access |  Full Access |  Full Access |
 
 ### Intelligent Routing (3-Tier System)
 
@@ -140,19 +140,19 @@ User Request → Supervisor Agent
 
 ---
 
-# 📝 Grading Agent
+#  Grading Agent
 
 ## Overview
 
 AI-powered academic grading system with:
-- ✍️ Essay grading with discipline-specific rubrics
-- 💻 Code review and analysis
-- ✅ MCQ auto-grading
-- 📊 Custom rubric evaluation
-- 💬 Detailed feedback generation
-- 🎯 Consistency checking
-- 🔍 Bias detection
-- 🎓 **Google Classroom Integration**
+-  Essay grading with discipline-specific rubrics
+-  Code review and analysis
+-  MCQ auto-grading
+-  Custom rubric evaluation
+-  Detailed feedback generation
+-  Consistency checking
+-  Bias detection
+-  **Google Classroom Integration**
 
 ## Architecture
 
@@ -251,7 +251,7 @@ result = agent.query(
 Grade: 87/100 (B+)
 
 ─────────────────────────────────────────
-📊 BREAKDOWN:
+ BREAKDOWN:
    • Thesis & Argumentation (22/25)
      Strong central argument with clear position
    
@@ -264,21 +264,21 @@ Grade: 87/100 (B+)
    • Writing Quality (19/25)
      Generally clear, some minor grammatical issues
 
-💪 STRENGTHS:
+ STRENGTHS:
    • Well-researched with diverse, credible sources
    • Clear, engaging writing style
    • Strong logical progression of ideas
    • Effective use of transitions
 
-📈 AREAS FOR IMPROVEMENT:
+ AREAS FOR IMPROVEMENT:
    • Add more primary sources to strengthen analysis
    • Fix citation formatting (MLA style inconsistencies)
    • Develop the conclusion more fully
    • Address potential counterarguments
 
-✅ Confidence: 85% • Consistency: 92%
+ Confidence: 85% • Consistency: 92%
 
-⚠️  IMPORTANT:
+  IMPORTANT:
    • AI-generated evaluation
    • Review and adjust as needed
    • Professional judgment required
@@ -297,15 +297,15 @@ Grade: 87/100 (B+)
 
 ---
 
-# 🎓 Study Agent
+#  Study Agent
 
 ## Overview
 
 Autonomous learning companion providing:
-- 📖 Document Q&A (RAG on uploaded files)
-- 🔍 Web Search (Google Custom Search + Tavily fallback)
-- 🧮 Python REPL (Safe code execution)
-- 🎬 Manim Animation (Educational videos)
+-  Document Q&A (RAG on uploaded files)
+-  Web Search (Google Custom Search + Tavily fallback)
+-  Python REPL (Safe code execution)
+-  Manim Animation (Educational videos)
 
 ## Architecture
 
@@ -396,16 +396,16 @@ result = agent.query("Now generate 10 MCQs", thread_id="study1")  # Remembers co
 
 ---
 
-# 📚 Google Classroom Integration
+#  Google Classroom Integration
 
 ## Features
 
-✅ Fetch courses, assignments, and student submissions  
-✅ Automatically download and read Google Docs content  
-✅ Grade submissions with AI using discipline-specific rubrics  
-✅ Post grades and detailed feedback back to Google Classroom  
-✅ Retrieve assignment rubrics  
-✅ Batch grade multiple submissions  
+ Fetch courses, assignments, and student submissions  
+ Automatically download and read Google Docs content  
+ Grade submissions with AI using discipline-specific rubrics  
+ Post grades and detailed feedback back to Google Classroom  
+ Retrieve assignment rubrics  
+ Batch grade multiple submissions  
 
 ## Setup Guide
 
@@ -483,12 +483,12 @@ python main.py --role professor
 python grade_classroom_assignment.py
 
 # The script will:
-# ✅ Guide you step-by-step
-# ✅ Show available options at each step
-# ✅ Fetch Google Docs content automatically
-# ✅ Grade with AI
-# ✅ Let you review before posting
-# ✅ Post grade back to Classroom
+#  Guide you step-by-step
+#  Show available options at each step
+#  Fetch Google Docs content automatically
+#  Grade with AI
+#  Let you review before posting
+#  Post grade back to Classroom
 ```
 
 ### Using CLI
@@ -517,7 +517,7 @@ python main.py --role professor
 
 ---
 
-# 🎯 Command Reference
+#  Command Reference
 
 ## Essential Commands
 
@@ -607,19 +607,19 @@ Animate [algorithm name]
 
 ---
 
-# 🛠️ Helper Scripts
+#  Helper Scripts
 
 ## 1. Interactive Grading Tool
 
 **File:** `grade_classroom_assignment.py`
 
 ### Features
-- ✅ Step-by-step guided workflow
-- ✅ Lists courses, assignments, submissions automatically
-- ✅ Fetches Google Docs content
-- ✅ Grades with AI
-- ✅ Posts grades back to Classroom
-- ✅ Handles errors gracefully
+-  Step-by-step guided workflow
+-  Lists courses, assignments, submissions automatically
+-  Fetches Google Docs content
+-  Grades with AI
+-  Posts grades back to Classroom
+-  Handles errors gracefully
 
 ### Usage
 
@@ -636,12 +636,12 @@ python grade_classroom_assignment.py
 **File:** `grade_file.py`
 
 ### Features
-- ✅ Lists all files in `test_submissions/`
-- ✅ Reads files automatically
-- ✅ Detects file type (Python, essay, etc.)
-- ✅ Routes to appropriate grading tool
-- ✅ Retrieves matching rubric
-- ✅ Provides detailed output
+-  Lists all files in `test_submissions/`
+-  Reads files automatically
+-  Detects file type (Python, essay, etc.)
+-  Routes to appropriate grading tool
+-  Retrieves matching rubric
+-  Provides detailed output
 
 ### Usage
 
@@ -674,7 +674,7 @@ python grade_file.py code_sample.py \
 
 ---
 
-# 👩‍🏫 Teaching Tools
+# ‍ Teaching Tools
 
 ## 1. Generate Lesson Plan
 
@@ -770,7 +770,7 @@ Generate study materials for:
 
 ---
 
-# 📋 Available Rubrics (19 Total)
+#  Available Rubrics (19 Total)
 
 ## Computer Science (6)
 1. **computer_science_intro** - Intro programming assignments
@@ -811,7 +811,7 @@ Grade using computer_science_algorithms rubric: [paste code here]
 
 ---
 
-# 🔍 Troubleshooting
+#  Troubleshooting
 
 ## Google Classroom Issues
 
@@ -911,7 +911,7 @@ pip install -r requirements.txt
 
 ---
 
-# 📊 Examples & Workflows
+#  Examples & Workflows
 
 ## Example 1: Complete Google Classroom Grading Workflow
 
@@ -964,15 +964,15 @@ python main.py --role professor
 [PROFESSOR] Your request: Fetch content from course 717842350721 assignment 812453055498 submission Cg4I8bK_ztIXEIqY58_SFw and grade it
 
 # System automatically:
-# ✅ Downloads Google Docs
-# ✅ Extracts content
-# ✅ Grades with AI
-# ✅ Shows detailed results
+#  Downloads Google Docs
+#  Extracts content
+#  Grades with AI
+#  Shows detailed results
 
 # Step 5: Post grade
 [PROFESSOR] Your request: Post grade 87 with feedback "Excellent implementation of array operations! Clear code with good comments." to course 717842350721 assignment 812453055498 submission Cg4I8bK_ztIXEIqY58_SFw
 
-# ✅ Grade posted to Google Classroom
+#  Grade posted to Google Classroom
 ```
 
 ## Example 2: Using File Grading Helper
@@ -996,10 +996,10 @@ python grade_file.py intro_programming_assignment.py \
   --professor-id "prof123"
 
 # Automatic:
-# ✅ Detects it's Python code
-# ✅ Routes to code review tool
-# ✅ Retrieves computer_science_intro rubric
-# ✅ Provides detailed analysis
+#  Detects it's Python code
+#  Routes to code review tool
+#  Retrieves computer_science_intro rubric
+#  Provides detailed analysis
 ```
 
 ## Example 3: Student Research Workflow
@@ -1104,14 +1104,14 @@ for i, submission in enumerate(submissions, 1):
         })
         
         agent.query(f"Post grade: {post_query}")
-        print("✅ Grade posted!")
+        print(" Grade posted!")
 
-print("\n✅ Batch grading complete!")
+print("\n Batch grading complete!")
 ```
 
 ---
 
-# 📚 Quick Reference
+#  Quick Reference
 
 ## Starting Commands
 
@@ -1154,7 +1154,7 @@ Post grade [SCORE] to course [COURSE_ID] assignment [ASSIGNMENT_ID] submission [
 
 ---
 
-# 📖 Additional Resources
+#  Additional Resources
 
 ## Documentation
 
@@ -1181,5 +1181,5 @@ For issues or questions:
 **Last Updated:** October 14, 2025  
 **Version:** 2.0  
 
-🎉 **Happy Teaching & Learning!**
+ **Happy Teaching & Learning!**
 

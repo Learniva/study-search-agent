@@ -42,11 +42,11 @@ def get_all_tools() -> List[Tool]:
             rag_tools = get_all_rag_tools()
             if rag_tools:
                 tools.extend(rag_tools)
-                print(f"✅ RAG tools loaded ({len(rag_tools)} tools available)")
+                print(f" RAG tools loaded ({len(rag_tools)} tools available)")
         else:
-            print("⚠️  RAG tools not available (database not configured)")
+            print("  RAG tools not available (database not configured)")
     except Exception as e:
-        print(f"⚠️  RAG tools initialization failed: {e}")
+        print(f"  RAG tools initialization failed: {e}")
     
     return tools
 

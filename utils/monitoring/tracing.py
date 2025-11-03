@@ -71,9 +71,9 @@ class DistributedTracer:
             # Get tracer
             self.tracer = trace.get_tracer(__name__)
             
-            print("✅ Distributed tracing initialized")
+            print(" Distributed tracing initialized")
         except Exception as e:
-            print(f"⚠️  Failed to initialize tracing: {e}")
+            print(f"  Failed to initialize tracing: {e}")
             self.enabled = False
     
     def start_span(

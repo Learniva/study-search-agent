@@ -128,7 +128,7 @@ class CacheWarmer:
         self.total_warmed += warmed
         self.last_warm_time = datetime.utcnow()
         
-        logger.info(f"🔥 Warmed {warmed} cache entries")
+        logger.info(f" Warmed {warmed} cache entries")
         return warmed
     
     async def warm_popular(

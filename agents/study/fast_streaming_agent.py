@@ -38,7 +38,7 @@ class FastStreamingStudyAgent(BaseAgent):
     - Smart caching: Avoid repeated work
     
     Performance Targets:
-    - First byte: <100ms ✅
+    - First byte: <100ms 
     - Document QA: 1-2s total
     - Web Search: 1-3s total  
     - Python REPL: <500ms total
@@ -76,7 +76,7 @@ class FastStreamingStudyAgent(BaseAgent):
             self.tool_map
         )
         
-        logger.info("⚡ Fast Streaming Study Agent initialized")
+        logger.info(" Fast Streaming Study Agent initialized")
     
     async def aquery_stream(
         self,
@@ -104,10 +104,10 @@ class FastStreamingStudyAgent(BaseAgent):
         start_time = time.time()
         
         try:
-            logger.info(f"⚡ Fast streaming query: {question[:100]}...")
+            logger.info(f" Fast streaming query: {question[:100]}...")
             
             # INSTANT ACKNOWLEDGMENT - Target: <50ms
-            yield "🔄 "  # Instant visual feedback
+            yield " "  # Instant visual feedback
             
             # Create streaming state
             state = StreamingState({
@@ -122,17 +122,17 @@ class FastStreamingStudyAgent(BaseAgent):
             
             # Route to appropriate tool (now with caching built-in)
             if any(word in question_lower for word in ['document', 'uploaded', 'notes', 'chapter', 'section', 'file', 'pdf']):
-                logger.info("📚 Fast route → Document Q&A")
+                logger.info(" Fast route → Document Q&A")
                 yield "Searching your documents...\n\n"
                 result_state = await self.nodes._execute_document_qa(state)
             
             elif any(word in question_lower for word in ['code', 'calculate', 'compute', 'python']) or any(op in question for op in ['+', '-', '*', '/']):
-                logger.info("🐍 Fast route → Python REPL")
+                logger.info(" Fast route → Python REPL")
                 yield "Executing code...\n\n"
                 result_state = await self.nodes._execute_python_repl(state)
             
             elif any(phrase in question_lower for phrase in ['animate', 'animation', 'visualize', 'create video']):
-                logger.info("🎬 Fast route → Manim Animation")
+                logger.info(" Fast route → Manim Animation")
                 yield "Generating animation (this may take 30-60 seconds)...\n\n"
                 # Note: Manim is inherently slow, but we give instant feedback
                 from .concurrent_streaming_nodes import ConcurrentStreamingStudyNodes
@@ -140,7 +140,7 @@ class FastStreamingStudyAgent(BaseAgent):
                 result_state = await concurrent_nodes._execute_manim_animation(state)
             
             else:
-                logger.info("🌐 Fast route → Web Search")
+                logger.info(" Fast route → Web Search")
                 yield "Searching the web...\n\n"
                 result_state = await self.nodes._execute_web_search(state)
             
@@ -159,19 +159,19 @@ class FastStreamingStudyAgent(BaseAgent):
             
             # Performance metrics
             total_time = (time.time() - start_time) * 1000
-            logger.info(f"✅ Query complete in {total_time:.0f}ms")
+            logger.info(f" Query complete in {total_time:.0f}ms")
             
             # Stream performance info (optional - can be disabled for production)
             if total_time < 1000:
-                yield f"\n_⚡ Completed in {total_time:.0f}ms_\n"
+                yield f"\n_ Completed in {total_time:.0f}ms_\n"
             else:
-                yield f"\n_⏱️ Completed in {total_time/1000:.1f}s_\n"
+                yield f"\n_ Completed in {total_time/1000:.1f}s_\n"
             
             yield "[DONE]"
             
         except Exception as e:
             logger.error(f"Fast streaming error: {e}", exc_info=True)
-            yield f"\n\n❌ Error: {str(e)}\n"
+            yield f"\n\n Error: {str(e)}\n"
             yield "[ERROR]"
     
     async def aquery(

@@ -113,7 +113,7 @@ async def query_supervisor_stream(
         thread_id=request.thread_id
     )
     
-    # ⚡ OPTIMIZATION 1: Check response cache first (< 100ms for cached)
+    #  OPTIMIZATION 1: Check response cache first (< 100ms for cached)
     response_cache = get_response_cache()
     cached_response = response_cache.get(
         question=request.question,
@@ -126,11 +126,11 @@ async def query_supervisor_stream(
     )
     
     if cached_response:
-        logger.info(f"⚡ Response cache HIT - returning cached result (<100ms)")
+        logger.info(f" Response cache HIT - returning cached result (<100ms)")
         
         # Return cached response as SSE stream
         async def cached_stream():
-            yield f"data: {json.dumps({'type': 'status', 'data': '⚡ Cached Result'})}\n\n"
+            yield f"data: {json.dumps({'type': 'status', 'data': ' Cached Result'})}\n\n"
             yield f"data: {json.dumps({'type': 'content', 'data': cached_response})}\n\n"
             yield "data: [DONE]\n\n"
         
@@ -140,12 +140,12 @@ async def query_supervisor_stream(
             headers=get_sse_headers()
         )
     
-    logger.info(f"📦 Response cache MISS - executing agent...")
+    logger.info(f" Response cache MISS - executing agent...")
     
     # Cache miss - execute agent and cache result
     async def cached_supervisor_stream():
         # Instant response - yield immediately for user feedback
-        yield f"data: {json.dumps({'type': 'status', 'data': '🔄 Processing...'})}\n\n"
+        yield f"data: {json.dumps({'type': 'status', 'data': ' Processing...'})}\n\n"
         
         collected_response = []
         
@@ -193,7 +193,7 @@ async def query_supervisor_stream(
                 course_id=request.course_id,
                 assignment_id=request.assignment_id
             )
-            logger.info(f"✅ Response cached for future requests")
+            logger.info(f" Response cached for future requests")
     
     return StreamingResponse(
         cached_supervisor_stream(),

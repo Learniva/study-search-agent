@@ -227,15 +227,15 @@ SUPERVISOR_ACCESS_CONTROL_EXPLANATION = """
 ROLE-BASED ACCESS CONTROL:
 
 Student Role:
-- ✅ Can access: Study features (Document Q&A, Web Search, Python REPL, Animations)
-- ❌ Cannot access: Grading features (restricted to teachers)
+-  Can access: Study features (Document Q&A, Web Search, Python REPL, Animations)
+-  Cannot access: Grading features (restricted to teachers)
 
 Teacher/Professor/Instructor Role:
-- ✅ Can access: All study features
-- ✅ Can access: All grading features (essay grading, code review, rubric evaluation)
+-  Can access: All study features
+-  Can access: All grading features (essay grading, code review, rubric evaluation)
 
 Admin Role:
-- ✅ Full access to all features
+-  Full access to all features
 """
 
 

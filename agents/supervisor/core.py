@@ -112,7 +112,7 @@ class SupervisorAgent(ConcurrentSupervisorMixin):
                 llm_provider=self.llm_provider,
                 model_name=self.model_name
             )
-            logger.info("⚡ Fast streaming study agent initialized (<100ms first response)")
+            logger.info(" Fast streaming study agent initialized (<100ms first response)")
         return self._streaming_study_agent
     
     @property
@@ -284,14 +284,14 @@ class SupervisorAgent(ConcurrentSupervisorMixin):
                 "streaming": True  # Flag to indicate streaming mode
             }
             
-            # ⚡ OPTIMIZED: Use async methods for non-blocking routing
+            #  OPTIMIZED: Use async methods for non-blocking routing
             state = await self.nodes.aenrich_context(initial_state)
             state = await self.nodes.aclassify_intent(state)
             state = await self.nodes.acheck_access(state)
             
             # If access denied, return error
             if state["access_denied"]:
-                yield "⛔ Access Denied. Your role does not have permission to use this feature."
+                yield " Access Denied. Your role does not have permission to use this feature."
                 return
                 
             # Route to appropriate agent with streaming
@@ -331,24 +331,24 @@ class SupervisorAgent(ConcurrentSupervisorMixin):
         """Get capabilities available to user role."""
         capabilities = {
             "study_features": [
-                "📚 Document Q&A",
-                "🔍 Web Search",
-                "🧮 Python REPL",
-                "🎬 Manim Animation",
-                "📝 Study Guides",
-                "🎴 Flashcards",
-                "❓ MCQ Generation"
+                " Document Q&A",
+                " Web Search",
+                " Python REPL",
+                " Manim Animation",
+                " Study Guides",
+                " Flashcards",
+                " MCQ Generation"
             ],
             "grading_features": []
         }
         
         if user_role.lower() in ["teacher", "admin", "instructor", "professor"]:
             capabilities["grading_features"] = [
-                "✍️ Essay Grading",
-                "💻 Code Review",
-                "📊 Rubric Evaluation",
-                "💬 Feedback Generation",
-                "✅ MCQ Autograding"
+                " Essay Grading",
+                " Code Review",
+                " Rubric Evaluation",
+                " Feedback Generation",
+                " MCQ Autograding"
             ]
         
         return capabilities

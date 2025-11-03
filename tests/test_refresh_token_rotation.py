@@ -10,11 +10,11 @@ Tests for refresh token rotation with server-side revocation:
 - Concurrent request handling
 
 Security Tests:
-✓ Stolen token detection via reuse
-✓ Entire chain revocation on misuse
-✓ Expired token rejection
-✓ Revoked token rejection
-✓ Chain integrity validation
+ Stolen token detection via reuse
+ Entire chain revocation on misuse
+ Expired token rejection
+ Revoked token rejection
+ Chain integrity validation
 """
 
 import pytest

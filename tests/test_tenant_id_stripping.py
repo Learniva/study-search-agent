@@ -227,14 +227,14 @@ class TestMissingTenantHeader:
             }
         )
         
-        print(f"✓ Request sent WITHOUT X-Tenant-ID header")
-        print(f"✓ Response status: {response.status_code}")
-        print(f"✓ Response body: {response.text}")
+        print(f" Request sent WITHOUT X-Tenant-ID header")
+        print(f" Response status: {response.status_code}")
+        print(f" Response body: {response.text}")
         
         # Verify hard failure
         assert response.status_code == 401, "Expected 401 for missing tenant header"
-        print("✓ Gateway REJECTED request (401)")
-        print("✓ No partial authentication occurred")
+        print(" Gateway REJECTED request (401)")
+        print(" No partial authentication occurred")
         print("="*80)
     
     def test_empty_tenant_header_rejected(self, minimal_app, valid_token_with_tenant):
@@ -259,12 +259,12 @@ class TestMissingTenantHeader:
             }
         )
         
-        print(f"✓ Request sent with EMPTY X-Tenant-ID header")
-        print(f"✓ Response status: {response.status_code}")
+        print(f" Request sent with EMPTY X-Tenant-ID header")
+        print(f" Response status: {response.status_code}")
         
         # Verify hard failure
         assert response.status_code == 401, "Expected 401 for empty tenant header"
-        print("✓ Gateway REJECTED request (401)")
+        print(" Gateway REJECTED request (401)")
         print("="*80)
     
     def test_null_tenant_header_rejected(self, minimal_app, valid_token_with_tenant):
@@ -289,12 +289,12 @@ class TestMissingTenantHeader:
             }
         )
         
-        print(f"✓ Request sent with 'null' X-Tenant-ID header")
-        print(f"✓ Response status: {response.status_code}")
+        print(f" Request sent with 'null' X-Tenant-ID header")
+        print(f" Response status: {response.status_code}")
         
         # Verify hard failure
         assert response.status_code == 401, "Expected 401 for null tenant header"
-        print("✓ Gateway REJECTED request (401)")
+        print(" Gateway REJECTED request (401)")
         print("="*80)
 
 
@@ -319,15 +319,15 @@ class TestMissingTenantClaim:
         token = create_token_without_tenant()
         payload = decode_jwt_without_verification(token)
         
-        print(f"✓ Token created without tenant_id claim")
-        print(f"✓ Token payload: {json.dumps(payload, indent=2)}")
-        print(f"✓ tenant_id present: {'tenant_id' in payload}")
+        print(f" Token created without tenant_id claim")
+        print(f" Token payload: {json.dumps(payload, indent=2)}")
+        print(f" tenant_id present: {'tenant_id' in payload}")
         
         # Verify token can be decoded (but missing tenant_id)
         decoded = verify_access_token(token)
         assert "tenant_id" not in decoded or decoded.get("tenant_id") is None
-        print("✓ Token verified by JWT layer (signature valid)")
-        print("✓ But tenant_id claim is MISSING")
+        print(" Token verified by JWT layer (signature valid)")
+        print(" But tenant_id claim is MISSING")
         print("="*80)
     
     def test_token_with_null_tenant_claim(self):
@@ -344,14 +344,14 @@ class TestMissingTenantClaim:
         token = create_token_with_null_tenant()
         payload = decode_jwt_without_verification(token)
         
-        print(f"✓ Token created with tenant_id: null")
-        print(f"✓ Token payload tenant_id: {payload.get('tenant_id')}")
+        print(f" Token created with tenant_id: null")
+        print(f" Token payload tenant_id: {payload.get('tenant_id')}")
         
         # Verify token can be decoded
         decoded = verify_access_token(token)
         assert decoded.get("tenant_id") is None
-        print("✓ Token verified by JWT layer (signature valid)")
-        print("✓ But tenant_id claim is NULL")
+        print(" Token verified by JWT layer (signature valid)")
+        print(" But tenant_id claim is NULL")
         print("="*80)
     
     def test_token_with_empty_tenant_claim(self):
@@ -368,14 +368,14 @@ class TestMissingTenantClaim:
         token = create_token_with_empty_tenant()
         payload = decode_jwt_without_verification(token)
         
-        print(f"✓ Token created with tenant_id: ''")
-        print(f"✓ Token payload tenant_id: '{payload.get('tenant_id')}'")
+        print(f" Token created with tenant_id: ''")
+        print(f" Token payload tenant_id: '{payload.get('tenant_id')}'")
         
         # Verify token can be decoded
         decoded = verify_access_token(token)
         assert decoded.get("tenant_id") == ""
-        print("✓ Token verified by JWT layer (signature valid)")
-        print("✓ But tenant_id claim is EMPTY STRING")
+        print(" Token verified by JWT layer (signature valid)")
+        print(" But tenant_id claim is EMPTY STRING")
         print("="*80)
 
 
@@ -416,12 +416,12 @@ class TestInvalidTenantFormat:
                 }
             )
             
-            print(f"✓ Tested invalid ULID: {invalid_ulid}")
+            print(f" Tested invalid ULID: {invalid_ulid}")
             print(f"  Response status: {response.status_code}")
             
             assert response.status_code == 401, f"Expected 401 for invalid ULID: {invalid_ulid}"
         
-        print("✓ All invalid ULID formats REJECTED (401)")
+        print(" All invalid ULID formats REJECTED (401)")
         print("="*80)
 
 
@@ -450,18 +450,18 @@ class TestTamperedTenantClaim:
         )
         
         tampered_payload = decode_jwt_without_verification(tampered_token)
-        print(f"✓ Original tenant_id: {valid_tenant_id}")
-        print(f"✓ Tampered tenant_id: {tampered_payload['tenant_id']}")
+        print(f" Original tenant_id: {valid_tenant_id}")
+        print(f" Tampered tenant_id: {tampered_payload['tenant_id']}")
         
         # Verify signature validation fails
         with pytest.raises(Exception) as exc_info:
             verify_access_token(tampered_token)
         
-        print(f"✓ Exception type: {type(exc_info.value).__name__}")
-        print(f"✓ Status code: {getattr(exc_info.value, 'status_code', 'N/A')}")
+        print(f" Exception type: {type(exc_info.value).__name__}")
+        print(f" Status code: {getattr(exc_info.value, 'status_code', 'N/A')}")
         
         assert "401" in str(exc_info.value) or "credentials" in str(exc_info.value).lower()
-        print("✓ Tampered tenant_id REJECTED at cryptographic layer")
+        print(" Tampered tenant_id REJECTED at cryptographic layer")
         print("="*80)
 
 
@@ -493,8 +493,8 @@ class TestTenantLogging:
             }
         )
         
-        print(f"✓ Request sent without X-Tenant-ID header")
-        print(f"✓ Response status: {response.status_code}")
+        print(f" Request sent without X-Tenant-ID header")
+        print(f" Response status: {response.status_code}")
         
         # Verify logging occurred
         assert mock_logger.info.called, "Expected logging to occur"
@@ -506,7 +506,7 @@ class TestTenantLogging:
         for call in log_calls:
             if "tenant_validation" in call and '"status": "fail"' in call:
                 tenant_validation_logged = True
-                print(f"✓ Found tenant validation log entry")
+                print(f" Found tenant validation log entry")
                 break
         
         # In production mode, logging might be silent - check if any auth failure was logged
@@ -514,12 +514,12 @@ class TestTenantLogging:
             # Check if any failure was logged
             for call in log_calls:
                 if '"status": "fail"' in call or "tenant" in call.lower():
-                    print(f"✓ Found auth failure log entry: {call[:200]}...")
+                    print(f" Found auth failure log entry: {call[:200]}...")
                     tenant_validation_logged = True
                     break
         
-        print(f"✓ Tenant validation failure logged: {tenant_validation_logged}")
-        print("✓ Missing tenant guard REFLECTED in logs")
+        print(f" Tenant validation failure logged: {tenant_validation_logged}")
+        print(" Missing tenant guard REFLECTED in logs")
         print("="*80)
 
 
@@ -548,7 +548,7 @@ class TestEndToEndGatewayDenial:
         
         # Scenario 1: No headers at all
         response1 = client.get("/api/test")
-        print(f"✓ No headers: {response1.status_code}")
+        print(f" No headers: {response1.status_code}")
         assert response1.status_code == 401
         
         # Scenario 2: Valid token, no tenant header
@@ -562,7 +562,7 @@ class TestEndToEndGatewayDenial:
             "/api/test",
             headers={"Authorization": f"Bearer {token_with_tenant}"}
         )
-        print(f"✓ Valid token, no tenant header: {response2.status_code}")
+        print(f" Valid token, no tenant header: {response2.status_code}")
         assert response2.status_code == 401
         
         # Scenario 3: Token without tenant claim, valid header
@@ -574,7 +574,7 @@ class TestEndToEndGatewayDenial:
                 "X-Tenant-ID": test_tenant_id
             }
         )
-        print(f"✓ Token without tenant claim, valid header: {response3.status_code}")
+        print(f" Token without tenant claim, valid header: {response3.status_code}")
         assert response3.status_code == 200  # Header provides tenant, token is valid
         
         # Scenario 4: Invalid tenant header format
@@ -585,11 +585,11 @@ class TestEndToEndGatewayDenial:
                 "X-Tenant-ID": "invalid"
             }
         )
-        print(f"✓ Invalid tenant header format: {response4.status_code}")
+        print(f" Invalid tenant header format: {response4.status_code}")
         assert response4.status_code == 401
         
-        print("✓ All denial scenarios correctly rejected")
-        print("✓ No partial authentication in any scenario")
+        print(" All denial scenarios correctly rejected")
+        print(" No partial authentication in any scenario")
         print("="*80)
     
     def test_valid_request_succeeds(self, minimal_app):
@@ -622,19 +622,19 @@ class TestEndToEndGatewayDenial:
             }
         )
         
-        print(f"✓ Request sent with valid token and tenant header")
-        print(f"✓ Response status: {response.status_code}")
+        print(f" Request sent with valid token and tenant header")
+        print(f" Response status: {response.status_code}")
         
         assert response.status_code == 200, f"Expected 200 for valid request, got {response.status_code}"
         
         try:
             response_body = response.json()
-            print(f"✓ Response body: {response_body}")
+            print(f" Response body: {response_body}")
         except Exception:
-            print(f"✓ Response text: {response.text}")
+            print(f" Response text: {response.text}")
         
-        print("✓ Valid request SUCCEEDED")
-        print("✓ Tenant context properly validated")
+        print(" Valid request SUCCEEDED")
+        print(" Tenant context properly validated")
         print("="*80)
 
 
@@ -650,7 +650,7 @@ def generate_evidence_report():
 
 **Issue:** #10 - Tenant_id stripping → gateway denial  
 **Date:** {date}  
-**Status:** ✅ PASSED
+**Status:**  PASSED
 
 ## Attack Scenario
 Remove or omit tenant_id claim from token and retry auth request.
@@ -662,35 +662,35 @@ Gateway must reject requests without tenancy context.
 
 ### 1. Missing X-Tenant-ID Header
 - **Attack:** Valid JWT token sent WITHOUT X-Tenant-ID header
-- **Result:** ✅ 401 UNAUTHORIZED
-- **Partial Auth:** ❌ None
-- **Log Entry:** ✅ "tenant_validation" failure logged
+- **Result:**  401 UNAUTHORIZED
+- **Partial Auth:**  None
+- **Log Entry:**  "tenant_validation" failure logged
 
 ### 2. Empty/Null Tenant Header
 - **Attack:** Valid JWT token with empty/null X-Tenant-ID header
-- **Result:** ✅ 401 UNAUTHORIZED
-- **Partial Auth:** ❌ None
+- **Result:**  401 UNAUTHORIZED
+- **Partial Auth:**  None
 
 ### 3. Invalid Tenant Format
 - **Attack:** Malformed ULID in X-Tenant-ID header
-- **Result:** ✅ 401 UNAUTHORIZED
-- **Validation:** ✅ ULID format validation enforced
+- **Result:**  401 UNAUTHORIZED
+- **Validation:**  ULID format validation enforced
 
 ### 4. Missing tenant_id Claim in JWT
 - **Attack:** JWT token created without tenant_id claim
-- **Result:** ✅ Token signature valid, but tenant context missing
-- **Gateway:** ✅ Request still requires X-Tenant-ID header
+- **Result:**  Token signature valid, but tenant context missing
+- **Gateway:**  Request still requires X-Tenant-ID header
 
 ### 5. Tampered tenant_id in JWT
 - **Attack:** Modify tenant_id claim in JWT payload
-- **Result:** ✅ 401 UNAUTHORIZED (signature validation failure)
-- **Layer:** ✅ Cryptographic layer rejection
+- **Result:**  401 UNAUTHORIZED (signature validation failure)
+- **Layer:**  Cryptographic layer rejection
 
 ## Acceptance Criteria
 
-✅ **401 or equivalent block:** All attacks result in 401 UNAUTHORIZED  
-✅ **No partial auth:** No application logic executed without valid tenant  
-✅ **Logs reflect missing tenant guard:** Structured logs show "tenant_validation" failures
+ **401 or equivalent block:** All attacks result in 401 UNAUTHORIZED  
+ **No partial auth:** No application logic executed without valid tenant  
+ **Logs reflect missing tenant guard:** Structured logs show "tenant_validation" failures
 
 ## Architecture Notes
 
@@ -702,7 +702,7 @@ The system implements a **tenant-first approach**:
 
 ## Recommendation
 
-**Status:** SECURE ✅
+**Status:** SECURE 
 
 The authentication gateway properly enforces tenant context validation.
 All attack scenarios are correctly rejected with 401 responses.

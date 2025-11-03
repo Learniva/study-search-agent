@@ -255,7 +255,7 @@ Maximum 4 steps."""
         review_reasons = state.get("review_reasons", [])
         
         review_notice = f"\n\n{'='*60}\n"
-        review_notice += "⚠️  **REQUIRES PROFESSOR REVIEW**\n"
+        review_notice += "  **REQUIRES PROFESSOR REVIEW**\n"
         review_notice += f"{'='*60}\n\n"
         review_notice += "Flagged for human review:\n"
         for i, reason in enumerate(review_reasons, 1):

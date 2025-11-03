@@ -83,16 +83,16 @@ class ConcurrentStreamingStudyNodes(StreamingStudyNodes):
         
         if not is_long_running:
             # Execute directly using parent class implementation for short animations
-            logger.info("⚡ Manim task estimated as short, executing directly")
+            logger.info(" Manim task estimated as short, executing directly")
             return await super()._execute_manim_animation(state)
         
         # Long-running task - execute in background with concurrency support
-        logger.info(f"🔄 Manim task is long-running ({expected_duration:.1f}s), enabling concurrent execution")
+        logger.info(f" Manim task is long-running ({expected_duration:.1f}s), enabling concurrent execution")
         
         # Signal that we're forking execution
         await state.add_indicator(
             StreamingIndicator.PROCESSING,
-            f"🎬 Starting animation generation (estimated: {int(expected_duration)} seconds)..."
+            f" Starting animation generation (estimated: {int(expected_duration)} seconds)..."
         )
         
         # Extract animation topic
@@ -106,9 +106,9 @@ class ConcurrentStreamingStudyNodes(StreamingStudyNodes):
         # Create the background task function
         async def manim_task_function(topic: str, tool_func: Any) -> str:
             """Execute Manim animation in background."""
-            logger.info(f"🎥 Background Manim generation started for: {topic}")
+            logger.info(f" Background Manim generation started for: {topic}")
             result = await asyncio.to_thread(tool_func, topic)
-            logger.info(f"✅ Background Manim generation completed")
+            logger.info(f" Background Manim generation completed")
             return result
         
         # Execute with concurrency support
@@ -138,7 +138,7 @@ class ConcurrentStreamingStudyNodes(StreamingStudyNodes):
                 # Signal that user can ask another question
                 await state.add_indicator(
                     StreamingIndicator.COMPLETE,
-                    "🔀 Ready for your next question while animation generates..."
+                    " Ready for your next question while animation generates..."
                 )
             
             elif update_type == "progress":
@@ -146,7 +146,7 @@ class ConcurrentStreamingStudyNodes(StreamingStudyNodes):
                 progress_pct = int(update["progress"] * 100)
                 await state.add_indicator(
                     StreamingIndicator.PROCESSING,
-                    f"🎬 Animation progress: {progress_pct}%"
+                    f" Animation progress: {progress_pct}%"
                 )
             
             elif update_type == "task_complete":
@@ -168,7 +168,7 @@ class ConcurrentStreamingStudyNodes(StreamingStudyNodes):
                     artifact = result_data.get("artifact")
                     
                     if artifact:
-                        final_result = f"{content}\n\n📹 Video saved to: {artifact}"
+                        final_result = f"{content}\n\n Video saved to: {artifact}"
                         await state.update("video_path", artifact, stream=False)
                     else:
                         final_result = content

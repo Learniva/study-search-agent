@@ -4,7 +4,7 @@ A comprehensive collection of example queries organized by complexity and featur
 
 ---
 
-## 📋 Table of Contents
+##  Table of Contents
 1. [Simple Queries](#simple-queries)
 2. [Web Search Queries](#web-search-queries)
 3. [Code Generation Queries](#code-generation-queries)
@@ -52,7 +52,7 @@ Define machine learning
 
 ---
 
-## 🔍 Web Search Queries
+##  Web Search Queries
 *Questions that require internet search with source citations*
 
 ### Current Information
@@ -97,7 +97,7 @@ Explain the impact of artificial intelligence on healthcare in 2024
 
 ---
 
-## 💻 Code Generation Queries
+##  Code Generation Queries
 *Questions requesting implementation and code examples*
 
 ### Simple Implementations
@@ -150,7 +150,7 @@ How do I build a simple React component for a todo list?
 
 ---
 
-## 🎯 Multi-Step Complex Queries
+##  Multi-Step Complex Queries
 *Tasks requiring planning, multiple tool uses, and synthesis*
 
 ### Multi-Part Requests
@@ -189,7 +189,7 @@ How do I create a machine learning model to predict house prices? Include data p
 
 ---
 
-## 📚 Educational Content Generation
+##  Educational Content Generation
 *Lesson plans, flashcards, study materials*
 
 ### Lesson Plans
@@ -236,7 +236,7 @@ Create 10 multiple choice questions about Python data structures with explanatio
 
 ---
 
-## 🌊 Streaming Test Queries
+##  Streaming Test Queries
 *Specifically designed to test streaming functionality*
 
 ### Simple Streaming Test
@@ -244,24 +244,24 @@ Create 10 multiple choice questions about Python data structures with explanatio
 What is artificial intelligence?
 ```
 **Expected Streaming Indicators**:
-- 🔍 SEARCHING (web search triggered)
-- 🧠 ANALYZING (processing results)
-- ✍️ SYNTHESIZING (creating response)
-- ✅ COMPLETE
+-  SEARCHING (web search triggered)
+-  ANALYZING (processing results)
+-  SYNTHESIZING (creating response)
+-  COMPLETE
 
 ### Complex Streaming Test
 ```
 Explain the difference between supervised, unsupervised, and reinforcement learning. Provide 2 examples for each and explain when to use each approach.
 ```
 **Expected Streaming Indicators**:
-- 🧠 THINKING (task analysis)
-- 📋 PLANNING (multi-step plan)
-- 🔍 SEARCHING (web search - multiple times)
-- 🧠 ANALYZING (processing each search)
-- ⚙️ EXECUTING (running plan steps)
-- ✍️ SYNTHESIZING (combining results)
-- 📝 GENERATING (final answer)
-- ✅ COMPLETE
+-  THINKING (task analysis)
+-  PLANNING (multi-step plan)
+-  SEARCHING (web search - multiple times)
+-  ANALYZING (processing each search)
+-  EXECUTING (running plan steps)
+-  SYNTHESIZING (combining results)
+-  GENERATING (final answer)
+-  COMPLETE
 
 **Expected Streaming Behavior**:
 - Progressive text appearance
@@ -275,13 +275,13 @@ Explain the difference between supervised, unsupervised, and reinforcement learn
 Create a comprehensive guide on building a neural network from scratch: explain the math, provide Python code, create visualizations description, and include 5 practice exercises
 ```
 **Expected Streaming Indicators**:
-- 🧠 THINKING
-- 📋 PLANNING (complex task detected)
-- 🔍 SEARCHING (multiple searches)
-- ⚙️ EXECUTING (each step)
-- 💻 GENERATING (code generation)
-- ✍️ SYNTHESIZING (combining all parts)
-- ✅ COMPLETE
+-  THINKING
+-  PLANNING (complex task detected)
+-  SEARCHING (multiple searches)
+-  EXECUTING (each step)
+-  GENERATING (code generation)
+-  SYNTHESIZING (combining all parts)
+-  COMPLETE
 
 **Expected Streaming Behavior**:
 - Multiple workflow stages
@@ -294,10 +294,10 @@ Create a comprehensive guide on building a neural network from scratch: explain 
 How do I implement gradient descent algorithm in Python? Provide step-by-step code with visualizations.
 ```
 **Expected Streaming Indicators**:
-- 🔍 SEARCHING (finding resources)
-- 🧠 ANALYZING (understanding requirements)
-- 💻 GENERATING (code generation)
-- ✍️ SYNTHESIZING (final answer)
+-  SEARCHING (finding resources)
+-  ANALYZING (understanding requirements)
+-  GENERATING (code generation)
+-  SYNTHESIZING (final answer)
 
 **Expected Streaming Behavior**:
 - Explanation streams first
@@ -307,7 +307,7 @@ How do I implement gradient descent algorithm in Python? Provide step-by-step co
 
 ---
 
-## 🎨 Edge Cases & Special Scenarios
+##  Edge Cases & Special Scenarios
 
 ### Follow-up Questions
 ```
@@ -345,16 +345,16 @@ Show me how to implement a stack in Python, JavaScript, and Java
 
 ---
 
-## 📊 Testing Checklist
+##  Testing Checklist
 
 Use this checklist when testing queries:
 
-### ✅ For All Queries:
+###  For All Queries:
 - [ ] Response is relevant and accurate
 - [ ] Language is clear and educational
 - [ ] No errors or exceptions
 
-### ✅ For Web Search Queries:
+###  For Web Search Queries:
 - [ ] Web search was triggered (see console logs)
 - [ ] Fallback to Tavily worked (if Google API expired)
 - [ ] **Sources/References section present**
@@ -362,21 +362,21 @@ Use this checklist when testing queries:
 - [ ] 3-5 quality sources cited
 - [ ] Inline citations [1], [2], [3] in text
 
-### ✅ For Code Queries:
+###  For Code Queries:
 - [ ] **Actual code provided** (not just descriptions)
 - [ ] Code is in proper markdown blocks (```python)
 - [ ] Code includes comments
 - [ ] Code appears complete and runnable
 - [ ] Explanation provided before/after code
 
-### ✅ For Streaming Queries:
+###  For Streaming Queries:
 - [ ] Response appears progressively (not all at once)
 - [ ] Streaming indicators visible in console
 - [ ] Workflow stages shown (THINKING, SEARCHING, etc.)
 - [ ] Token-by-token delivery observed
 - [ ] Final COMPLETE indicator shown
 
-### ✅ For Complex Queries:
+###  For Complex Queries:
 - [ ] Multi-step plan created (for complex tasks)
 - [ ] Each step executed properly
 - [ ] Results synthesized coherently
@@ -385,7 +385,7 @@ Use this checklist when testing queries:
 
 ---
 
-## 🚀 Quick Test Sequences
+##  Quick Test Sequences
 
 ### 5-Minute Quick Test
 Run these 5 queries to verify core functionality:
@@ -412,7 +412,7 @@ Run these to specifically test streaming:
 
 ---
 
-## 💡 Pro Tips
+##  Pro Tips
 
 1. **Watch the Console**: Streaming indicators and search fallbacks are logged there
 2. **Source Citation**: Every web search query should end with References/Sources
@@ -422,7 +422,7 @@ Run these to specifically test streaming:
 
 ---
 
-## 📝 Notes
+##  Notes
 
 - **Google Custom Search API**: Currently expired, system auto-falls back to Tavily
 - **Streaming**: Works in both CLI and API (Server-Sent Events)

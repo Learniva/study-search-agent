@@ -48,7 +48,7 @@ def initialize_rubric_store(rubrics_dir: str = "rubrics") -> bool:
         # Check if rubrics directory exists
         rubrics_path = Path(rubrics_dir)
         if not rubrics_path.exists():
-            print(f"⚠️  Rubrics directory not found: {rubrics_dir}")
+            print(f"  Rubrics directory not found: {rubrics_dir}")
             print("   Creating default rubrics directory...")
             rubrics_path.mkdir(parents=True, exist_ok=True)
             create_default_rubrics(rubrics_dir)
@@ -58,11 +58,11 @@ def initialize_rubric_store(rubrics_dir: str = "rubrics") -> bool:
         rubric_files = list(rubrics_path.glob("*.json"))
         
         if not rubric_files:
-            print("⚠️  No rubric files found. Creating default rubrics...")
+            print("  No rubric files found. Creating default rubrics...")
             create_default_rubrics(rubrics_dir)
             rubric_files = list(rubrics_path.glob("*.json"))
         
-        print(f"📋 Loading {len(rubric_files)} rubric templates...")
+        print(f" Loading {len(rubric_files)} rubric templates...")
         
         for rubric_file in rubric_files:
             try:
@@ -93,26 +93,26 @@ Full Details: {json.dumps(rubric_data, indent=2)}
                 rubric_documents.append(doc)
                 
             except Exception as e:
-                print(f"⚠️  Error loading rubric {rubric_file}: {e}")
+                print(f"  Error loading rubric {rubric_file}: {e}")
         
         if not rubric_documents:
-            print("❌ No rubrics loaded. Rubric retrieval will not be available.")
+            print(" No rubrics loaded. Rubric retrieval will not be available.")
             return False
         
         # Initialize embeddings
         google_api_key = os.getenv("GOOGLE_API_KEY")
         if not google_api_key:
-            print("❌ GOOGLE_API_KEY not found. Cannot initialize rubric embeddings.")
+            print(" GOOGLE_API_KEY not found. Cannot initialize rubric embeddings.")
             return False
         
-        print("🔄 Creating embeddings for rubrics...")
+        print(" Creating embeddings for rubrics...")
         _rubric_embeddings = GoogleGenerativeAIEmbeddings(
             model="text-embedding-004",
             google_api_key=google_api_key
         )
         
         # Create vector store
-        print("💾 Storing rubrics in ChromaDB...")
+        print(" Storing rubrics in ChromaDB...")
         _rubric_vectorstore = Chroma.from_documents(
             documents=rubric_documents,
             embedding=_rubric_embeddings,
@@ -120,11 +120,11 @@ Full Details: {json.dumps(rubric_data, indent=2)}
             collection_name="grading_rubrics"
         )
         
-        print(f"✅ Rubric store initialized with {len(rubric_documents)} templates")
+        print(f" Rubric store initialized with {len(rubric_documents)} templates")
         return True
         
     except Exception as e:
-        print(f"❌ Error initializing rubric store: {e}")
+        print(f" Error initializing rubric store: {e}")
         return False
 
 

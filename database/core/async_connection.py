@@ -54,7 +54,7 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
             yield session
         except Exception as e:
             await session.rollback()
-            logger.error(f"❌ Database session error: {e}")
+            logger.error(f" Database session error: {e}")
             raise
         finally:
             await session.close()
@@ -68,10 +68,10 @@ async def init_async_db():
     """
     try:
         async with async_engine.begin() as conn:
-            logger.info("✅ Async database engine initialized")
+            logger.info(" Async database engine initialized")
             return True
     except Exception as e:
-        logger.error(f"❌ Async database initialization failed: {e}")
+        logger.error(f" Async database initialization failed: {e}")
         return False
 
 
@@ -82,7 +82,7 @@ async def close_async_db():
     Should be called during app shutdown.
     """
     await async_engine.dispose()
-    logger.info("🔌 Async database engine disposed")
+    logger.info(" Async database engine disposed")
 
 
 __all__ = [

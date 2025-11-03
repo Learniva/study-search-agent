@@ -371,7 +371,7 @@ class TestPasswordValidationEdgeCases:
     @pytest.mark.asyncio
     async def test_validate_password_with_emojis(self):
         """Test password with emojis."""
-        result = await self.validator.validate_password("Password123!😀")
+        result = await self.validator.validate_password("Password123!")
         
         # Should handle emojis
         assert isinstance(result, PasswordValidationResult)

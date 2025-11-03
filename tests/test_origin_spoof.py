@@ -177,7 +177,7 @@ class TestCORSOriginValidation:
         with open(evidence_file, "w") as f:
             json.dump(evidence, f, indent=2)
         
-        print(f"\n✅ Evidence saved: {evidence_file}")
+        print(f"\n Evidence saved: {evidence_file}")
     
     def test_no_wildcard_cors(self, client, evidence_dir):
         """Test that wildcard CORS is never used with credentials."""
@@ -232,7 +232,7 @@ class TestCORSOriginValidation:
         with open(evidence_file, "w") as f:
             json.dump(evidence, f, indent=2)
         
-        print(f"\n✅ Evidence saved: {evidence_file}")
+        print(f"\n Evidence saved: {evidence_file}")
     
     def test_null_origin_rejection(self, client):
         """Test that null origin is properly handled."""
@@ -272,7 +272,7 @@ class TestCORSOriginValidation:
                 # Should either reject or return exact match only
                 if allowed == modified:
                     # If it matches, it means case-insensitive (potential issue)
-                    print(f"⚠️  Warning: Case-insensitive origin matching detected: {modified}")
+                    print(f"  Warning: Case-insensitive origin matching detected: {modified}")
 
 
 # ============================================================================
@@ -317,7 +317,7 @@ class TestRefererValidation:
         with open(evidence_file, "w") as f:
             json.dump(evidence, f, indent=2)
         
-        print(f"\n✅ Evidence saved: {evidence_file}")
+        print(f"\n Evidence saved: {evidence_file}")
     
     def test_referer_policy_header(self, client):
         """Test that Referrer-Policy header is set."""
@@ -525,7 +525,7 @@ class TestFramingProtection:
         with open(evidence_file, "w") as f:
             json.dump(evidence, f, indent=2)
         
-        print(f"\n✅ Evidence saved: {evidence_file}")
+        print(f"\n Evidence saved: {evidence_file}")
 
 
 # ============================================================================
@@ -626,8 +626,8 @@ class TestOriginRejectionLogging:
         with open(evidence_file, "w") as f:
             json.dump(evidence, f, indent=2)
         
-        print(f"\n✅ Evidence saved: {evidence_file}")
-        print(f"✅ Logged {len(hostile_origins)} hostile origin attempts")
+        print(f"\n Evidence saved: {evidence_file}")
+        print(f" Logged {len(hostile_origins)} hostile origin attempts")
 
 
 # ============================================================================
@@ -746,14 +746,14 @@ class TestComprehensiveOriginSpoof:
             json.dump(evidence, f, indent=2)
         
         print(f"\n{'='*60}")
-        print(f"🔒 COMPREHENSIVE ORIGIN SPOOF ATTACK SIMULATION")
+        print(f" COMPREHENSIVE ORIGIN SPOOF ATTACK SIMULATION")
         print(f"{'='*60}")
         print(f"Total Attempts: {evidence['summary']['total_attempts']}")
-        print(f"✅ Blocked: {evidence['summary']['blocked']}")
-        print(f"❌ Leaked: {evidence['summary']['leaked']}")
-        print(f"⚠️  Wildcard Detected: {evidence['summary']['wildcard_detected']}")
+        print(f" Blocked: {evidence['summary']['blocked']}")
+        print(f" Leaked: {evidence['summary']['leaked']}")
+        print(f"  Wildcard Detected: {evidence['summary']['wildcard_detected']}")
         print(f"{'='*60}")
-        print(f"📁 Evidence saved: {evidence_file}")
+        print(f" Evidence saved: {evidence_file}")
         print(f"{'='*60}\n")
         
         # Assertions
@@ -775,7 +775,7 @@ def test_summary(request):
     
     # This will run after all tests
     print("\n" + "="*60)
-    print("🔒 ORIGIN SPOOF & CORS/CSP ENFORCEMENT TEST SUMMARY")
+    print(" ORIGIN SPOOF & CORS/CSP ENFORCEMENT TEST SUMMARY")
     print("="*60)
     print("Tests completed. Check evidence directory for detailed results.")
     print("Evidence location: tests/evidence/origin_spoof/")

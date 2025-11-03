@@ -53,16 +53,16 @@ async def create_token(
         await session.commit()
         await session.refresh(token)
         
-        logger.info(f"✅ Token created for user: {user_id}")
+        logger.info(f" Token created for user: {user_id}")
         return token
         
     except IntegrityError as e:
         await session.rollback()
-        logger.error(f"❌ Token creation failed (integrity error): {e}")
+        logger.error(f" Token creation failed (integrity error): {e}")
         return None
     except Exception as e:
         await session.rollback()
-        logger.error(f"❌ Token creation error: {e}")
+        logger.error(f" Token creation error: {e}")
         return None
 
 
@@ -95,7 +95,7 @@ async def get_token(
         return None
         
     except Exception as e:
-        logger.error(f"❌ Error fetching token: {e}")
+        logger.error(f" Error fetching token: {e}")
         return None
 
 
@@ -128,7 +128,7 @@ async def get_user_tokens(
         return list(result.scalars().all())
         
     except Exception as e:
-        logger.error(f"❌ Error fetching user tokens: {e}")
+        logger.error(f" Error fetching user tokens: {e}")
         return []
 
 
@@ -153,13 +153,13 @@ async def delete_token(
         await session.commit()
         
         if result.rowcount > 0:
-            logger.info(f"✅ Token deleted: {token_value[:8]}...")
+            logger.info(f" Token deleted: {token_value[:8]}...")
             return True
         
         return False
         
     except Exception as e:
-        logger.error(f"❌ Error deleting token: {e}")
+        logger.error(f" Error deleting token: {e}")
         await session.rollback()
         return False
 
@@ -185,11 +185,11 @@ async def delete_user_tokens(
         await session.commit()
         
         count = result.rowcount
-        logger.info(f"✅ Deleted {count} tokens for user: {user_id}")
+        logger.info(f" Deleted {count} tokens for user: {user_id}")
         return count
         
     except Exception as e:
-        logger.error(f"❌ Error deleting user tokens: {e}")
+        logger.error(f" Error deleting user tokens: {e}")
         await session.rollback()
         return 0
 
@@ -212,11 +212,11 @@ async def cleanup_expired_tokens(session: AsyncSession) -> int:
         
         count = result.rowcount
         if count > 0:
-            logger.info(f"🧹 Cleaned up {count} expired tokens")
+            logger.info(f" Cleaned up {count} expired tokens")
         return count
         
     except Exception as e:
-        logger.error(f"❌ Error cleaning up expired tokens: {e}")
+        logger.error(f" Error cleaning up expired tokens: {e}")
         await session.rollback()
         return 0
 

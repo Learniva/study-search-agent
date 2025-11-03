@@ -81,8 +81,8 @@ class TestOAuthStateParameter:
                           for record in caplog.records)
         assert state_logged, "State generation should be logged"
         
-        logger.info(f"✅ State parameter generated: {state[:10]}...")
-        logger.info("✅ PASS: OAuth login generates state parameter")
+        logger.info(f" State parameter generated: {state[:10]}...")
+        logger.info(" PASS: OAuth login generates state parameter")
     
     def test_callback_without_state_rejected(self, client, caplog):
         """Test that callback without state parameter is rejected."""
@@ -105,7 +105,7 @@ class TestOAuthStateParameter:
                            for record in caplog.records)
         assert security_alert, "Missing state should trigger security alert"
         
-        logger.info("✅ PASS: Callback without state is rejected")
+        logger.info(" PASS: Callback without state is rejected")
     
     def test_callback_with_invalid_state_rejected(self, client, caplog):
         """Test that callback with invalid state is rejected."""
@@ -132,10 +132,10 @@ class TestOAuthStateParameter:
                            for record in caplog.records)
         
         if security_alert:
-            logger.info("✅ PASS: Invalid state rejected (Redis available)")
+            logger.info(" PASS: Invalid state rejected (Redis available)")
         else:
-            logger.warning("⚠️  Redis not available - state validation skipped")
-            logger.info("✅ PASS: Callback handled (Redis unavailable)")
+            logger.warning("  Redis not available - state validation skipped")
+            logger.info(" PASS: Callback handled (Redis unavailable)")
     
     def test_state_parameter_one_time_use(self, client):
         """Test that state parameter can only be used once."""
@@ -160,14 +160,14 @@ class TestOAuthStateParameter:
         redis_client = RedisClient.get_instance()
         
         if not redis_client:
-            logger.warning("⚠️  Redis not available - skipping one-time use test")
+            logger.warning("  Redis not available - skipping one-time use test")
             pytest.skip("Redis not available")
             return
         
         # Step 3: Verify state is stored
         stored_state = redis_client.get(f"oauth:state:{state}")
         assert stored_state is not None, "State should be stored in Redis"
-        logger.info("✅ State stored in Redis")
+        logger.info(" State stored in Redis")
         
         # Step 4: Use state (mock callback - it will fail but should consume state)
         from unittest.mock import patch, AsyncMock
@@ -188,7 +188,7 @@ class TestOAuthStateParameter:
         stored_state_after = redis_client.get(f"oauth:state:{state}")
         assert stored_state_after is None, "State should be deleted after use"
         
-        logger.info("✅ PASS: State consumed and deleted (one-time use)")
+        logger.info(" PASS: State consumed and deleted (one-time use)")
     
     def test_state_expires_after_5_minutes(self, client):
         """Test that state parameter expires after 5 minutes."""
@@ -200,7 +200,7 @@ class TestOAuthStateParameter:
         redis_client = RedisClient.get_instance()
         
         if not redis_client:
-            logger.warning("⚠️  Redis not available - skipping TTL test")
+            logger.warning("  Redis not available - skipping TTL test")
             pytest.skip("Redis not available")
             return
         
@@ -220,25 +220,25 @@ class TestOAuthStateParameter:
         assert ttl <= 300, "TTL should be 5 minutes or less"
         assert ttl > 290, "TTL should be close to 5 minutes (just created)"
         
-        logger.info(f"✅ State TTL: {ttl} seconds (~5 minutes)")
-        logger.info("✅ PASS: State expires after 5 minutes")
+        logger.info(f" State TTL: {ttl} seconds (~5 minutes)")
+        logger.info(" PASS: State expires after 5 minutes")
 
 
 def test_state_parameter_summary():
     """Print summary of state parameter implementation."""
     logger.info("\n" + "="*70)
-    logger.info("🔒 OAuth State Parameter Implementation Summary")
+    logger.info(" OAuth State Parameter Implementation Summary")
     logger.info("="*70)
-    logger.info("✅ State parameter generated on /google/login/")
-    logger.info("✅ State stored in Redis with 5-minute TTL")
-    logger.info("✅ State validated on /google/callback/")
-    logger.info("✅ Missing state rejected (CSRF protection)")
-    logger.info("✅ Invalid state rejected (restart detection)")
-    logger.info("✅ One-time use (prevents replay)")
-    logger.info("✅ Comprehensive security logging")
-    logger.info("\n🔐 Security Benefits:")
-    logger.info("  ✓ CSRF attack protection")
-    logger.info("  ✓ Service restart detection")
-    logger.info("  ✓ Handshake continuity validation")
-    logger.info("  ✓ State replay prevention")
+    logger.info(" State parameter generated on /google/login/")
+    logger.info(" State stored in Redis with 5-minute TTL")
+    logger.info(" State validated on /google/callback/")
+    logger.info(" Missing state rejected (CSRF protection)")
+    logger.info(" Invalid state rejected (restart detection)")
+    logger.info(" One-time use (prevents replay)")
+    logger.info(" Comprehensive security logging")
+    logger.info("\n Security Benefits:")
+    logger.info("   CSRF attack protection")
+    logger.info("   Service restart detection")
+    logger.info("   Handshake continuity validation")
+    logger.info("   State replay prevention")
     logger.info("="*70 + "\n")

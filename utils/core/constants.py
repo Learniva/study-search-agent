@@ -236,20 +236,20 @@ CHAPTER_PATTERNS = [
 # =============================================================================
 
 # Common error messages
-ERROR_NO_DOCUMENTS = "⚠️  No documents have been loaded. Please upload and index documents first."
-ERROR_NO_API_KEY = "❌ API key not found. Please check your environment configuration."
-ERROR_TOOL_NOT_AVAILABLE = "⚠️  Required tool not available. Please check installation."
-ERROR_CACHE_FAILURE = "⚠️  Cache operation failed. Continuing without cache."
-ERROR_ROUTING_FAILURE = "❌ Routing failed. Falling back to default behavior."
+ERROR_NO_DOCUMENTS = "  No documents have been loaded. Please upload and index documents first."
+ERROR_NO_API_KEY = " API key not found. Please check your environment configuration."
+ERROR_TOOL_NOT_AVAILABLE = "  Required tool not available. Please check installation."
+ERROR_CACHE_FAILURE = "  Cache operation failed. Continuing without cache."
+ERROR_ROUTING_FAILURE = " Routing failed. Falling back to default behavior."
 
 # =============================================================================
 # SUCCESS MESSAGES
 # =============================================================================
 
-SUCCESS_CACHE_HIT = "⚡ Cache HIT! (saved API calls)"
-SUCCESS_PATTERN_ROUTING = "⚡ Pattern-based routing"
-SUCCESS_ML_ROUTING = "🎯 ML prediction"
-SUCCESS_PERF_ROUTING = "🎯 Performance routing"
+SUCCESS_CACHE_HIT = " Cache HIT! (saved API calls)"
+SUCCESS_PATTERN_ROUTING = " Pattern-based routing"
+SUCCESS_ML_ROUTING = " ML prediction"
+SUCCESS_PERF_ROUTING = " Performance routing"
 
 # =============================================================================
 # LLM CONFIGURATION

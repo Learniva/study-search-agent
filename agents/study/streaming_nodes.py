@@ -124,7 +124,7 @@ class StreamingStudyNodes:
             "timestamp": time.time()
         }
         
-        logger.info(f"📦 Cached result for key: {key[:50]}...")
+        logger.info(f" Cached result for key: {key[:50]}...")
     
     async def _progressive_synthesis(
         self, 
@@ -149,11 +149,11 @@ class StreamingStudyNodes:
         """
         if len(content_chunks) < min_chunks:
             # Not enough chunks yet, wait for more
-            logger.info(f"⏳ Waiting for more chunks ({len(content_chunks)}/{min_chunks})")
+            logger.info(f" Waiting for more chunks ({len(content_chunks)}/{min_chunks})")
             return None
         
         # We have enough chunks to start synthesis
-        logger.info(f"⚡ Progressive synthesis starting with {len(content_chunks)} chunks")
+        logger.info(f" Progressive synthesis starting with {len(content_chunks)} chunks")
         
         partial_content = "\n\n".join(content_chunks[:min_chunks])
         
@@ -561,10 +561,10 @@ Provide a complete answer."""
             cached_result = self._get_from_cache(cache_key)
             
             if cached_result:
-                logger.info("⚡ Cache hit - instant document QA response!")
+                logger.info(" Cache hit - instant document QA response!")
                 await state.add_indicator(
                     StreamingIndicator.PROCESSING,
-                    "📦 Retrieved from cache (instant)"
+                    " Retrieved from cache (instant)"
                 )
                 await state.update("tool_result", cached_result, stream=True)
                 await state.update("tried_document_qa", True, stream=False)
@@ -596,7 +596,7 @@ Provide a complete answer."""
                             break
                 
                 conversation_history = " ".join(reversed(user_messages))
-                print(f"📝 [DOC QA CONTEXT] Conversation history: {conversation_history[:150]}...")
+                print(f" [DOC QA CONTEXT] Conversation history: {conversation_history[:150]}...")
                 return conversation_history
             
             async def determine_chunk_limit():
@@ -606,10 +606,10 @@ Provide a complete answer."""
                     'all about', 'overview', 'entire', 'whole', 'complete'
                 ]):
                     chunk_limit = 60
-                    print(f"📚 [COMPREHENSIVE RETRIEVAL] Chapter/overview request - retrieving {chunk_limit} chunks")
+                    print(f" [COMPREHENSIVE RETRIEVAL] Chapter/overview request - retrieving {chunk_limit} chunks")
                 else:
                     chunk_limit = 15
-                    print(f"📄 [STANDARD RETRIEVAL] Specific question - retrieving {chunk_limit} chunks")
+                    print(f" [STANDARD RETRIEVAL] Specific question - retrieving {chunk_limit} chunks")
                 return chunk_limit
             
             # Execute in parallel
@@ -619,7 +619,7 @@ Provide a complete answer."""
                 determine_chunk_limit()
             )
             parallel_time = (time.time() - start_parallel) * 1000
-            logger.info(f"⚡ Parallel prep: {parallel_time:.1f}ms")
+            logger.info(f" Parallel prep: {parallel_time:.1f}ms")
             
             # Retrieve relevant document chunks with context awareness and appropriate limit
             # OPTIMIZATION: Use asyncio.to_thread for blocking I/O operation
@@ -631,11 +631,11 @@ Provide a complete answer."""
                 conversation_history=conversation_history
             )
             retrieval_time = (time.time() - retrieval_start) * 1000
-            logger.info(f"📊 Document retrieval: {retrieval_time:.1f}ms")
+            logger.info(f" Document retrieval: {retrieval_time:.1f}ms")
             
             # Check if retrieval failed
             failed = any(p in raw_results.lower() for p in [
-                "no relevant content", "no documents found", "not found", "❌",
+                "no relevant content", "no documents found", "not found", "",
                 "no documents", "please upload", "vector store"
             ])
             
@@ -643,10 +643,10 @@ Provide a complete answer."""
                 # Check if this is a "no documents available" situation
                 if "no documents found" in raw_results.lower() or "please upload" in raw_results.lower():
                     clarification_message = (
-                        "📚 No documents found in your library.\n\n"
+                        " No documents found in your library.\n\n"
                         "Would you like me to:\n"
-                        "1. 🌐 Search the web for this information\n"
-                        "2. ⏸️  Wait while you upload a document first\n\n"
+                        "1.  Search the web for this information\n"
+                        "2.   Wait while you upload a document first\n\n"
                         "Please reply with 'search web' or 'upload document' (or just '1' or '2'):"
                     )
                     await state.update("tool_result", clarification_message, stream=True)
@@ -700,16 +700,16 @@ MANDATORY STRUCTURE - Follow this EXACT order:
 
 # [Chapter/Topic Title]
 
-## 📋 BRIEF SUMMARY
+##  BRIEF SUMMARY
 [MUST BE FIRST - 2-3 sentences explaining what this chapter/document is about overall]
 
-## 🎯 KEY TOPICS AND CONCEPTS
+##  KEY TOPICS AND CONCEPTS
 [List the main topics covered, using bullet points with **bold** formatting]
 • **Topic 1**: Brief description (p. XX)
 • **Topic 2**: Brief description (p. XX)
 • **Topic 3**: Brief description (p. XX)
 
-## 💻 CODE & ALGORITHMS
+##  CODE & ALGORITHMS
 [ONLY include if code or algorithms are present in the content]
 ### Algorithm/Code Name (p. XX)
 • **Purpose**: What it does
@@ -721,7 +721,7 @@ MANDATORY STRUCTURE - Follow this EXACT order:
   code here
   ```
 
-## 📚 DETAILED CONTENT
+##  DETAILED CONTENT
 
 ### Section 1: [Name] (p. XX)
 [Detailed explanation with **bold key concepts**]
@@ -736,7 +736,7 @@ MANDATORY STRUCTURE - Follow this EXACT order:
 ### Section 2: [Name] (p. XX)
 [Continue with clear subsections...]
 
-## 🔧 CONCEPTS AND USE CASES
+##  CONCEPTS AND USE CASES
 
 ### Concept: [Name]
 • **What it is**: Definition/explanation (p. XX)
@@ -746,13 +746,13 @@ MANDATORY STRUCTURE - Follow this EXACT order:
   - Use case 2 (p. XX)
 • **Real-world Applications**: [If mentioned]
 
-## 💡 KEY TAKEAWAYS
+##  KEY TAKEAWAYS
 [3-5 bullet points summarizing the most important lessons]
 • Key takeaway 1
 • Key takeaway 2
 • Key takeaway 3
 
-## 📖 PAGE REFERENCES
+##  PAGE REFERENCES
 [List all page numbers covered: pp. XX-XX]
 
 ---
@@ -859,8 +859,8 @@ Answer:"""
                 clarification_message = (
                     "I couldn't find relevant information about this topic in your uploaded documents.\n\n"
                     "Would you like me to:\n"
-                    "1. 🌐 Search the web for this information\n"
-                    "2. ⏸️  Wait while you upload a document with this information\n\n"
+                    "1.  Search the web for this information\n"
+                    "2.   Wait while you upload a document with this information\n\n"
                     "Please reply with 'search web' or 'upload document' (or just '1' or '2'):"
                 )
                 await state.update("tool_result", clarification_message, stream=True)
@@ -1060,10 +1060,10 @@ Answer:"""
             cached_result = self._get_from_cache(cache_key)
             
             if cached_result:
-                logger.info("⚡ Cache hit - instant web search response!")
+                logger.info(" Cache hit - instant web search response!")
                 await state.add_indicator(
                     StreamingIndicator.PROCESSING,
-                    "📦 Retrieved from cache (instant)"
+                    " Retrieved from cache (instant)"
                 )
                 await state.update("tool_result", cached_result, stream=True)
                 return state
@@ -1081,9 +1081,9 @@ Answer:"""
             question_lower = search_query.lower()
             
             print(f"\n{'='*70}")
-            print(f"🔍 INTELLIGENT WEB SEARCH (OPTIMIZED)")
+            print(f" INTELLIGENT WEB SEARCH (OPTIMIZED)")
             print(f"{'='*70}")
-            print(f"📝 Original question: '{search_query}'")
+            print(f" Original question: '{search_query}'")
             
             async def analyze_and_reformulate():
                 """Analyze query and reformulate if needed (parallel execution)."""
@@ -1100,20 +1100,20 @@ Answer:"""
                 
                 is_short_followup = len(search_query.split()) <= 6 and (has_pronoun or has_contextual_query)
                 
-                print(f"🎯 Context needed: {has_pronoun or has_contextual_query or is_short_followup}")
+                print(f" Context needed: {has_pronoun or has_contextual_query or is_short_followup}")
                 
                 final_query = search_query
                 if (has_pronoun or has_contextual_query or is_short_followup) and messages:
                     extracted_topic = self._extract_main_topic_from_conversation(messages)
                     
                     if extracted_topic:
-                        print(f"💡 Extracted topic: '{extracted_topic}'")
+                        print(f" Extracted topic: '{extracted_topic}'")
                         final_query = self._reformulate_query_intelligently(search_query, extracted_topic)
-                        print(f"✨ Reformulated query: '{final_query}'")
+                        print(f" Reformulated query: '{final_query}'")
                     else:
-                        print(f"⚠️  Could not extract topic from conversation")
+                        print(f"  Could not extract topic from conversation")
                 else:
-                    print(f"✅ Direct question - no reformulation needed")
+                    print(f" Direct question - no reformulation needed")
                 
                 return final_query
             
@@ -1133,7 +1133,7 @@ Answer:"""
                 detect_time_sensitivity()
             )
             analysis_time = (time.time() - start_analysis) * 1000
-            logger.info(f"⚡ Query analysis (parallel): {analysis_time:.1f}ms")
+            logger.info(f" Query analysis (parallel): {analysis_time:.1f}ms")
             
             if final_search_query != search_query:
                 await state.add_indicator(
@@ -1152,11 +1152,11 @@ Answer:"""
             search_start = time.time()
             raw_results = await asyncio.to_thread(tool.func, final_search_query)
             search_time = (time.time() - search_start) * 1000
-            logger.info(f"🔍 Web search execution: {search_time:.1f}ms")
+            logger.info(f" Web search execution: {search_time:.1f}ms")
             
             # Debug: Print raw search results to verify URLs are present
             print(f"\n{'='*70}")
-            print(f"📋 RAW SEARCH RESULTS (for debugging URL extraction):")
+            print(f" RAW SEARCH RESULTS (for debugging URL extraction):")
             print(f"{'='*70}")
             print(raw_results[:1000] if len(raw_results) > 1000 else raw_results)
             print(f"{'='*70}\n")
@@ -1364,7 +1364,7 @@ Answer:"""
                 artifact = result_data.get("artifact")
                 
                 if artifact:
-                    final_result = f"{content}\n\n📹 Video saved to: {artifact}"
+                    final_result = f"{content}\n\n Video saved to: {artifact}"
                     # Show video path
                     await state.update("video_path", artifact, stream=True)
                 else:

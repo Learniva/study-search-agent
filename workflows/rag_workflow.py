@@ -171,12 +171,12 @@ class RAGWorkflow:
         query = state["query"]
         query_lower = query.lower()
         
-        print("\n🤔 Analyzing if retrieval is needed...")
+        print("\n Analyzing if retrieval is needed...")
         
         # Fast path: Skip for obvious cases
         greetings = ["hi", "hello", "hey", "thanks", "thank you", "bye", "goodbye"]
         if query_lower.strip() in greetings:
-            print("   ⏭️  Skipping: Greeting detected")
+            print("     Skipping: Greeting detected")
             return {
                 **state,
                 "should_retrieve": False,
@@ -186,7 +186,7 @@ class RAGWorkflow:
         
         # Fast path: Simple calculations
         if len(query.split()) <= 4 and any(op in query for op in ['+', '-', '*', '/', '**']):
-            print("   ⏭️  Skipping: Simple calculation")
+            print("     Skipping: Simple calculation")
             return {
                 **state,
                 "should_retrieve": False,
@@ -203,7 +203,7 @@ class RAGWorkflow:
         has_doc_reference = any(indicator in query_lower for indicator in doc_indicators)
         
         if has_doc_reference:
-            print("   📚 Retrieving: Document reference detected")
+            print("    Retrieving: Document reference detected")
             return {
                 **state,
                 "should_retrieve": True,
@@ -237,9 +237,9 @@ Then on a new line, give a one-sentence reason."""
             should_retrieve = "RETRIEVE" in decision
             
             if should_retrieve:
-                print(f"   📚 Retrieving: {reason}")
+                print(f"    Retrieving: {reason}")
             else:
-                print(f"   ⏭️  Skipping: {reason}")
+                print(f"     Skipping: {reason}")
             
             return {
                 **state,
@@ -249,7 +249,7 @@ Then on a new line, give a one-sentence reason."""
             }
             
         except Exception as e:
-            print(f"   ⚠️  Error in decision: {e}, defaulting to SKIP")
+            print(f"     Error in decision: {e}, defaulting to SKIP")
             return {
                 **state,
                 "should_retrieve": False,
@@ -265,7 +265,7 @@ Then on a new line, give a one-sentence reason."""
         """
         query = state.get("refined_query") or state["query"]
         
-        print(f"\n📚 Retrieving context for: '{query}'")
+        print(f"\n Retrieving context for: '{query}'")
         
         start_time = time.time()
         
@@ -282,7 +282,7 @@ Then on a new line, give a one-sentence reason."""
                 
                 # Check if retrieval was successful
                 if "No relevant documents found" in result or "not available" in result:
-                    print("   ⚠️  No relevant documents found")
+                    print("     No relevant documents found")
                     return {
                         **state,
                         "retrieved_context": None,
@@ -291,7 +291,7 @@ Then on a new line, give a one-sentence reason."""
                         "errors": state.get("errors", []) + ["No documents found"]
                     }
                 
-                print(f"   ✅ Retrieved context ({len(result)} chars) in {retrieval_time_ms:.1f}ms")
+                print(f"    Retrieved context ({len(result)} chars) in {retrieval_time_ms:.1f}ms")
                 
                 return {
                     **state,
@@ -300,7 +300,7 @@ Then on a new line, give a one-sentence reason."""
                     "retrieval_time_ms": retrieval_time_ms
                 }
             else:
-                print("   ⚠️  Vector store tool not available")
+                print("     Vector store tool not available")
                 return {
                     **state,
                     "retrieved_context": None,
@@ -310,7 +310,7 @@ Then on a new line, give a one-sentence reason."""
                 }
                 
         except Exception as e:
-            print(f"   ❌ Retrieval error: {e}")
+            print(f"    Retrieval error: {e}")
             return {
                 **state,
                 "retrieved_context": None,
@@ -333,10 +333,10 @@ Then on a new line, give a one-sentence reason."""
         retrieved_context = state.get("retrieved_context")
         query = state.get("refined_query") or state["query"]
         
-        print("\n🔍 Grading retrieved context quality...")
+        print("\n Grading retrieved context quality...")
         
         if not retrieved_context:
-            print("   ⚠️  No context to grade")
+            print("     No context to grade")
             return {
                 **state,
                 "context_quality_score": 0.0,
@@ -416,7 +416,7 @@ VERDICT: <ACCEPT or REFINE>"""
             print(f"   Relevance: {relevance:.2f} | Completeness: {completeness:.2f} | Quality: {quality_score:.2f}")
             if issues:
                 print(f"   Issues: {', '.join(issues)}")
-            print(f"   Verdict: {'✅ Accept' if not refinement_needed else '🔄 Needs refinement'}")
+            print(f"   Verdict: {' Accept' if not refinement_needed else ' Needs refinement'}")
             
             # Log to L3 if quality is poor
             if DATABASE_AVAILABLE and overall_quality < 0.5:
@@ -435,11 +435,11 @@ VERDICT: <ACCEPT or REFINE>"""
                             error_category="low_quality_retrieval",
                             error_description=f"Retrieved context quality below threshold: {overall_quality:.2f}"
                         )
-                        print("   📝 Logged to L3 Learning Store")
+                        print("    Logged to L3 Learning Store")
                     finally:
                         db.close()
                 except Exception as e:
-                    print(f"   ⚠️  Failed to log to L3: {e}")
+                    print(f"     Failed to log to L3: {e}")
             
             return {
                 **state,
@@ -450,7 +450,7 @@ VERDICT: <ACCEPT or REFINE>"""
             }
             
         except Exception as e:
-            print(f"   ❌ Grading error: {e}")
+            print(f"    Grading error: {e}")
             # Default to accepting context on error
             return {
                 **state,
@@ -472,7 +472,7 @@ VERDICT: <ACCEPT or REFINE>"""
         issues = state.get("context_issues", [])
         iteration = state.get("refinement_iteration", 0)
         
-        print(f"\n🔄 Refining query (iteration {iteration + 1})...")
+        print(f"\n Refining query (iteration {iteration + 1})...")
         
         refinement_prompt = """The retrieved context was not satisfactory. Refine the query to improve results.
 
@@ -514,7 +514,7 @@ Respond with ONLY the refined query (no explanations)."""
             }
             
         except Exception as e:
-            print(f"   ❌ Refinement error: {e}")
+            print(f"    Refinement error: {e}")
             # Return original query on error
             return {
                 **state,
@@ -528,7 +528,7 @@ Respond with ONLY the refined query (no explanations)."""
         
         Logs the successful retrieval to RAG query logs.
         """
-        print("\n✅ Context accepted - high quality")
+        print("\n Context accepted - high quality")
         
         # Log to database
         if DATABASE_AVAILABLE:
@@ -550,7 +550,7 @@ Respond with ONLY the refined query (no explanations)."""
                 finally:
                     db.close()
             except Exception as e:
-                print(f"   ⚠️  Failed to log: {e}")
+                print(f"     Failed to log: {e}")
         
         return {
             **state,
@@ -564,7 +564,7 @@ Respond with ONLY the refined query (no explanations)."""
         
         Logs the decision to skip.
         """
-        print("\n⏭️  Retrieval skipped - not needed for this query")
+        print("\n  Retrieval skipped - not needed for this query")
         
         # Log to database
         if DATABASE_AVAILABLE:
@@ -584,7 +584,7 @@ Respond with ONLY the refined query (no explanations)."""
                 finally:
                     db.close()
             except Exception as e:
-                print(f"   ⚠️  Failed to log: {e}")
+                print(f"     Failed to log: {e}")
         
         return {
             **state,
@@ -640,7 +640,7 @@ Respond with ONLY the refined query (no explanations)."""
             result = self.app.invoke(initial_state)
             return result
         except Exception as e:
-            print(f"\n❌ RAG workflow error: {e}")
+            print(f"\n RAG workflow error: {e}")
             return {
                 **initial_state,
                 "errors": [f"Workflow error: {str(e)}"]
