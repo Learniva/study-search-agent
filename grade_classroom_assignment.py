@@ -31,7 +31,7 @@ def print_section(text):
 
 def main():
     """Main interactive grading workflow."""
-    print_banner("📚 Google Classroom Assignment Grading Tool")
+    print_banner(" Google Classroom Assignment Grading Tool")
     print("\nThis tool will help you:")
     print("  1. List your Google Classroom courses")
     print("  2. Fetch assignments from a course")
@@ -40,12 +40,12 @@ def main():
     print("  5. Grade the submission with AI")
     print("  6. Post the grade back to Google Classroom")
     
-    print("\n🔐 Initializing Grading Agent...")
+    print("\n Initializing Grading Agent...")
     try:
         agent = GradingAgent()
-        print("✅ Grading Agent initialized successfully!")
+        print(" Grading Agent initialized successfully!")
     except Exception as e:
-        print(f"❌ Error initializing agent: {e}")
+        print(f" Error initializing agent: {e}")
         return
     
     # Step 1: List courses
@@ -58,9 +58,9 @@ def main():
         
         # Try to parse the result to show courses nicely
         if "courses" in result.lower():
-            print("\n📝 Copy the course ID for the next step")
+            print("\n Copy the course ID for the next step")
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f" Error: {e}")
         return
     
     # Get course ID from user
@@ -68,7 +68,7 @@ def main():
     course_id = input("\nPaste the course ID you want to grade: ").strip()
     
     if not course_id:
-        print("❌ No course ID provided. Exiting.")
+        print(" No course ID provided. Exiting.")
         return
     
     # Step 2: List assignments
@@ -79,9 +79,9 @@ def main():
         result = agent.query(f"Fetch assignments from course {course_id}")
         print("\n" + result)
         
-        print("\n📝 Copy the assignment ID for the next step")
+        print("\n Copy the assignment ID for the next step")
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f" Error: {e}")
         return
     
     # Get assignment ID from user
@@ -89,7 +89,7 @@ def main():
     assignment_id = input("\nPaste the assignment ID you want to grade: ").strip()
     
     if not assignment_id:
-        print("❌ No assignment ID provided. Exiting.")
+        print(" No assignment ID provided. Exiting.")
         return
     
     # Step 3: List submissions
@@ -104,9 +104,9 @@ def main():
         result = agent.query(f"Fetch student submissions: {query}")
         print("\n" + result)
         
-        print("\n📝 Copy the submission ID for the next step")
+        print("\n Copy the submission ID for the next step")
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f" Error: {e}")
         return
     
     # Get submission ID from user
@@ -114,7 +114,7 @@ def main():
     submission_id = input("\nPaste the submission ID you want to grade: ").strip()
     
     if not submission_id:
-        print("❌ No submission ID provided. Exiting.")
+        print(" No submission ID provided. Exiting.")
         return
     
     # Step 4: Fetch submission content
@@ -133,11 +133,11 @@ def main():
         # Try to extract the actual content
         submission_content = None
         if "content" in result.lower():
-            print("\n✅ Successfully fetched submission content!")
+            print("\n Successfully fetched submission content!")
             # Save for grading
             submission_content = result
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f" Error: {e}")
         return
     
     # Step 5: Grade the submission
@@ -173,7 +173,7 @@ def main():
         print("=" * 80)
         
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f" Error: {e}")
         return
     
     # Step 6: Post grade to Google Classroom
@@ -187,7 +187,7 @@ def main():
         try:
             grade_value = float(grade_value)
         except ValueError:
-            print("❌ Invalid grade value. Must be a number.")
+            print(" Invalid grade value. Must be a number.")
             return
         
         # Extract feedback from result (simplified - in practice would parse more carefully)
@@ -195,7 +195,7 @@ def main():
         if not feedback:
             feedback = "Please see detailed feedback from the grading system."
         
-        print("\n📤 Posting grade to Google Classroom...")
+        print("\n Posting grade to Google Classroom...")
         
         try:
             query = json.dumps({
@@ -209,16 +209,16 @@ def main():
             print("\n" + result)
             
             if "success" in result.lower():
-                print("\n✅ Grade successfully posted to Google Classroom!")
+                print("\n Grade successfully posted to Google Classroom!")
             else:
-                print("\n⚠️  There may have been an issue posting the grade.")
+                print("\n  There may have been an issue posting the grade.")
         except Exception as e:
-            print(f"❌ Error posting grade: {e}")
+            print(f" Error posting grade: {e}")
             return
     else:
-        print("\n✅ Grade not posted. You can review it and post manually.")
+        print("\n Grade not posted. You can review it and post manually.")
     
-    print_banner("✅ Grading Complete!")
+    print_banner(" Grading Complete!")
     print("\nSummary:")
     print(f"  • Course ID: {course_id}")
     print(f"  • Assignment ID: {assignment_id}")
@@ -232,7 +232,7 @@ def main():
 
 def quick_grade():
     """Quick grade if you already have the IDs."""
-    print_banner("📚 Quick Grade Mode")
+    print_banner(" Quick Grade Mode")
     print("\nYou'll need:")
     print("  • Course ID")
     print("  • Assignment ID")
@@ -243,14 +243,14 @@ def quick_grade():
     submission_id = input("Submission ID: ").strip()
     
     if not all([course_id, assignment_id, submission_id]):
-        print("❌ All IDs are required!")
+        print(" All IDs are required!")
         return
     
-    print("\n🔐 Initializing Grading Agent...")
+    print("\n Initializing Grading Agent...")
     agent = GradingAgent()
     
     # Fetch and grade
-    print("\n📥 Fetching submission content...")
+    print("\n Fetching submission content...")
     query = json.dumps({
         "course_id": course_id,
         "assignment_id": assignment_id,
@@ -258,9 +258,9 @@ def quick_grade():
     })
     
     content_result = agent.query(f"Fetch submission content: {query}")
-    print("\n✅ Content fetched!")
+    print("\n Content fetched!")
     
-    print("\n📝 Grading submission...")
+    print("\n Grading submission...")
     grade_result = agent.query(f"Grade this submission:\n\n{content_result}")
     
     print("\n" + "=" * 80)
@@ -290,7 +290,7 @@ def quick_grade():
 if __name__ == "__main__":
     import sys
     
-    print("\n🎓 Welcome to the Google Classroom Grading Tool!")
+    print("\n Welcome to the Google Classroom Grading Tool!")
     print("\nSelect mode:")
     print("  1. Interactive mode (step-by-step)")
     print("  2. Quick mode (if you have IDs ready)")
@@ -303,6 +303,6 @@ if __name__ == "__main__":
     elif choice == "2":
         quick_grade()
     else:
-        print("\n👋 Goodbye!")
+        print("\n Goodbye!")
         sys.exit(0)
 

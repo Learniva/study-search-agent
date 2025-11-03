@@ -2,7 +2,7 @@
 
 **Date:** October 28, 2025  
 **Issue:** [Security QA] Bruteforce login → lockout invariant #7  
-**Status:** ✅ **VERIFIED - ALL ACCEPTANCE CRITERIA MET**
+**Status:**  **VERIFIED - ALL ACCEPTANCE CRITERIA MET**
 
 ---
 
@@ -11,12 +11,12 @@
 Successfully verified that the authentication system's account lockout mechanism effectively prevents brute-force attacks. All acceptance criteria have been met with comprehensive evidence collected.
 
 ### Key Findings
-- ✅ Lockout triggered after 5 failed login attempts
-- ✅ HTTP 423 (Locked) status returned during cooldown period
-- ✅ 5-minute cooldown enforced for Level 1 lockout
-- ✅ Security events properly logged
-- ✅ IP-based isolation verified
-- ✅ Progressive lockout thresholds functioning correctly
+-  Lockout triggered after 5 failed login attempts
+-  HTTP 423 (Locked) status returned during cooldown period
+-  5-minute cooldown enforced for Level 1 lockout
+-  Security events properly logged
+-  IP-based isolation verified
+-  Progressive lockout thresholds functioning correctly
 
 ---
 
@@ -39,7 +39,7 @@ Successfully verified that the authentication system's account lockout mechanism
 
 ## Acceptance Criteria Verification
 
-### ✅ Criterion 1: Lockout Triggered After Threshold Failures
+###  Criterion 1: Lockout Triggered After Threshold Failures
 
 **Expected:** Account lockout activates after 5 failed login attempts  
 **Result:** **PASS**
@@ -57,7 +57,7 @@ Attempt #5: HTTP 423 (Locked) - 5 failed attempts ← LOCKOUT TRIGGERED
 
 ---
 
-### ✅ Criterion 2: Subsequent Attempts Produce Correct Error/Status
+###  Criterion 2: Subsequent Attempts Produce Correct Error/Status
 
 **Expected:** All login attempts during lockout return HTTP 423 with appropriate error message  
 **Result:** **PASS**
@@ -88,17 +88,17 @@ Attempt #10: HTTP 423 (Locked)
 
 ---
 
-### ✅ Criterion 3: Cooldown Period Fully Enforced
+###  Criterion 3: Cooldown Period Fully Enforced
 
 **Expected:** 5-minute cooldown for Level 1 lockout, with progressive escalation  
 **Result:** **PASS**
 
 **Evidence:**
 ```
-Lockout Level 1: 5 attempts  → 5 minutes  ✓
-Lockout Level 2: 10 attempts → 10 minutes ✓
-Lockout Level 3: 15 attempts → 30 minutes ✓
-Lockout Level 4: 20 attempts → 60 minutes ✓
+Lockout Level 1: 5 attempts  → 5 minutes  
+Lockout Level 2: 10 attempts → 10 minutes 
+Lockout Level 3: 15 attempts → 30 minutes 
+Lockout Level 4: 20 attempts → 60 minutes 
 ```
 
 **Lockout Duration Calculation:**
@@ -115,7 +115,7 @@ LOCKOUT_DURATIONS_MINUTES = [5, 10, 30, 60]
 
 ---
 
-### ✅ Criterion 4: Logs Show Lockout Event
+###  Criterion 4: Logs Show Lockout Event
 
 **Expected:** Security events properly logged for audit trail  
 **Result:** **PASS**
@@ -135,11 +135,11 @@ LOCKOUT_DURATIONS_MINUTES = [5, 10, 30, 60]
 ### IP-Based Lockout Isolation
 **Test:** Verify that lockout is enforced per IP address
 
-**Result:** ✅ **PASS**
+**Result:**  **PASS**
 
 **Evidence:**
-- IP `192.168.1.201` locked after 5 attempts: **LOCKED** ✓
-- IP `192.168.1.202` with 0 attempts: **NOT LOCKED** ✓
+- IP `192.168.1.201` locked after 5 attempts: **LOCKED** 
+- IP `192.168.1.202` with 0 attempts: **NOT LOCKED** 
 
 This confirms that an attacker cannot bypass lockout by switching user accounts from the same IP.
 
@@ -174,7 +174,7 @@ This confirms that an attacker cannot bypass lockout by switching user accounts 
 5. **Logging:** All events captured for forensic analysis
 
 **Invariant Verification:**  
-✅ **Users CANNOT brute-force credentials without lockout kicking in**
+ **Users CANNOT brute-force credentials without lockout kicking in**
 
 ---
 
@@ -282,14 +282,14 @@ Content-Type: application/json
 
 ## Security Recommendations
 
-### ✅ Implemented
+###  Implemented
 1. Progressive lockout with exponential backoff
 2. IP-based tracking to prevent account enumeration
 3. Structured security logging for audit trails
 4. Clear user feedback with retry timing
 5. HTTP 423 (Locked) status code (RFC 4918)
 
-### 🔄 Future Enhancements (Optional)
+###  Future Enhancements (Optional)
 1. **Rate Limiting:** Add request rate limiting before lockout threshold
 2. **CAPTCHA Integration:** Challenge users after 2-3 failed attempts
 3. **Email Notifications:** Alert users of lockout events
@@ -301,13 +301,13 @@ Content-Type: application/json
 
 ## Compliance & Standards
 
-✅ **OWASP Authentication Cheatsheet**
+ **OWASP Authentication Cheatsheet**
 - Account lockout mechanism implemented
 - Lockout duration appropriate (5+ minutes)
 - Clear error messages without account enumeration
 - Logging for security monitoring
 
-✅ **NIST SP 800-63B**
+ **NIST SP 800-63B**
 - Rate limiting on authentication attempts
 - Account lockout after repeated failures
 - Appropriate lockout duration
@@ -326,16 +326,16 @@ python -m pytest tests/test_bruteforce_lockout_qa.py -v --tb=short
 ```
 
 ### Test Breakdown
-1. ✅ `test_bruteforce_attack_triggers_lockout` - Core lockout mechanism
-2. ✅ `test_progressive_lockout_levels` - Escalating thresholds
-3. ✅ `test_lockout_duration_verified` - Cooldown calculation
-4. ✅ `test_ip_based_lockout` - IP isolation
+1.  `test_bruteforce_attack_triggers_lockout` - Core lockout mechanism
+2.  `test_progressive_lockout_levels` - Escalating thresholds
+3.  `test_lockout_duration_verified` - Cooldown calculation
+4.  `test_ip_based_lockout` - IP isolation
 
 ---
 
 ## Conclusion
 
-**Security Invariant Status:** ✅ **VERIFIED**
+**Security Invariant Status:**  **VERIFIED**
 
 > **A user CANNOT brute-force credentials without lockout kicking in.**
 
@@ -360,4 +360,4 @@ The implementation follows security best practices and complies with industry st
 
 **QA Engineer:** GitHub Copilot  
 **Date:** October 28, 2025  
-**Status:** ✅ **APPROVED FOR PRODUCTION**
+**Status:**  **APPROVED FOR PRODUCTION**

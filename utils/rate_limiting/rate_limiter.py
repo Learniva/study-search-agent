@@ -73,7 +73,7 @@ class TokenBucketLimiter(RateLimiter):
                 encoding="utf-8",
                 decode_responses=True,
             )
-            logger.info("✅ Distributed rate limiting enabled")
+            logger.info(" Distributed rate limiting enabled")
         except Exception as e:
             logger.warning(f"Redis unavailable, using in-memory rate limiting: {e}")
     

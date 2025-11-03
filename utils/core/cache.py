@@ -67,7 +67,7 @@ class ResultCache:
             # Check if expired
             if datetime.now() < cached_data['expires']:
                 self.hits += 1
-                print(f"⚡ Cache HIT! (saved API calls) [{self.hits} hits, {self.misses} misses]")
+                print(f" Cache HIT! (saved API calls) [{self.hits} hits, {self.misses} misses]")
                 return cached_data['result']
             else:
                 # Expired, remove from cache

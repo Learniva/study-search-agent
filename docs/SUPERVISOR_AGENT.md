@@ -43,9 +43,9 @@ Request → [Enrich Context] → [Classify Intent] → [Check Access]
 
 | Role | Study Agent | Grading Agent |
 |------|-------------|---------------|
-| Student | ✅ | ❌ Denied |
-| Teacher | ✅ | ✅ |
-| Admin | ✅ | ✅ |
+| Student |  |  Denied |
+| Teacher |  |  |
+| Admin |  |  |
 
 ## Routing Performance
 
@@ -140,7 +140,7 @@ MAX_ROUTING_HISTORY=100
 **Access Denied:**
 ```python
 {
-    "answer": "⛔ Access Denied. Students cannot access Grading...",
+    "answer": " Access Denied. Students cannot access Grading...",
     "success": False
 }
 ```

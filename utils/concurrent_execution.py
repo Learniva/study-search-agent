@@ -90,7 +90,7 @@ class BackgroundTask:
         self.started_at = datetime.now()
         
         try:
-            logger.info(f"🚀 Starting background task: {self.task_id} ({self.task_type.value})")
+            logger.info(f" Starting background task: {self.task_id} ({self.task_type.value})")
             
             # Execute the task function
             self.result = await self.task_function(**self.task_args)
@@ -99,13 +99,13 @@ class BackgroundTask:
             self.completed_at = datetime.now()
             self.progress = 1.0
             
-            logger.info(f"✅ Background task completed: {self.task_id}")
+            logger.info(f" Background task completed: {self.task_id}")
             
             return self.result
             
         except asyncio.CancelledError:
             self.status = TaskStatus.CANCELLED
-            logger.warning(f"🛑 Background task cancelled: {self.task_id}")
+            logger.warning(f" Background task cancelled: {self.task_id}")
             raise
             
         except Exception as e:
@@ -113,7 +113,7 @@ class BackgroundTask:
             self.error = str(e)
             self.completed_at = datetime.now()
             
-            logger.error(f"❌ Background task failed: {self.task_id} - {str(e)}")
+            logger.error(f" Background task failed: {self.task_id} - {str(e)}")
             raise
     
     def update_progress(self, progress: float, message: str = ""):
@@ -318,7 +318,7 @@ class ConcurrentTaskManager:
         
         if not is_long:
             # Execute normally without background processing
-            logger.info(f"⚡ Task is short-running ({expected_duration:.1f}s), executing directly")
+            logger.info(f" Task is short-running ({expected_duration:.1f}s), executing directly")
             
             try:
                 start_time = datetime.now()
@@ -344,7 +344,7 @@ class ConcurrentTaskManager:
         
         else:
             # Execute in background
-            logger.info(f"🔄 Task is long-running ({expected_duration:.1f}s), forking execution")
+            logger.info(f" Task is long-running ({expected_duration:.1f}s), forking execution")
             
             # Create background task
             task_id = str(uuid.uuid4())
@@ -365,7 +365,7 @@ class ConcurrentTaskManager:
             # Yield immediate prompt to user
             yield {
                 "type": "fork",
-                "message": f"🎬 I'm generating the {task_type.value.replace('_', ' ')} in the background (this will take about {int(expected_duration)} seconds).",
+                "message": f" I'm generating the {task_type.value.replace('_', ' ')} in the background (this will take about {int(expected_duration)} seconds).",
                 "task_id": task_id,
                 "task_type": task_type.value,
                 "expected_duration": expected_duration
@@ -373,7 +373,7 @@ class ConcurrentTaskManager:
             
             yield {
                 "type": "prompt",
-                "message": "\n\n💡 **While I work on that, what else can I help you with?**\n\nYou can:\n- Ask me another question\n- Request a different task\n- Or just say 'wait' to see the animation when it's ready",
+                "message": "\n\n **While I work on that, what else can I help you with?**\n\nYou can:\n- Ask me another question\n- Request a different task\n- Or just say 'wait' to see the animation when it's ready",
                 "awaiting_input": True
             }
             
@@ -400,7 +400,7 @@ class ConcurrentTaskManager:
                 yield {
                     "type": "task_complete",
                     "task_id": task_id,
-                    "message": f"✅ **{task_type.value.replace('_', ' ').title()} is ready!**",
+                    "message": f" **{task_type.value.replace('_', ' ').title()} is ready!**",
                     "duration": duration
                 }
                 
@@ -420,7 +420,7 @@ class ConcurrentTaskManager:
                     "type": "task_failed",
                     "task_id": task_id,
                     "error": background_task.error,
-                    "message": f"❌ {task_type.value.replace('_', ' ').title()} failed: {background_task.error}"
+                    "message": f" {task_type.value.replace('_', ' ').title()} failed: {background_task.error}"
                 }
                 
                 # Move to completed tasks
@@ -446,7 +446,7 @@ class ConcurrentTaskManager:
         Yields:
             Streaming response chunks
         """
-        logger.info(f"🔀 Handling concurrent query while task {background_task_id} runs")
+        logger.info(f" Handling concurrent query while task {background_task_id} runs")
         
         # Stream the agent response
         if hasattr(agent, 'aquery_stream'):
@@ -477,7 +477,7 @@ class ConcurrentTaskManager:
         if task and task._task:
             task._task.cancel()
             task.status = TaskStatus.CANCELLED
-            logger.info(f"🛑 Cancelled task: {task_id}")
+            logger.info(f" Cancelled task: {task_id}")
             return True
         return False
     
@@ -504,10 +504,10 @@ class ConcurrentTaskManager:
             await asyncio.wait_for(task._task, timeout=timeout)
             return task.result
         except asyncio.TimeoutError:
-            logger.warning(f"⏱️ Timeout waiting for task: {task_id}")
+            logger.warning(f" Timeout waiting for task: {task_id}")
             return None
         except Exception as e:
-            logger.error(f"❌ Error waiting for task {task_id}: {e}")
+            logger.error(f" Error waiting for task {task_id}: {e}")
             return None
 
 

@@ -204,7 +204,7 @@ class TestOAuthBrokenCallback:
             call_args = mock_client.return_value.post.call_args
             assert call_args[0][0] == "https://oauth2.googleapis.com/token"
         
-        logger.info("✅ PASS: Invalid code token exchange failure handled")
+        logger.info(" PASS: Invalid code token exchange failure handled")
     
     # ========================================================================
     # 5. Tampered Token Response
@@ -234,7 +234,7 @@ class TestOAuthBrokenCallback:
             assert response.status_code in [400, 500, 307], \
                 "Should handle tampered token response"
         
-        logger.info("✅ PASS: Tampered token response handled")
+        logger.info(" PASS: Tampered token response handled")
     
     # ========================================================================
     # 6. User Info Endpoint Failure
@@ -271,7 +271,7 @@ class TestOAuthBrokenCallback:
             assert any("Failed to get user info" in record.message 
                       for record in caplog.records)
         
-        logger.info("✅ PASS: User info endpoint failure handled")
+        logger.info(" PASS: User info endpoint failure handled")
     
     # ========================================================================
     # 7. Malicious User Data Injection
@@ -312,7 +312,7 @@ class TestOAuthBrokenCallback:
                     # (in real implementation, validate User object doesn't contain raw malicious data)
                     pass
         
-        logger.info("✅ PASS: Malicious user data handled")
+        logger.info(" PASS: Malicious user data handled")
     
     # ========================================================================
     # 8. Network Error During Token Exchange
@@ -341,7 +341,7 @@ class TestOAuthBrokenCallback:
             assert any("OAuth error" in record.message or "HTTP request error" in record.message
                       for record in caplog.records)
         
-        logger.info("✅ PASS: Network error handled gracefully")
+        logger.info(" PASS: Network error handled gracefully")
     
     # ========================================================================
     # 9. Network Error During User Info Fetch
@@ -372,7 +372,7 @@ class TestOAuthBrokenCallback:
             assert response.status_code == 307, "Should redirect to error page"
             assert "/auth/error" in response.headers.get("location", "")
         
-        logger.info("✅ PASS: User info network error handled")
+        logger.info(" PASS: User info network error handled")
     
     # ========================================================================
     # 10. Missing Required User Info Fields
@@ -409,7 +409,7 @@ class TestOAuthBrokenCallback:
                 assert response.status_code in [307, 400, 500], \
                     "Should handle missing email field"
         
-        logger.info("✅ PASS: Missing user info fields handled")
+        logger.info(" PASS: Missing user info fields handled")
     
     # ========================================================================
     # 11. Replay Attack - Code Reuse
@@ -439,7 +439,7 @@ class TestOAuthBrokenCallback:
             assert "Failed to get access token" in data["detail"]
             assert "invalid_grant" in data["detail"]
         
-        logger.info("✅ PASS: Code replay attack prevented")
+        logger.info(" PASS: Code replay attack prevented")
     
     # ========================================================================
     # 12. Invalid Redirect URI Mismatch
@@ -469,7 +469,7 @@ class TestOAuthBrokenCallback:
             assert "Failed to get access token" in data["detail"]
             assert "redirect_uri_mismatch" in data["detail"]
         
-        logger.info("✅ PASS: Redirect URI mismatch rejected by Google")
+        logger.info(" PASS: Redirect URI mismatch rejected by Google")
     
     # ========================================================================
     # 13. Concurrent Callback Requests (Race Condition)
@@ -531,7 +531,7 @@ class TestOAuthBrokenCallback:
                 assert success_count >= 0 and failure_count >= 0, \
                     "Concurrent requests handled"
         
-        logger.info("✅ PASS: Concurrent callback requests handled")
+        logger.info(" PASS: Concurrent callback requests handled")
     
     # ========================================================================
     # 14. Session/Token Not Created on Failure
@@ -565,7 +565,7 @@ class TestOAuthBrokenCallback:
                 location = response.headers.get("location", "")
                 assert "token=" not in location, "No token should be in redirect"
         
-        logger.info("✅ PASS: No session created on failure")
+        logger.info(" PASS: No session created on failure")
     
     # ========================================================================
     # 15. Logging and Audit Trail
@@ -604,7 +604,7 @@ class TestOAuthBrokenCallback:
                     # Verify log level is appropriate
                     assert record.levelno >= logging.INFO
         
-        logger.info("✅ PASS: Comprehensive failure logging verified")
+        logger.info(" PASS: Comprehensive failure logging verified")
 
 
 # ============================================================================
@@ -659,7 +659,7 @@ class TestOAuthCallbackIntegration:
                         if "/auth/error" in location:
                             assert "token=" not in location
         
-        logger.info("✅ PASS: Attack chain prevention verified")
+        logger.info(" PASS: Attack chain prevention verified")
     
     @pytest.mark.asyncio
     async def test_oauth_state_parameter_future(self, client):
@@ -680,8 +680,8 @@ class TestOAuthCallbackIntegration:
         # 2. State is validated on callback
         # 3. Mismatched state is rejected
         
-        logger.warning("⚠️  RECOMMENDATION: Implement OAuth state parameter for CSRF protection")
-        logger.info("📋 Placeholder test for future state parameter validation")
+        logger.warning("  RECOMMENDATION: Implement OAuth state parameter for CSRF protection")
+        logger.info(" Placeholder test for future state parameter validation")
 
 
 # ============================================================================
@@ -691,27 +691,27 @@ class TestOAuthCallbackIntegration:
 def pytest_sessionfinish(session, exitstatus):
     """Generate security test summary report."""
     logger.info("\n" + "="*70)
-    logger.info("🔒 OAuth Broken Callback Security Test Summary")
+    logger.info(" OAuth Broken Callback Security Test Summary")
     logger.info("="*70)
     logger.info("Test Coverage:")
-    logger.info("  ✅ Missing/empty authorization code")
-    logger.info("  ✅ Malformed authorization code (injection attacks)")
-    logger.info("  ✅ Invalid code token exchange failure")
-    logger.info("  ✅ Tampered token response")
-    logger.info("  ✅ User info endpoint failure")
-    logger.info("  ✅ Malicious user data injection")
-    logger.info("  ✅ Network errors (token exchange & user info)")
-    logger.info("  ✅ Missing required user info fields")
-    logger.info("  ✅ Code replay attacks")
-    logger.info("  ✅ Redirect URI mismatch")
-    logger.info("  ✅ Concurrent callback requests")
-    logger.info("  ✅ No session on failure verification")
-    logger.info("  ✅ Comprehensive failure logging")
-    logger.info("  ✅ Attack chain prevention")
-    logger.info("\n🔐 Security Invariants Verified:")
-    logger.info("  ✓ Flow halts on invalid input")
-    logger.info("  ✓ No user session established on failure")
-    logger.info("  ✓ No tokens created on failure")
-    logger.info("  ✓ Failures logged for audit trail")
-    logger.info("  ✓ Graceful error handling (no crashes)")
+    logger.info("   Missing/empty authorization code")
+    logger.info("   Malformed authorization code (injection attacks)")
+    logger.info("   Invalid code token exchange failure")
+    logger.info("   Tampered token response")
+    logger.info("   User info endpoint failure")
+    logger.info("   Malicious user data injection")
+    logger.info("   Network errors (token exchange & user info)")
+    logger.info("   Missing required user info fields")
+    logger.info("   Code replay attacks")
+    logger.info("   Redirect URI mismatch")
+    logger.info("   Concurrent callback requests")
+    logger.info("   No session on failure verification")
+    logger.info("   Comprehensive failure logging")
+    logger.info("   Attack chain prevention")
+    logger.info("\n Security Invariants Verified:")
+    logger.info("   Flow halts on invalid input")
+    logger.info("   No user session established on failure")
+    logger.info("   No tokens created on failure")
+    logger.info("   Failures logged for audit trail")
+    logger.info("   Graceful error handling (no crashes)")
     logger.info("="*70 + "\n")

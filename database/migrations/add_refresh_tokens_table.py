@@ -33,7 +33,7 @@ async def create_refresh_tokens_table(session: AsyncSession) -> bool:
         True if successful
     """
     try:
-        logger.info("📋 Creating refresh_tokens table...")
+        logger.info(" Creating refresh_tokens table...")
         
         # Create table
         await session.execute(text("""
@@ -65,10 +65,10 @@ async def create_refresh_tokens_table(session: AsyncSession) -> bool:
             )
         """))
         
-        logger.info("✅ refresh_tokens table created")
+        logger.info(" refresh_tokens table created")
         
         # Create indexes for performance
-        logger.info("📋 Creating indexes...")
+        logger.info(" Creating indexes...")
         
         await session.execute(text("""
             CREATE INDEX IF NOT EXISTS idx_refresh_tokens_token 
@@ -105,15 +105,15 @@ async def create_refresh_tokens_table(session: AsyncSession) -> bool:
             ON refresh_tokens(user_id, is_revoked, expires_at)
         """))
         
-        logger.info("✅ All indexes created")
+        logger.info(" All indexes created")
         
         await session.commit()
         
-        logger.info("✅ Migration completed successfully!")
+        logger.info(" Migration completed successfully!")
         return True
         
     except Exception as e:
-        logger.error(f"❌ Migration failed: {e}")
+        logger.error(f" Migration failed: {e}")
         await session.rollback()
         return False
 
@@ -138,13 +138,13 @@ async def verify_table_exists(session: AsyncSession) -> bool:
         exists = result.scalar()
         return exists
     except Exception as e:
-        logger.error(f"❌ Error checking table existence: {e}")
+        logger.error(f" Error checking table existence: {e}")
         return False
 
 
 async def run_migration():
     """Run the migration."""
-    logger.info("🚀 Starting refresh tokens migration...")
+    logger.info(" Starting refresh tokens migration...")
     
     async for session in get_async_db():
         try:
@@ -152,7 +152,7 @@ async def run_migration():
             exists = await verify_table_exists(session)
             
             if exists:
-                logger.info("ℹ️  refresh_tokens table already exists, skipping migration")
+                logger.info("ℹ  refresh_tokens table already exists, skipping migration")
                 return True
             
             # Create table
@@ -162,16 +162,16 @@ async def run_migration():
                 # Verify creation
                 exists = await verify_table_exists(session)
                 if exists:
-                    logger.info("✅ Migration verified successfully!")
+                    logger.info(" Migration verified successfully!")
                     return True
                 else:
-                    logger.error("❌ Table creation verification failed")
+                    logger.error(" Table creation verification failed")
                     return False
             else:
                 return False
                 
         except Exception as e:
-            logger.error(f"❌ Migration error: {e}")
+            logger.error(f" Migration error: {e}")
             return False
         finally:
             await session.close()
@@ -179,16 +179,16 @@ async def run_migration():
 
 async def rollback_migration():
     """Rollback the migration (drop table)."""
-    logger.warning("⚠️  Rolling back refresh tokens migration...")
+    logger.warning("  Rolling back refresh tokens migration...")
     
     async for session in get_async_db():
         try:
             await session.execute(text("DROP TABLE IF EXISTS refresh_tokens CASCADE"))
             await session.commit()
-            logger.info("✅ Rollback completed successfully!")
+            logger.info(" Rollback completed successfully!")
             return True
         except Exception as e:
-            logger.error(f"❌ Rollback failed: {e}")
+            logger.error(f" Rollback failed: {e}")
             await session.rollback()
             return False
         finally:
@@ -208,7 +208,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     if args.rollback:
-        print("\n⚠️  WARNING: This will drop the refresh_tokens table and all data!")
+        print("\n  WARNING: This will drop the refresh_tokens table and all data!")
         confirm = input("Are you sure? (yes/no): ")
         if confirm.lower() == "yes":
             asyncio.run(rollback_migration())

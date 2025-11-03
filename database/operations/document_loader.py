@@ -63,7 +63,7 @@ def load_documents_from_directory(
     success_count = 0
     error_count = 0
     
-    logger.info(f"📚 Indexing {len(documents)} documents from {documents_dir}...")
+    logger.info(f" Indexing {len(documents)} documents from {documents_dir}...")
     
     for filename, filepath in documents:
         try:
@@ -76,7 +76,7 @@ def load_documents_from_directory(
                     ).first()
                     
                     if existing:
-                        logger.info(f"  ⏭️  Skipping {filename} (already indexed)")
+                        logger.info(f"    Skipping {filename} (already indexed)")
                         results.append({
                             "filename": filename,
                             "status": "skipped",
@@ -85,7 +85,7 @@ def load_documents_from_directory(
                         continue
             
             # Index the document
-            logger.info(f"  📄 Indexing {filename}...")
+            logger.info(f"   Indexing {filename}...")
             with get_db() as db:
                 result = processor.process_and_index_document_sync(
                     db=db,
@@ -97,16 +97,16 @@ def load_documents_from_directory(
                 
                 if result['success']:
                     success_count += 1
-                    logger.info(f"  ✅ {filename}: {result['vectors_stored']} vectors")
+                    logger.info(f"   {filename}: {result['vectors_stored']} vectors")
                 else:
                     error_count += 1
-                    logger.error(f"  ❌ {filename}: {result.get('error')}")
+                    logger.error(f"   {filename}: {result.get('error')}")
                 
                 results.append(result)
                 
         except Exception as e:
             error_count += 1
-            logger.error(f"  ❌ Error indexing {filename}: {e}")
+            logger.error(f"   Error indexing {filename}: {e}")
             results.append({
                 "filename": filename,
                 "status": "error",
@@ -115,11 +115,11 @@ def load_documents_from_directory(
     
     # Summary
     total = len(documents)
-    logger.info(f"\n📊 Indexing Summary:")
+    logger.info(f"\n Indexing Summary:")
     logger.info(f"  Total documents: {total}")
-    logger.info(f"  ✅ Successfully indexed: {success_count}")
-    logger.info(f"  ❌ Errors: {error_count}")
-    logger.info(f"  ⏭️  Skipped: {total - success_count - error_count}")
+    logger.info(f"   Successfully indexed: {success_count}")
+    logger.info(f"   Errors: {error_count}")
+    logger.info(f"    Skipped: {total - success_count - error_count}")
     
     return {
         "success": error_count == 0,

@@ -53,9 +53,9 @@ def _log_auth_event(
     }
     
     if status_code >= 400:
-        logger.warning(f"🔒 Auth Event: {json.dumps(log_entry)}")
+        logger.warning(f" Auth Event: {json.dumps(log_entry)}")
     else:
-        logger.debug(f"✅ Auth Event: {json.dumps(log_entry)}")
+        logger.debug(f" Auth Event: {json.dumps(log_entry)}")
 
 
 class AuthGatewayMiddleware(BaseHTTPMiddleware):

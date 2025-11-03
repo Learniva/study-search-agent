@@ -34,14 +34,14 @@ try:
     RUBRIC_RAG_AVAILABLE = True
 except ImportError:
     RUBRIC_RAG_AVAILABLE = False
-    print("⚠️  Rubric RAG not available")
+    print("  Rubric RAG not available")
 
 try:
     from tools.grading.submission_processor import process_submission
     FILE_PROCESSOR_AVAILABLE = True
 except ImportError:
     FILE_PROCESSOR_AVAILABLE = False
-    print("⚠️  File processor not available")
+    print("  File processor not available")
 
 
 # Initialize LLM for grading (using Gemini with grading-optimized settings: temp=0.3)
@@ -55,7 +55,7 @@ def ensure_rubric_store():
     """Lazy initialization of rubric store on first use."""
     global _rubric_store_initialized
     if RUBRIC_RAG_AVAILABLE and not _rubric_store_initialized:
-        print("🔄 Initializing Rubric RAG store...")
+        print(" Initializing Rubric RAG store...")
         initialize_rubric_store()
         _rubric_store_initialized = True
 
@@ -123,7 +123,7 @@ def grade_essay(essay_and_rubric: str) -> str:
     # Step 2: Retrieve rubric using RAG if not provided
     if not rubric and RUBRIC_RAG_AVAILABLE:
         ensure_rubric_store()  # Lazy load rubric store
-        print("🔍 Retrieving rubric using RAG...")
+        print(" Retrieving rubric using RAG...")
         
         # Detect assignment type from content
         content_lower = essay_and_rubric.lower()
@@ -139,9 +139,9 @@ def grade_essay(essay_and_rubric: str) -> str:
             rubric_data = json.loads(rubric_result)
             if rubric_data.get("success"):
                 rubric = rubric_data["rubric"]
-                print(f"✅ Retrieved rubric: {rubric.get('name', 'Unknown')}")
+                print(f" Retrieved rubric: {rubric.get('name', 'Unknown')}")
         except:
-            print("⚠️  Could not retrieve rubric, using defaults")
+            print("  Could not retrieve rubric, using defaults")
     
     # Parse rubric or use defaults
     if rubric:
@@ -183,30 +183,30 @@ def grade_essay(essay_and_rubric: str) -> str:
         # Format for display - GRADES FIRST
         output = f"""
 {'='*80}
-📊 GRADE SUMMARY
+ GRADE SUMMARY
 {'='*80}
 Score: {result_json.get('score', 0)}/{result_json.get('max_score', 100)} ({result_json.get('percentage', 0)}%)
 Grade: {result_json.get('grade_letter', 'N/A')}
 Confidence: {int(result_json.get('confidence', 0.8) * 100)}%
 {'='*80}
 
-📋 CRITERION BREAKDOWN:
+ CRITERION BREAKDOWN:
 """
         
         for criterion, details in result_json.get('criterion_scores', {}).items():
             output += f"\n{criterion.upper()}: {details.get('score', 'N/A')} points\n"
             output += f"  → {details.get('feedback', 'N/A')}\n"
         
-        output += f"\n✅ STRENGTHS:\n"
+        output += f"\n STRENGTHS:\n"
         output += "\n".join(f"  • {s}" for s in result_json.get('strengths', []))
         
-        output += f"\n\n⚠️  NEEDS IMPROVEMENT:\n"
+        output += f"\n\n  NEEDS IMPROVEMENT:\n"
         output += "\n".join(f"  • {imp}" for i, imp in enumerate(result_json.get('improvements', [])))
         
-        output += f"\n\n📝 OVERALL ASSESSMENT:\n{result_json.get('overall_feedback', 'See criterion breakdown above.')}"
+        output += f"\n\n OVERALL ASSESSMENT:\n{result_json.get('overall_feedback', 'See criterion breakdown above.')}"
         
         output += "\n\n" + "-"*80
-        output += "\n⚠️  AI-generated evaluation. Review and adjust as needed."
+        output += "\n  AI-generated evaluation. Review and adjust as needed."
         
         return output
         
@@ -268,7 +268,7 @@ def review_code(code_and_criteria: str) -> str:
         # If response is empty or too short, use fallback
         if not result_text or len(result_text.strip()) < 50:
             return f"""
-💻 CODE REVIEW RESULTS
+ CODE REVIEW RESULTS
 
 **Code Analyzed:**
 ```{language}
@@ -278,11 +278,11 @@ def review_code(code_and_criteria: str) -> str:
 Overall Score: 85/100
 Recommended Grade: B
 
-📊 EVALUATION:
+ EVALUATION:
 The code appears functional and follows basic programming principles. 
 For a detailed review, please try again or use the grade_file.py script.
 
-⚠️ Note: Simplified review generated. For full analysis, ensure code is properly formatted."""
+ Note: Simplified review generated. For full analysis, ensure code is properly formatted."""
         
         # Extract JSON with better handling
         if "```json" in result_text:
@@ -329,7 +329,7 @@ For a detailed review, please try again or use the grade_file.py script.
                 except json.JSONDecodeError as e2:
                     # Final fallback: return text-based review
                     return f"""
-💻 CODE REVIEW
+ CODE REVIEW
 
 **Code:**
 ```{language}
@@ -339,11 +339,11 @@ For a detailed review, please try again or use the grade_file.py script.
 **Analysis:**
 {result_text[:500]}...
 
-⚠️ Note: Could not parse structured review. Raw analysis provided above."""
+ Note: Could not parse structured review. Raw analysis provided above."""
             else:
                 # No JSON found, return text response
                 return f"""
-💻 CODE REVIEW
+ CODE REVIEW
 
 **Code:**
 ```{language}
@@ -353,28 +353,28 @@ For a detailed review, please try again or use the grade_file.py script.
 **Analysis:**
 {result_text[:500]}...
 
-⚠️ Note: Review generated in text format."""
+ Note: Review generated in text format."""
         
         # Verify result_json is a dict
         if not isinstance(result_json, dict):
             return f"""
-💻 CODE REVIEW
+ CODE REVIEW
 
 Parsed response was not a valid dictionary. Type: {type(result_json)}
 
-⚠️ Note: JSON parsing issue."""
+ Note: JSON parsing issue."""
         
         # Format output - GRADES FIRST
         output = f"""
 {'='*80}
-💻 CODE REVIEW GRADE
+ CODE REVIEW GRADE
 {'='*80}
 Overall Score: {result_json.get('overall_score', 0)}/100
 Recommended Grade: {result_json.get('grade_recommendation', 'N/A')}
 Confidence: {int(result_json.get('confidence', 0.85) * 100)}%
 {'='*80}
 
-📊 SCORE BREAKDOWN:
+ SCORE BREAKDOWN:
 
 CORRECTNESS: {result_json.get('correctness', {}).get('score', 0)}/100
   → {result_json.get('correctness', {}).get('feedback', 'N/A')}
@@ -382,7 +382,7 @@ CORRECTNESS: {result_json.get('correctness', {}).get('score', 0)}/100
         
         bugs = result_json.get('correctness', {}).get('bugs', [])
         if bugs:
-            output += "  🐛 Issues found:\n"
+            output += "   Issues found:\n"
             for bug in bugs[:3]:  # Limit to 3
                 output += f"    • {bug}\n"
         
@@ -392,17 +392,17 @@ CORRECTNESS: {result_json.get('correctness', {}).get('score', 0)}/100
         output += f"\nSTYLE & READABILITY: {result_json.get('style', {}).get('score', 0)}/100\n"
         output += f"  → {result_json.get('style', {}).get('feedback', 'N/A')}\n"
         
-        output += f"\n✅ STRENGTHS:\n"
+        output += f"\n STRENGTHS:\n"
         for item in result_json.get('what_works_well', [])[:3]:  # Limit to 3
             output += f"  • {item}\n"
         
-        output += f"\n⚠️  NEEDS IMPROVEMENT:\n"
+        output += f"\n  NEEDS IMPROVEMENT:\n"
         for item in result_json.get('needs_improvement', [])[:3]:  # Limit to 3
             output += f"  • {item}\n"
         
         suggested_fixes = result_json.get('suggested_fixes', [])
         if suggested_fixes:
-            output += f"\n🔧 TOP FIXES:\n"
+            output += f"\n TOP FIXES:\n"
             for fix in suggested_fixes[:3]:  # Limit to 3 most important
                 if isinstance(fix, dict):
                     line = fix.get('line', 'N/A')
@@ -415,7 +415,7 @@ CORRECTNESS: {result_json.get('correctness', {}).get('score', 0)}/100
                     output += f"  • {fix}\n"
         
         output += "\n\n" + "-"*80
-        output += "\n⚠️  AI-generated review. Verify technical accuracy and adjust as needed."
+        output += "\n  AI-generated review. Verify technical accuracy and adjust as needed."
         
         return output
         
@@ -492,7 +492,7 @@ def grade_mcq(answers_and_key: str) -> str:
     
     # Format output
     output = f"""
-✅ MCQ GRADING RESULTS
+ MCQ GRADING RESULTS
 
 Score: {score}/{max_score} ({percentage:.1f}%)
 Correct Answers: {correct_count}/{total_questions}
@@ -500,12 +500,12 @@ Correct Answers: {correct_count}/{total_questions}
 """
     
     if incorrect_questions:
-        output += f"❌ INCORRECT QUESTIONS ({len(incorrect_questions)}):\n"
+        output += f" INCORRECT QUESTIONS ({len(incorrect_questions)}):\n"
         for item in incorrect_questions:
             output += f"  Question {item['question']}: "
             output += f"You answered {item['student_answer']}, correct answer is {item['correct_answer']}\n"
     else:
-        output += "🎉 Perfect score! All answers correct!\n"
+        output += " Perfect score! All answers correct!\n"
     
     # Grade letter
     if percentage >= 90:
@@ -522,7 +522,7 @@ Correct Answers: {correct_count}/{total_questions}
     output += f"\nGrade: {grade}"
     
     if provide_explanations and incorrect_questions:
-        output += "\n\n💡 Need explanations? Ask me about specific questions!"
+        output += "\n\n Need explanations? Ask me about specific questions!"
     
     return output
 
@@ -590,12 +590,12 @@ def evaluate_with_rubric(submission_and_rubric: str) -> str:
         
         # Format output
         output = f"""
-📋 RUBRIC-BASED EVALUATION
+ RUBRIC-BASED EVALUATION
 
 Overall Score: {result_json.get('total_score', 0)}/{result_json.get('total_possible', 0)} ({result_json.get('percentage', 0)}%)
 Performance Level: {result_json.get('overall_level', 'N/A')}
 
-📊 CRITERION BREAKDOWN:
+ CRITERION BREAKDOWN:
 
 """
         
@@ -605,8 +605,8 @@ Performance Level: {result_json.get('overall_level', 'N/A')}
             output += f"  Score: {eval_item.get('points_earned', 0)}/{eval_item.get('points_possible', 0)}\n"
             output += f"  Evidence: {eval_item.get('evidence', 'N/A')}\n\n"
         
-        output += f"📝 SUMMARY:\n{result_json.get('summary', 'Evaluation complete.')}"
-        output += "\n\n⚠️  Note: AI-generated evaluation. Please review and adjust."
+        output += f" SUMMARY:\n{result_json.get('summary', 'Evaluation complete.')}"
+        output += "\n\n  Note: AI-generated evaluation. Please review and adjust."
         
         return output
         
@@ -669,13 +669,13 @@ def generate_feedback(content_and_context: str) -> str:
         output = ""
         if grade:
             output += f"\n{'='*80}\n"
-            output += f"📊 GRADE: {grade}%\n"
+            output += f" GRADE: {grade}%\n"
             output += f"{'='*80}\n\n"
         
-        output += f"💬 FEEDBACK\n\n{feedback}"
+        output += f" FEEDBACK\n\n{feedback}"
         
         output += "\n\n" + "-"*80
-        output += "\n⚠️  AI-generated feedback. Review and adjust as needed."
+        output += "\n  AI-generated feedback. Review and adjust as needed."
         
         return output
         
@@ -707,19 +707,19 @@ def get_all_grading_tools():
         from .lesson_planning import get_lesson_planning_tools
         lesson_tools = get_lesson_planning_tools()
         tools.extend(lesson_tools)
-        print(f"✅ Lesson Planning tools loaded ({len(lesson_tools)} tools)")
+        print(f" Lesson Planning tools loaded ({len(lesson_tools)} tools)")
     except ImportError as e:
-        print(f"⚠️  Lesson Planning tools not available: {e}")
+        print(f"  Lesson Planning tools not available: {e}")
     
     # Add RAG rubric retrieval tools if available
     if RUBRIC_RAG_AVAILABLE:
         tools.append(retrieve_rubric)
-        print("✅ RAG Rubric Retrieval tool loaded")
+        print(" RAG Rubric Retrieval tool loaded")
     
     # Add file processing tools if available
     if FILE_PROCESSOR_AVAILABLE:
         tools.append(process_submission)
-        print("✅ File Processor tool loaded")
+        print(" File Processor tool loaded")
     
     # Add Google Classroom tools if enabled
     try:
@@ -728,11 +728,11 @@ def get_all_grading_tools():
             from .classroom_tools import get_classroom_tools
             classroom_tools = get_classroom_tools()
             tools.extend(classroom_tools)
-            print(f"✅ Google Classroom tools loaded ({len(classroom_tools)} tools)")
+            print(f" Google Classroom tools loaded ({len(classroom_tools)} tools)")
     except ImportError as e:
-        print(f"⚠️  Google Classroom tools not available: {e}")
+        print(f"  Google Classroom tools not available: {e}")
     except Exception as e:
-        print(f"⚠️  Error loading Google Classroom tools: {e}")
+        print(f"  Error loading Google Classroom tools: {e}")
     
     return tools
 

@@ -65,12 +65,12 @@ class MultiTierCache:
                 encoding="utf-8",
                 decode_responses=True,
             )
-            print("✅ Redis L2 cache initialized")
+            print(" Redis L2 cache initialized")
         except ImportError:
-            print("⚠️  Redis not available, using L1 cache only")
+            print("  Redis not available, using L1 cache only")
             self.enable_redis = False
         except Exception as e:
-            print(f"⚠️  Redis connection failed: {e}")
+            print(f"  Redis connection failed: {e}")
             self.enable_redis = False
     
     def _make_key(self, key: str, prefix: str = "cache") -> str:
@@ -111,7 +111,7 @@ class MultiTierCache:
                     self.l2_hits += 1
                     return deserialized
             except Exception as e:
-                print(f"⚠️  Redis get failed: {e}")
+                print(f"  Redis get failed: {e}")
         
         # Cache miss
         self.misses += 1
@@ -147,7 +147,7 @@ class MultiTierCache:
                     serialized
                 )
             except Exception as e:
-                print(f"⚠️  Redis set failed: {e}")
+                print(f"  Redis set failed: {e}")
     
     async def delete(self, key: str) -> None:
         """Delete key from all cache tiers."""
@@ -161,7 +161,7 @@ class MultiTierCache:
             try:
                 await self.l2_cache.delete(cache_key)
             except Exception as e:
-                print(f"⚠️  Redis delete failed: {e}")
+                print(f"  Redis delete failed: {e}")
     
     async def clear(self) -> None:
         """Clear all cache tiers."""
@@ -175,7 +175,7 @@ class MultiTierCache:
                 if keys:
                     await self.l2_cache.delete(*keys)
             except Exception as e:
-                print(f"⚠️  Redis clear failed: {e}")
+                print(f"  Redis clear failed: {e}")
         
         # Reset stats
         self.hits = 0
@@ -210,7 +210,7 @@ class MultiTierCache:
         """
         for key, value in data.items():
             await self.set(key, value)
-        print(f"🔥 Cache warmed with {len(data)} entries")
+        print(f" Cache warmed with {len(data)} entries")
 
 
 # Cache decorator for async functions

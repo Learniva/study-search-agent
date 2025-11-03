@@ -55,7 +55,7 @@ OUTPUT FORMAT: Strict JSON with this structure:
 }}}}
 
 PLANNING PRINCIPLES:
-0. ⚠️ ALGORITHMIC CORRECTNESS (MOST CRITICAL!):
+0.  ALGORITHMIC CORRECTNESS (MOST CRITICAL!):
    - For algorithms: Plan MUST include EVERY SINGLE STEP to completion
    - Bubble Sort: Plan ALL passes needed to fully sort the array (not just 1 example)
    - Example: If array [4,2,3,1] needs 3 passes to sort, plan all 3 passes!
@@ -176,7 +176,7 @@ INPUT: A structured JSON plan with:
 
 OUTPUT: Complete, executable Python code using this ESSENTIAL BOILERPLATE:
 
-⚠️  CRITICAL - CLASS NAME REQUIREMENT:
+  CRITICAL - CLASS NAME REQUIREMENT:
 - The class MUST be named EXACTLY "ConceptAnimation" - NO OTHER NAME!
 - Do NOT use custom names like "NeuralNetworkAnimation", "CircleAnimation", etc.
 - The system validates for "class ConceptAnimation" - any other name will fail!
@@ -185,10 +185,10 @@ OUTPUT: Complete, executable Python code using this ESSENTIAL BOILERPLATE:
 from manim import *
 from manim_voiceover import VoiceoverScene
 from manim_voiceover.services.gtts import GTTSService
-import numpy as np  # ⚠️ REQUIRED for point comparisons!
-import random  # ⚠️ REQUIRED if using random.choice(), random.uniform(), etc.!
+import numpy as np  #  REQUIRED for point comparisons!
+import random  #  REQUIRED if using random.choice(), random.uniform(), etc.!
 
-class ConceptAnimation(VoiceoverScene):  # ⚠️ MUST BE "ConceptAnimation" - DO NOT CHANGE!
+class ConceptAnimation(VoiceoverScene):  #  MUST BE "ConceptAnimation" - DO NOT CHANGE!
     def construct(self):
         # Set up gTTS voice service (fast, reliable, 100+ languages)
         self.set_speech_service(GTTSService(lang="en", tld="com"))
@@ -215,19 +215,19 @@ CRITICAL CONSTRAINTS:
    - This causes: ValueError: Called Scene.play with no animations
    - ALWAYS check if list is non-empty before unpacking with *
    
-   ❌ WRONG - Will crash if boxes is empty:
+    WRONG - Will crash if boxes is empty:
    ```python
    self.play(*[box.animate.set_color(GREEN) for box in boxes])
    ```
    
-   ✅ CORRECT - Check before playing:
+    CORRECT - Check before playing:
    ```python
    animations = [box.animate.set_color(GREEN) for box in boxes]
    if animations:  # Check if list is not empty
        self.play(*animations)
    ```
    
-   ✅ CORRECT - Alternative with conditional:
+    CORRECT - Alternative with conditional:
    ```python
    if boxes:  # Check if boxes list has items
        self.play(*[box.animate.set_color(GREEN) for box in boxes])
@@ -250,13 +250,13 @@ CRITICAL CONSTRAINTS:
    - Colors returned by .get_color() are strings like "#00FF00"
    - np.allclose() expects numeric arrays, NOT strings
    
-   ❌ WRONG - Will crash with DTypePromotionError:
+    WRONG - Will crash with DTypePromotionError:
    ```python
    if not np.allclose(box.get_color(), COLOR_SORTED):  # CRASHES!
        # This tries to compare strings with np.allclose()
    ```
    
-   ✅ CORRECT - Use direct equality or convert to arrays:
+    CORRECT - Use direct equality or convert to arrays:
    ```python
    # Method 1: Track state instead of comparing colors
    sorted_indices = set()  # Track which boxes are sorted
@@ -266,7 +266,7 @@ CRITICAL CONSTRAINTS:
        box.animate.set_color(ACTIVE_COLOR)
    ```
    
-   ✅ CORRECT - Alternative with ManimColor:
+    CORRECT - Alternative with ManimColor:
    ```python
    # Method 2: Convert to RGB arrays for comparison
    from manim.utils.color import ManimColor
@@ -277,7 +277,7 @@ CRITICAL CONSTRAINTS:
        box.animate.set_color(SORTED_COLOR)
    ```
    
-   ✅ CORRECT - Best practice for algorithms:
+    CORRECT - Best practice for algorithms:
    ```python
    # Method 3: Use boolean flags/sets to track state
    # Instead of checking colors, track algorithm state explicitly
@@ -308,10 +308,10 @@ CRITICAL CONSTRAINTS:
    - Modern Manim uses .animate property for transformations
    - NEVER use ApplyMethod with .animate - this causes ValueError!
      * CORRECT: self.play(obj.animate.move_to(point))
-     * WRONG: ApplyMethod(obj.animate.move_to(point)) ❌ ValueError!
+     * WRONG: ApplyMethod(obj.animate.move_to(point))  ValueError!
    - If you want ApplyMethod, pass method reference WITHOUT .animate:
      * CORRECT: self.play(ApplyMethod(obj.move_to, point))
-     * WRONG: self.play(ApplyMethod(obj.animate.move_to, point)) ❌
+     * WRONG: self.play(ApplyMethod(obj.animate.move_to, point)) 
    - For particles/dots moving: Use .animate directly
      * CORRECT: self.play(dot.animate.move_to(target))
      * CORRECT: self.play(LaggedStart(*[d.animate.move_to(p) for d, p in zip(dots, positions)]))
@@ -319,55 +319,55 @@ CRITICAL CONSTRAINTS:
 
 1. TEXT STYLING PARAMETERS (CRITICAL ERROR - PREVENT TypeError!):
    
-   ⚠️  CRITICAL: t2c, t2s, t2w ONLY work with Text() objects, NEVER with MathTex()! ⚠️
+     CRITICAL: t2c, t2s, t2w ONLY work with Text() objects, NEVER with MathTex()! 
    
    FOR Text() OBJECTS ONLY:
    - t2c (text-to-color): Color parts of text with COLOR values
-     * CORRECT: Text("Hello World", t2c={{"Hello": BLUE}}) ✅
+     * CORRECT: Text("Hello World", t2c={{"Hello": BLUE}}) 
      * ONLY for Text(), NOT MathTex()!
    
    - t2s (text-to-style): Maps substring to STYLE DICTIONARIES (not colors!)
-     * CORRECT: Text("Hi", t2s={{"Hi": {{"color": BLUE, "font": "Arial"}}}}) ✅
-     * WRONG: Text("Hi", t2s={{"Hi": BLUE}}) ❌ AttributeError!
+     * CORRECT: Text("Hi", t2s={{"Hi": {{"color": BLUE, "font": "Arial"}}}}) 
+     * WRONG: Text("Hi", t2s={{"Hi": BLUE}})  AttributeError!
      * ONLY for Text(), NOT MathTex()!
    
    - t2w (text-to-weight): Maps substring to font weights
-     * CORRECT: Text("Bold", t2w={{"Bold": BOLD}}) ✅
+     * CORRECT: Text("Bold", t2w={{"Bold": BOLD}}) 
      * ONLY for Text(), NOT MathTex()!
    
    FOR MathTex() OBJECTS:
    - MathTex does NOT support t2c, t2s, or t2w parameters!
-   - NEVER use: MathTex("x^2", t2c={{"x": RED}}) ❌ TypeError!
-   - NEVER use: MathTex("y", t2s={{...}}) ❌ TypeError!
+   - NEVER use: MathTex("x^2", t2c={{"x": RED}})  TypeError!
+   - NEVER use: MathTex("y", t2s={{...}})  TypeError!
    - To color MathTex, use set_color_by_tex() AFTER creation:
      * CORRECT: 
        tex = MathTex("x", "+", "y")
        tex.set_color_by_tex("x", BLUE)
        tex.set_color_by_tex("y", RED)
    - Or just set a single color for entire MathTex:
-     * CORRECT: MathTex("x^2 + y^2", color=WHITE) ✅
+     * CORRECT: MathTex("x^2 + y^2", color=WHITE) 
    
    SUMMARY - AVOID TypeError:
-   - Text() objects: Can use t2c, t2s, t2w ✅
-   - MathTex() objects: NEVER use t2c, t2s, t2w ❌ Will cause TypeError!
+   - Text() objects: Can use t2c, t2s, t2w 
+   - MathTex() objects: NEVER use t2c, t2s, t2w  Will cause TypeError!
    - If you need colored math: Use set_color_by_tex() after creation
 
 2. OPACITY PARAMETERS (PREVENT ERRORS - VERY IMPORTANT!):
-   - NEVER EVER use 'opacity' parameter in ANY Manim constructor! ❌
+   - NEVER EVER use 'opacity' parameter in ANY Manim constructor! 
    - The parameter 'opacity' does NOT exist in Manim v0.19.0!
    
    For Lines (including arrows, vectors):
-     * CORRECT: Line(p1, p2, color=WHITE, stroke_opacity=0.5) ✅
-     * WRONG: Line(p1, p2, opacity=0.5) ❌ TypeError!
+     * CORRECT: Line(p1, p2, color=WHITE, stroke_opacity=0.5) 
+     * WRONG: Line(p1, p2, opacity=0.5)  TypeError!
    
    For Circles/Shapes (Circle, Square, Rectangle, Polygon, etc.):
-     * CORRECT: Circle(color=BLUE, fill_opacity=0.2, stroke_opacity=1.0) ✅  
-     * WRONG: Circle(opacity=0.5) ❌ TypeError!
+     * CORRECT: Circle(color=BLUE, fill_opacity=0.2, stroke_opacity=1.0)   
+     * WRONG: Circle(opacity=0.5)  TypeError!
    
    For Dots (CRITICAL - COMMON ERROR!):
-     * CORRECT: Dot(point, radius=0.08, color=BLUE, fill_opacity=0.8) ✅
-     * CORRECT: Dot(point, radius=0.08, color=RED, stroke_opacity=0) ✅ (no border)
-     * WRONG: Dot(point, radius=0.08, color=BLUE, opacity=0.8) ❌ TypeError!
+     * CORRECT: Dot(point, radius=0.08, color=BLUE, fill_opacity=0.8) 
+     * CORRECT: Dot(point, radius=0.08, color=RED, stroke_opacity=0)  (no border)
+     * WRONG: Dot(point, radius=0.08, color=BLUE, opacity=0.8)  TypeError!
      * Dot is a shape, so it uses fill_opacity and stroke_opacity
    
    For ALL Manim objects:
@@ -379,64 +379,64 @@ CRITICAL CONSTRAINTS:
    
    POSITIONING METHODS:
    - CORRECT centering methods:
-     * .move_to(ORIGIN) - Move object to origin (center of screen) ✅
-     * .center() - Center the object ✅
-     * .to_edge(UP/DOWN/LEFT/RIGHT, buff=0.5) - Move to screen edge ✅
-     * .shift(direction * distance) - Move by offset ✅
-     * .next_to(other, direction, buff=1.0) - Position relative to another object ✅
+     * .move_to(ORIGIN) - Move object to origin (center of screen) 
+     * .center() - Center the object 
+     * .to_edge(UP/DOWN/LEFT/RIGHT, buff=0.5) - Move to screen edge 
+     * .shift(direction * distance) - Move by offset 
+     * .next_to(other, direction, buff=1.0) - Position relative to another object 
    
    - ALIGNMENT (CRITICAL - COMMON ERROR!):
-     * .align_to(other, direction) - Align with another object ✅
-     * NEVER use 'about_edge' parameter - IT DOESN'T EXIST! ❌
-     * CORRECT: obj.align_to(other, UP) ✅
-     * WRONG: obj.align_to(other, UP, about_edge=ORIGIN) ❌ TypeError!
+     * .align_to(other, direction) - Align with another object 
+     * NEVER use 'about_edge' parameter - IT DOESN'T EXIST! 
+     * CORRECT: obj.align_to(other, UP) 
+     * WRONG: obj.align_to(other, UP, about_edge=ORIGIN)  TypeError!
      * The about_edge parameter was removed in modern Manim versions!
    
    - WRONG methods (will cause AttributeError):
-     * .to_center() - Does NOT exist! ❌ AttributeError!
-     * .center_on_screen() - Does NOT exist! ❌ AttributeError!
-     * Use .move_to(ORIGIN) instead ✅
+     * .to_center() - Does NOT exist!  AttributeError!
+     * .center_on_screen() - Does NOT exist!  AttributeError!
+     * Use .move_to(ORIGIN) instead 
    
    ROTATION (CRITICAL - PREVENT TypeError!):
    - Text() and other Manim objects do NOT accept 'rotation' parameter in constructor!
    - Use .rotate() METHOD after creation instead:
    
    ```python
-   # ✅ CORRECT - Rotate after creation
+   #  CORRECT - Rotate after creation
    label = Text("Y-axis", font_size=24, color=GRAY)
    label.rotate(90 * DEGREES)  # Rotate 90 degrees
    label.next_to(axes.y_axis, LEFT)
    
-   # ✅ CORRECT - Alternative with PI
+   #  CORRECT - Alternative with PI
    text = Text("Hello")
    text.rotate(PI / 2)  # Rotate 90 degrees (π/2 radians)
    
-   # ❌ WRONG - 'rotation' parameter doesn't exist!
+   #  WRONG - 'rotation' parameter doesn't exist!
    label = Text("Y-axis", font_size=24, color=GRAY, rotation=90)  # TypeError!
    
-   # ❌ WRONG - 'angle' parameter doesn't exist!
+   #  WRONG - 'angle' parameter doesn't exist!
    label = Text("Y-axis", angle=90)  # TypeError!
    ```
    
    CORRECT positioning examples:
    ```python
-   # ✅ CORRECT - Center at origin
+   #  CORRECT - Center at origin
    axes = Axes(...)
    axes.move_to(ORIGIN)  # Works!
    
-   # ✅ CORRECT - Alternative centering
+   #  CORRECT - Alternative centering
    circle = Circle()
    circle.center()  # Also works!
    
-   # ✅ CORRECT - Shift down from center
+   #  CORRECT - Shift down from center
    axes.move_to(ORIGIN).shift(DOWN * 0.5)
    
-   # ✅ CORRECT - Rotate text for axis labels
+   #  CORRECT - Rotate text for axis labels
    y_label = Text("Y-axis", font_size=28)
    y_label.rotate(90 * DEGREES)
    y_label.next_to(axes.y_axis, LEFT, buff=0.5)
    
-   # ❌ WRONG - Method doesn't exist
+   #  WRONG - Method doesn't exist
    axes.to_center()  # AttributeError!
    ```
 
@@ -465,7 +465,7 @@ CRITICAL CONSTRAINTS:
    - Title exception: Only titles use .to_edge(UP, buff=0.5)
    - Everything else: Center vertically and horizontally around ORIGIN
    
-   ⚠️  NEVER use .to_center() - it doesn't exist! Use .move_to(ORIGIN) instead!
+     NEVER use .to_center() - it doesn't exist! Use .move_to(ORIGIN) instead!
    
    Example of perfect centering:
    ```
@@ -604,7 +604,7 @@ CRITICAL CONSTRAINTS:
    ```
    with self.voiceover(text="Explanation") as vo:
        self.play(Create(obj))
-       self.wait(2)  # ❌ WRONG! This creates awkward long pauses!
+       self.wait(2)  #  WRONG! This creates awkward long pauses!
    ```
    
    TIMING RULES:
@@ -627,30 +627,30 @@ CRITICAL CONSTRAINTS:
    - Different objects should have different colors
    
    CRITICAL - COLOR AND OPACITY METHODS (PREVENT TypeError!):
-   - .set_color() ONLY accepts color value, NO opacity parameters! ❌
-   - NEVER use: obj.set_color(RED, fill_opacity=0.5) ❌ TypeError!
-   - NEVER use: obj.set_color(BLUE, stroke_opacity=0.8) ❌ TypeError!
+   - .set_color() ONLY accepts color value, NO opacity parameters! 
+   - NEVER use: obj.set_color(RED, fill_opacity=0.5)  TypeError!
+   - NEVER use: obj.set_color(BLUE, stroke_opacity=0.8)  TypeError!
    
    CORRECT ways to set color AND opacity:
    ```python
-   # ✅ Option 1: Set separately
+   #  Option 1: Set separately
    obj.set_color(RED)
    obj.set_fill(RED, opacity=0.5)
    obj.set_stroke(RED, opacity=0.8)
    
-   # ✅ Option 2: Use animate property
+   #  Option 2: Use animate property
    obj.animate.set_color(BLUE)  # Just color, no opacity
    obj.animate.set_fill(BLUE, opacity=0.3)
    
-   # ✅ Option 3: Set during creation (BEST)
+   #  Option 3: Set during creation (BEST)
    circle = Circle(color=RED, fill_opacity=0.5, stroke_opacity=1.0)
    ```
    
    WHEN CHANGING COLORS IN ANIMATIONS:
    - If you need to change BOTH color and opacity:
-     * CORRECT: obj.set_fill(color, opacity=value) ✅
-     * CORRECT: obj.set_stroke(color, opacity=value) ✅
-     * WRONG: obj.set_color(color, fill_opacity=value) ❌
+     * CORRECT: obj.set_fill(color, opacity=value) 
+     * CORRECT: obj.set_stroke(color, opacity=value) 
+     * WRONG: obj.set_color(color, fill_opacity=value) 
    
    BEAUTIFUL COLOR PALETTE (Use variety - mix and match!):
    IMPORTANT: Use HEX CODES or valid Manim color constants only!
@@ -671,27 +671,27 @@ CRITICAL CONSTRAINTS:
   * Pure White: WHITE - Always good for text, key shapes
   * Soft Gray: "#E0E0E0" or GRAY - Use for subtle elements, connections
   
- ⚠️  CRITICAL - FRAME_WIDTH / FRAME_HEIGHT DO NOT EXIST! (PREVENT NameError!):
- - Manim does NOT have FRAME_WIDTH or FRAME_HEIGHT constants! ❌
+   CRITICAL - FRAME_WIDTH / FRAME_HEIGHT DO NOT EXIST! (PREVENT NameError!):
+ - Manim does NOT have FRAME_WIDTH or FRAME_HEIGHT constants! 
  - These variables DO NOT EXIST and will cause NameError!
  - NEVER EVER use:
-   * obj.scale_to_fit_width(FRAME_WIDTH - 2) ❌ NameError!
-   * obj.set_width(FRAME_WIDTH * 0.8) ❌ NameError!
-   * obj.move_to([FRAME_WIDTH/2, 0, 0]) ❌ NameError!
-   * ANY reference to FRAME_WIDTH or FRAME_HEIGHT ❌
+   * obj.scale_to_fit_width(FRAME_WIDTH - 2)  NameError!
+   * obj.set_width(FRAME_WIDTH * 0.8)  NameError!
+   * obj.move_to([FRAME_WIDTH/2, 0, 0])  NameError!
+   * ANY reference to FRAME_WIDTH or FRAME_HEIGHT 
  - ALWAYS use NUMERIC VALUES instead:
-   * obj.scale_to_fit_width(12) ✅ (frame is ~14 units wide)
-   * obj.set_width(10) ✅
-   * obj.move_to([6, 0, 0]) ✅ (right side of frame)
+   * obj.scale_to_fit_width(12)  (frame is ~14 units wide)
+   * obj.set_width(10) 
+   * obj.move_to([6, 0, 0])  (right side of frame)
  - Frame dimensions: ~14 units wide × 8 units tall
  - Common widths: 12 (wide text), 10 (medium), 6 (half screen)
  - REMEMBER: No FRAME_WIDTH, no FRAME_HEIGHT - use numbers ONLY!
  
- ⚠️  CRITICAL - INVALID COLOR NAMES (WILL CAUSE NameError!):
+   CRITICAL - INVALID COLOR NAMES (WILL CAUSE NameError!):
   - NEVER use: LIGHT_RED, DARK_BLUE, LIGHT_BLUE, MINT_GREEN, LIGHT_GREEN, etc. (these don't exist!)
-  - ONLY these constants are valid: BLUE, RED, GREEN, YELLOW, ORANGE, PURPLE, PINK, TEAL, GOLD, WHITE, GRAY, BLACK ✅
-  - If unsure, ALWAYS use HEX CODES: color="#FF6B6B" (always works) ✅
-  - For mint/aqua color: Use "#64FFDA" or TEAL (NOT MINT_GREEN!) ✅
+  - ONLY these constants are valid: BLUE, RED, GREEN, YELLOW, ORANGE, PURPLE, PINK, TEAL, GOLD, WHITE, GRAY, BLACK 
+  - If unsure, ALWAYS use HEX CODES: color="#FF6B6B" (always works) 
+  - For mint/aqua color: Use "#64FFDA" or TEAL (NOT MINT_GREEN!) 
    
    COLOR USAGE STRATEGY (IMPORTANT FOR BEAUTY!):
    - Use 3-5 different colors per animation for visual richness
@@ -705,10 +705,10 @@ CRITICAL CONSTRAINTS:
    - Use color gradients conceptually (cool to warm, blue to green)
    
    WHAT TO EMBRACE:
-   ✅ Multiple colors (3-5 colors make beautiful animations!)
-   ✅ Color variety between layers/sections
-   ✅ Soft, semi-transparent fills (fill_opacity=0.1-0.2)
-   ✅ Vibrant strokes with moderate opacity
+    Multiple colors (3-5 colors make beautiful animations!)
+    Color variety between layers/sections
+    Soft, semi-transparent fills (fill_opacity=0.1-0.2)
+    Vibrant strokes with moderate opacity
    
    MODERN DESIGN PRINCIPLES:
    - Flat design with subtle depth (use fill_opacity, not gradients)
@@ -720,22 +720,22 @@ CRITICAL CONSTRAINTS:
    - Use LaggedStart for sequential reveals (very beautiful!)
    
    BEAUTIFUL EXAMPLES (Notice the color variety and valid color usage!):
-   * Vibrant circle: Circle(radius=1.5, color="#00D9FF", stroke_width=3, fill_opacity=0.15)  # Hex code ✅
-   * Elegant shape: Circle(radius=1.2, color=PURPLE, stroke_width=3, fill_opacity=0.2)  # Valid constant ✅
-   * Golden accent: Circle(radius=0.8, color=GOLD, stroke_width=4, fill_opacity=0.25)  # Valid constant ✅
-   * Coral shape: Circle(radius=0.7, color="#FF6B6B", stroke_width=3, fill_opacity=0.2)  # Use hex, not LIGHT_RED ✅
-   * Clean title: Text("Neural Networks", font_size=48, color=WHITE, weight=BOLD)  # Valid constant ✅
-   * Colorful label: Text("Input Layer", font_size=32, color="#00D9FF")  # Hex code ✅
-   * Beautiful box: RoundedRectangle(width=3, height=2, corner_radius=0.2, color=TEAL, fill_opacity=0.15, stroke_width=3)  # Valid ✅
-   * Soft connection: Line(p1, p2, color=GRAY, stroke_width=2, stroke_opacity=0.3)  # Valid constant ✅
-   * Colorful dot: Dot(point, radius=0.1, color="#64FFDA", fill_opacity=1.0, stroke_opacity=0)  # Hex code ✅
+   * Vibrant circle: Circle(radius=1.5, color="#00D9FF", stroke_width=3, fill_opacity=0.15)  # Hex code 
+   * Elegant shape: Circle(radius=1.2, color=PURPLE, stroke_width=3, fill_opacity=0.2)  # Valid constant 
+   * Golden accent: Circle(radius=0.8, color=GOLD, stroke_width=4, fill_opacity=0.25)  # Valid constant 
+   * Coral shape: Circle(radius=0.7, color="#FF6B6B", stroke_width=3, fill_opacity=0.2)  # Use hex, not LIGHT_RED 
+   * Clean title: Text("Neural Networks", font_size=48, color=WHITE, weight=BOLD)  # Valid constant 
+   * Colorful label: Text("Input Layer", font_size=32, color="#00D9FF")  # Hex code 
+   * Beautiful box: RoundedRectangle(width=3, height=2, corner_radius=0.2, color=TEAL, fill_opacity=0.15, stroke_width=3)  # Valid 
+   * Soft connection: Line(p1, p2, color=GRAY, stroke_width=2, stroke_opacity=0.3)  # Valid constant 
+   * Colorful dot: Dot(point, radius=0.1, color="#64FFDA", fill_opacity=1.0, stroke_opacity=0)  # Hex code 
    
   WRONG COLOR EXAMPLES (Will cause NameError!):
-  * Circle(color=LIGHT_RED)  # ❌ LIGHT_RED doesn't exist! Use "#FF6B6B" or RED instead
-  * Square(color=DARK_BLUE)  # ❌ DARK_BLUE doesn't exist! Use "#0D47A1" or BLUE instead
-  * Line(color=LIGHT_GRAY)  # ❌ LIGHT_GRAY doesn't exist! Use "#E0E0E0" or GRAY instead
-  * Dot(color=MINT_GREEN)  # ❌ MINT_GREEN doesn't exist! Use "#64FFDA" or TEAL instead
-  * Text(color=LIGHT_GREEN)  # ❌ LIGHT_GREEN doesn't exist! Use "#4CAF50" or GREEN instead
+  * Circle(color=LIGHT_RED)  #  LIGHT_RED doesn't exist! Use "#FF6B6B" or RED instead
+  * Square(color=DARK_BLUE)  #  DARK_BLUE doesn't exist! Use "#0D47A1" or BLUE instead
+  * Line(color=LIGHT_GRAY)  #  LIGHT_GRAY doesn't exist! Use "#E0E0E0" or GRAY instead
+  * Dot(color=MINT_GREEN)  #  MINT_GREEN doesn't exist! Use "#64FFDA" or TEAL instead
+  * Text(color=LIGHT_GREEN)  #  LIGHT_GREEN doesn't exist! Use "#4CAF50" or GREEN instead
    
    ANIMATION VARIETY FOR BEAUTY:
    - Use different animations: Create(), Write(), FadeIn(), GrowFromCenter()
@@ -748,22 +748,22 @@ CRITICAL CONSTRAINTS:
      * CRITICAL: 'weight' parameter ONLY works with Text(), NOT MathTex()!
      * weight=BOLD or weight=NORMAL (only for Text objects)
      
-     ⚠️  ACCESSING TEXT CONTENT - NEVER use .get_string() (DEPRECATED!):
-     * Text objects use .text attribute, NOT .get_string() method! ⚠️
+       ACCESSING TEXT CONTENT - NEVER use .get_string() (DEPRECATED!):
+     * Text objects use .text attribute, NOT .get_string() method! 
      * .get_string() is DEPRECATED and will cause AttributeError in modern Manim!
-     * CORRECT: text_mobj.text  # Returns the string content ✅
-     * WRONG: text_mobj.get_string()  # ❌ AttributeError or DeprecationWarning!
+     * CORRECT: text_mobj.text  # Returns the string content 
+     * WRONG: text_mobj.get_string()  #  AttributeError or DeprecationWarning!
      * Example usage:
-       - CORRECT: value = int(num_mobj.text) ✅
-       - WRONG: value = int(num_mobj.get_string()) ❌
+       - CORRECT: value = int(num_mobj.text) 
+       - WRONG: value = int(num_mobj.get_string()) 
      * When tracking array values: use text_mobj.text to read the number
      
-     ⚠️  ROTATION - NEVER use 'rotation' or 'angle' parameters (they don't exist!):
+       ROTATION - NEVER use 'rotation' or 'angle' parameters (they don't exist!):
      * Text() does NOT accept 'rotation' or 'angle' in constructor
      * Use .rotate() METHOD after creation:
-       - CORRECT: text = Text("Label"); text.rotate(90 * DEGREES) ✅
-       - WRONG: Text("Label", rotation=90) ❌ TypeError!
-       - WRONG: Text("Label", angle=90) ❌ TypeError!
+       - CORRECT: text = Text("Label"); text.rotate(90 * DEGREES) 
+       - WRONG: Text("Label", rotation=90)  TypeError!
+       - WRONG: Text("Label", angle=90)  TypeError!
      * For axis labels: Create text first, then rotate:
        y_label = Text("Y-axis")
        y_label.rotate(90 * DEGREES)
@@ -771,27 +771,27 @@ CRITICAL CONSTRAINTS:
      
      TEXT STYLING PARAMETERS - VERY IMPORTANT:
      * t2c (text-to-color): Maps substring to COLOR values
-       - CORRECT: Text("Hello World", t2c={{"Hello": BLUE, "World": RED}}) ✅
+       - CORRECT: Text("Hello World", t2c={{"Hello": BLUE, "World": RED}}) 
        - Maps specific words to specific colors
      * t2s (text-to-style): Maps substring to STYLE DICTIONARIES (not colors!)
-       - CORRECT: Text("Hello", t2s={{"Hello": {{"color": BLUE, "font": "Arial"}}}}) ✅
-       - WRONG: Text("Hello", t2s={{"Hello": BLUE}}) ❌ AttributeError!
-       - WRONG: Text("Hello", t2s={{"Hello": "#64FFDA"}}) ❌ AttributeError!
+       - CORRECT: Text("Hello", t2s={{"Hello": {{"color": BLUE, "font": "Arial"}}}}) 
+       - WRONG: Text("Hello", t2s={{"Hello": BLUE}})  AttributeError!
+       - WRONG: Text("Hello", t2s={{"Hello": "#64FFDA"}})  AttributeError!
        - If you want to color text, use t2c NOT t2s!
      * t2w (text-to-weight): Maps substring to font weights
-       - CORRECT: Text("Bold text", t2w={{"Bold": BOLD}}) ✅
+       - CORRECT: Text("Bold text", t2w={{"Bold": BOLD}}) 
      * BEST PRACTICE: Use t2c for coloring parts of text, avoid t2s unless you need complex styling
    
    - Math: MathTex("x^2 + y^2 = r^2", font_size=48, color=WHITE)
      
      CRITICAL - MathTex RESTRICTIONS:
      * MathTex does NOT accept 'weight' parameter!
-       - NEVER use: MathTex(..., weight=BOLD) ❌ TypeError!
+       - NEVER use: MathTex(..., weight=BOLD)  TypeError!
      
      * MathTex does NOT accept t2c, t2s, or t2w parameters!
-       - NEVER use: MathTex("x^2", t2c={{"x": RED}}) ❌ TypeError!
-       - NEVER use: MathTex("y", t2s={{...}}) ❌ TypeError!
-       - NEVER use: MathTex("a", t2w={{...}}) ❌ TypeError!
+       - NEVER use: MathTex("x^2", t2c={{"x": RED}})  TypeError!
+       - NEVER use: MathTex("y", t2s={{...}})  TypeError!
+       - NEVER use: MathTex("a", t2w={{...}})  TypeError!
        - These parameters ONLY work with Text(), NOT MathTex()!
      
      * To color parts of MathTex, use set_color_by_tex() AFTER creation:
@@ -801,35 +801,35 @@ CRITICAL CONSTRAINTS:
          tex.set_color_by_tex("y", RED)
      
      * Or use single color for entire MathTex:
-       - CORRECT: MathTex("x^2 + y^2", color=WHITE, font_size=48) ✅
+       - CORRECT: MathTex("x^2 + y^2", color=WHITE, font_size=48) 
      
      * MathTex accepts: font_size, color (single color only)
-     * Use font_size only: MathTex("x^2", font_size=48, color=WHITE) ✅
+     * Use font_size only: MathTex("x^2", font_size=48, color=WHITE) 
    
    - IMPORTANT: If LaTeX is not available, use Text() instead of MathTex()
    - For simple variables, Text("a") works as well as MathTex("a")
    - Shapes: Circle(), Square(), Polygon(p1, p2, p3, ...)
    - Lines: Line(start_point, end_point, color=WHITE, stroke_width=2, stroke_opacity=0.5)
      * CRITICAL: Use 'stroke_opacity' NOT 'opacity' for lines!
-     * Example: Line(p1, p2, color=WHITE, stroke_opacity=0.5) ✅
-     * NEVER use: Line(p1, p2, opacity=0.5) ❌ TypeError!
+     * Example: Line(p1, p2, color=WHITE, stroke_opacity=0.5) 
+     * NEVER use: Line(p1, p2, opacity=0.5)  TypeError!
    
    CRITICAL - SIZING OBJECTS:
-   - NEVER use FRAME_WIDTH or FRAME_HEIGHT (these don't exist!) ❌
-   - Use numeric values: obj.set_width(10) or obj.scale(0.8) ✅
+   - NEVER use FRAME_WIDTH or FRAME_HEIGHT (these don't exist!) 
+   - Use numeric values: obj.set_width(10) or obj.scale(0.8) 
    - Frame is ~14 units wide × 8 units tall
-   - To fit text: text.set_width(12) or text.scale_to_fit_width(12) ✅
+   - To fit text: text.set_width(12) or text.scale_to_fit_width(12) 
   - DASHED Lines: DashedLine(start_point, end_point, color=GRAY, stroke_width=2)
     * CRITICAL: Use DashedLine class, NOT dash_length parameter!
     * Example: DashedLine(point1, point2, color=GRAY)
-    * NEVER use: Line(..., dash_length=0.2) ❌ This will cause errors!
+    * NEVER use: Line(..., dash_length=0.2)  This will cause errors!
   
   CRITICAL - NUMPY/POINT COMPARISONS (PREVENT AttributeError!):
   - Points returned by .get_start(), .get_end(), .get_center() are numpy arrays
-  - Numpy arrays DO NOT have .allclose() as a method! ❌
+  - Numpy arrays DO NOT have .allclose() as a method! 
   - To compare points, use np.allclose() FUNCTION:
-    * CORRECT: if np.allclose(line.get_start(), point): ✅
-    * WRONG: if line.get_start().allclose(point): ❌ AttributeError!
+    * CORRECT: if np.allclose(line.get_start(), point): 
+    * WRONG: if line.get_start().allclose(point):  AttributeError!
   - You MUST import numpy at the top: import numpy as np
   - Other numpy functions: np.array(), np.dot(), np.linalg.norm()
   - NEVER call numpy functions as methods on arrays!
@@ -841,16 +841,16 @@ CRITICAL CONSTRAINTS:
     * random.choice([color1, color2, color3]) - Pick random color for variety
     * random.uniform(0.5, 1.5) - Random float for animation timing
     * random.randint(1, 10) - Random integer for data values
-  - ALWAYS import random if you use ANY random.* functions! ⚠️
+  - ALWAYS import random if you use ANY random.* functions! 
   
   CRITICAL - CODE DISPLAY (PREVENT TypeError!):
-  - NEVER use Code() class to display code snippets! ❌
+  - NEVER use Code() class to display code snippets! 
   - The Code class in modern Manim has a completely different API than expected!
   - Code(code="...") will cause TypeError: Code.__init__() got an unexpected keyword argument 'code'
   
   If you need to show code in an animation:
-  - ❌ WRONG: Code(code=code_string, ...) - Will crash!
-  - ✅ CORRECT: Use Text() with monospace font instead:
+  -  WRONG: Code(code=code_string, ...) - Will crash!
+  -  CORRECT: Use Text() with monospace font instead:
     ```python
     code_text = Text(
         'circle = Circle()\\nself.play(Create(circle))',
@@ -859,7 +859,7 @@ CRITICAL CONSTRAINTS:
         color=WHITE
     )
     ```
-  - ✅ ALTERNATIVE: Use Paragraph() for multi-line code:
+  -  ALTERNATIVE: Use Paragraph() for multi-line code:
     ```python
     from manim import Paragraph
     code_lines = [
@@ -886,8 +886,8 @@ CRITICAL CONSTRAINTS:
    - Right Angle: RightAngle(line1, line2, length=0.3) - REQUIRES TWO LINE OBJECTS, NOT POINTS
    - Dots: Dot(point, radius=0.05, color=BLUE)  # Use professional colors!
      * CRITICAL: Dots use 'fill_opacity' and 'stroke_opacity', NOT 'opacity'!
-     * CORRECT: Dot(point, radius=0.08, color=BLUE, fill_opacity=0.8) ✅
-     * WRONG: Dot(point, radius=0.08, color=BLUE, opacity=0.8) ❌ TypeError!
+     * CORRECT: Dot(point, radius=0.08, color=BLUE, fill_opacity=0.8) 
+     * WRONG: Dot(point, radius=0.08, color=BLUE, opacity=0.8)  TypeError!
      * Example: Dot(ORIGIN, radius=0.1, color="#00D9FF", fill_opacity=1.0, stroke_opacity=0)
 
 10. ANIMATIONS: Use smooth, clear animations
@@ -901,22 +901,22 @@ CRITICAL CONSTRAINTS:
    - GrowFromPoint(object, point) - grow from specific point
    
    CRITICAL - INVALID TRANSFORMATION METHODS (PREVENT NameError!):
-   - TransformFrom() DOES NOT EXIST! ❌
-   - TransformTo() DOES NOT EXIST! ❌
+   - TransformFrom() DOES NOT EXIST! 
+   - TransformTo() DOES NOT EXIST! 
    - NEVER use these! They will cause NameError!
    
    CORRECT transformation methods:
-   - Transform(source, target) ✅ - morphs source into target
-   - ReplacementTransform(source, target) ✅ - replaces source with target
-   - FadeTransform(source, target) ✅ - fades while transforming
-   - self.play(source.animate.move_to(position)) ✅ - moves object
+   - Transform(source, target)  - morphs source into target
+   - ReplacementTransform(source, target)  - replaces source with target
+   - FadeTransform(source, target)  - fades while transforming
+   - self.play(source.animate.move_to(position))  - moves object
    
    Example - animating text appearing at position:
    ```python
-   # ❌ WRONG (TransformFrom doesn't exist!):
+   #  WRONG (TransformFrom doesn't exist!):
    self.play(TransformFrom(text, position))  # NameError!
    
-   # ✅ CORRECT options:
+   #  CORRECT options:
    # Option 1: Create text at position then fade in
    text.move_to(position)
    self.play(FadeIn(text))
@@ -929,41 +929,41 @@ CRITICAL CONSTRAINTS:
    ```
    
    CRITICAL - NEVER MIX .animate WITH ANIMATION CLASSES! (PREVENT TypeError!):
-   - You CANNOT use .animate inside Write(), Create(), FadeIn(), etc.! ❌
+   - You CANNOT use .animate inside Write(), Create(), FadeIn(), etc.! 
    - This causes: TypeError: object of type '_AnimationBuilder' has no len()
    
    WRONG examples (will crash):
    ```python
-   self.play(Write(obj.animate.move_to(point)))      # ❌ TypeError!
-   self.play(Create(obj.animate.scale(2)))           # ❌ TypeError!
-   self.play(FadeIn(obj.animate.shift(UP)))          # ❌ TypeError!
+   self.play(Write(obj.animate.move_to(point)))      #  TypeError!
+   self.play(Create(obj.animate.scale(2)))           #  TypeError!
+   self.play(FadeIn(obj.animate.shift(UP)))          #  TypeError!
    ```
    
    CORRECT alternatives:
    ```python
    # Option 1: Create/Write first, THEN animate
    self.play(Write(obj))
-   self.play(obj.animate.move_to(point))             # ✅ Correct!
+   self.play(obj.animate.move_to(point))             #  Correct!
    
    # Option 2: Just use .animate (no Write/Create)
-   self.play(obj.animate.move_to(point))             # ✅ Correct!
+   self.play(obj.animate.move_to(point))             #  Correct!
    
    # Option 3: Create at position first
    obj.move_to(point)
-   self.play(Write(obj))                             # ✅ Correct!
+   self.play(Write(obj))                             #  Correct!
    ```
    
    CRITICAL - ANIMATION SYNTAX (Common Error!):
    - Modern Manim uses .animate property for transformations
    - CORRECT: self.play(obj.animate.move_to(point))
-   - WRONG: ApplyMethod(obj.animate.move_to(point)) ❌ ValueError!
+   - WRONG: ApplyMethod(obj.animate.move_to(point))  ValueError!
    - If using ApplyMethod, pass method reference (not .animate):
      * CORRECT: ApplyMethod(obj.move_to, point)
-     * WRONG: ApplyMethod(obj.animate.move_to(point)) ❌
+     * WRONG: ApplyMethod(obj.animate.move_to(point)) 
    - For multiple animations: self.play(obj1.animate.move_to(p1), obj2.animate.scale(2))
    - For moving particles/dots:
      * CORRECT: self.play(LaggedStart(*[dot.animate.move_to(pos) for dot, pos in zip(dots, positions)]))
-     * WRONG: self.play(LaggedStart(*[ApplyMethod(dot.animate.move_to, pos) ...]))  ❌
+     * WRONG: self.play(LaggedStart(*[ApplyMethod(dot.animate.move_to, pos) ...]))  
    - DON'T MIX .animate with ApplyMethod - use one or the other!
    - PREFER .animate syntax (simpler, more modern)
 
@@ -978,7 +978,7 @@ from manim import *
 import numpy as np
 import random
 
-class ConceptAnimation(Scene):  # ⚠️ ALWAYS use "ConceptAnimation" as class name!
+class ConceptAnimation(Scene):  #  ALWAYS use "ConceptAnimation" as class name!
     def construct(self):
         # Title
         title = Text("Quadratic Formula", font_size=48)
@@ -1013,7 +1013,7 @@ from manim_voiceover.services.gtts import GTTSService
 import numpy as np
 import random
 
-class ConceptAnimation(VoiceoverScene):  # ⚠️ ALWAYS "ConceptAnimation" - NO custom names!
+class ConceptAnimation(VoiceoverScene):  #  ALWAYS "ConceptAnimation" - NO custom names!
     def construct(self):
         # Set up gTTS voice service (fast and reliable!)
         self.set_speech_service(GTTSService(lang="en", tld="com"))
@@ -1441,7 +1441,7 @@ class ManimAnimationManager:
         # Document retrieval is now handled via RAG tools (L2 Vector Store)
         # Animations are generated without direct document context
         self.doc_retriever = None
-        print("ℹ️  Manim animations are generated from query context only")
+        print("ℹ  Manim animations are generated from query context only")
     
     def _check_manim_installation(self) -> bool:
         """
@@ -1463,12 +1463,12 @@ class ManimAnimationManager:
                 timeout=5
             )
             if result.returncode == 0:
-                print(f"✓ Manim is installed: {result.stdout.strip()}")
+                print(f" Manim is installed: {result.stdout.strip()}")
                 return True
         except (subprocess.TimeoutExpired, FileNotFoundError):
             pass
         
-        print("⚠️  Manim not found. Please install with: pip install manim")
+        print("  Manim not found. Please install with: pip install manim")
         return False
     
     def _get_document_context(self, topic: str) -> str:
@@ -1492,7 +1492,7 @@ class ManimAnimationManager:
             ])
             return context
         except Exception as e:
-            print(f"⚠️  Could not retrieve document context: {e}")
+            print(f"  Could not retrieve document context: {e}")
             return ""
     
     def generate_animation_code(self, topic: str, custom_context: str = "") -> str:
@@ -1513,13 +1513,13 @@ class ManimAnimationManager:
         """
         try:
             print(f"\n{'='*60}")
-            print(f"🎬 Multi-Stage Animation Pipeline for: '{topic}'")
+            print(f" Multi-Stage Animation Pipeline for: '{topic}'")
             print(f"{'='*60}\n")
             
             # ============================================================
             # STAGE 0: RAG (Context) - Retrieve source text
             # ============================================================
-            print("📚 STAGE 0: RAG (Context) - Retrieving source material...")
+            print(" STAGE 0: RAG (Context) - Retrieving source material...")
             doc_context = self._get_document_context(topic)
             
             # Combine contexts
@@ -1530,12 +1530,12 @@ class ManimAnimationManager:
             if not full_context:
                 full_context = "Create an educational animation explaining this concept clearly and visually."
             
-            print(f"✓ Retrieved context ({len(full_context)} characters)")
+            print(f" Retrieved context ({len(full_context)} characters)")
             
             # ============================================================
             # STAGE 1: PLANNING AGENT - "Scene Designer" Persona
             # ============================================================
-            print("\n📋 STAGE 1: Planning Agent (Scene Designer)")
+            print("\n STAGE 1: Planning Agent (Scene Designer)")
             print("   Creating structured JSON plan...")
             
             planning_chain = (
@@ -1552,17 +1552,17 @@ class ManimAnimationManager:
             # Try to parse as JSON to validate structure
             try:
                 plan_json = json.loads(plan_output)
-                print(f"✓ Plan created:")
+                print(f" Plan created:")
                 print(f"   - Main Object: {plan_json.get('main_object', 'N/A')}")
                 print(f"   - Key Steps: {len(plan_json.get('key_steps', []))} steps")
                 print(f"   - Text Elements: {len(plan_json.get('text_to_display', []))}")
             except json.JSONDecodeError:
-                print("⚠️  Plan generated (not strict JSON, but usable)")
+                print("  Plan generated (not strict JSON, but usable)")
             
             # ============================================================
             # STAGE 2: CODE GENERATION AGENT - "Manim Python Coder" Persona
             # ============================================================
-            print("\n🐍 STAGE 2: Code Generation Agent (Manim Python Coder)")
+            print("\n STAGE 2: Code Generation Agent (Manim Python Coder)")
             print("   Converting structured plan to Python code...")
             
             code_gen_chain = (
@@ -1578,9 +1578,9 @@ class ManimAnimationManager:
             # Extract clean Python code
             clean_code = extract_python_code(code)
             
-            print(f"✓ Generated {len(clean_code)} characters of Python code")
+            print(f" Generated {len(clean_code)} characters of Python code")
             print(f"\n{'='*60}")
-            print("✅ Multi-Stage Pipeline Complete!")
+            print(" Multi-Stage Pipeline Complete!")
             print(f"{'='*60}\n")
             
             return clean_code
@@ -1620,7 +1620,7 @@ class ManimAnimationManager:
             # Validate code before rendering
             validation_error = self._validate_animation_code(code)
             if validation_error:
-                print(f"⚠️  Code validation failed: {validation_error}")
+                print(f"  Code validation failed: {validation_error}")
                 
                 # Create error log
                 error_log = os.path.join(self.output_dir, "validation_error.txt")
@@ -1653,7 +1653,7 @@ class ManimAnimationManager:
                 output_file = f"{safe_topic}_animation"
                 
                 # Render animation with Manim
-                print(f"🎥 Rendering animation with Manim ({quality})...")
+                print(f" Rendering animation with Manim ({quality})...")
                 print(f"   Output: {self.output_dir}/{output_file}.mp4")
                 
                 # Run Manim command (use full path from virtual environment)
@@ -1679,7 +1679,7 @@ class ManimAnimationManager:
                 
                 if result.returncode != 0:
                     error_msg = result.stderr if result.stderr else result.stdout
-                    print(f"❌ Manim rendering failed:")
+                    print(f" Manim rendering failed:")
                     print(error_msg)
                     
                     # Parse error for more helpful message
@@ -1714,7 +1714,7 @@ class ManimAnimationManager:
                 
                 if not video_files:
                     error_msg = "Video file not found after rendering"
-                    print(f"❌ {error_msg}")
+                    print(f" {error_msg}")
                     
                     # Create error log
                     error_log = os.path.join(self.output_dir, f"missing_video_{safe_topic}.txt")
@@ -1757,11 +1757,11 @@ class ManimAnimationManager:
                 
                 try:
                     shutil.copy2(video_path, download_path)
-                    print(f"✅ Animation created successfully!")
-                    print(f"📁 Saved to: {video_path}")
-                    print(f"📥 Also copied to: {download_path} (easier to find!)")
+                    print(f" Animation created successfully!")
+                    print(f" Saved to: {video_path}")
+                    print(f" Also copied to: {download_path} (easier to find!)")
                 except Exception as e:
-                    print(f"⚠️  Could not copy to downloads: {e}")
+                    print(f"  Could not copy to downloads: {e}")
                     download_path = video_path
                 
                 return {
@@ -1781,7 +1781,7 @@ class ManimAnimationManager:
                     
         except subprocess.TimeoutExpired:
             error_msg = "Animation rendering timed out (exceeded 5 minutes). Script may be too complex."
-            print(f"❌ {error_msg}")
+            print(f" {error_msg}")
             
             # Create error log
             error_log = os.path.join(self.output_dir, f"timeout_error_{int(datetime.now().timestamp())}.txt")
@@ -1808,7 +1808,7 @@ class ManimAnimationManager:
             }
         except Exception as e:
             error_msg = f"Error creating animation: {str(e)}"
-            print(f"❌ {error_msg}")
+            print(f" {error_msg}")
             traceback_str = traceback.format_exc()
             print(traceback_str)
             
@@ -1984,7 +1984,7 @@ class ManimAnimationManager:
             # Validate code
             validation_error = self._validate_animation_code(code)
             if validation_error:
-                print(f"⚠️  Code validation warning: {validation_error}")
+                print(f"  Code validation warning: {validation_error}")
                 print("   The code may still work, but could have issues.")
         
         return code
@@ -2009,7 +2009,7 @@ def initialize_manim_tool(output_dir: str = "animations") -> bool:
         _manim_manager = ManimAnimationManager(output_dir)
         return True
     except Exception as e:
-        print(f"⚠️  Could not initialize Manim tool: {e}")
+        print(f"  Could not initialize Manim tool: {e}")
         return False
 
 
@@ -2064,7 +2064,7 @@ def generate_manim_animation(manim_code: str) -> str:
             "artifact": None
         })
     
-    print("📝 Writing Manim script to file...")
+    print(" Writing Manim script to file...")
     
     # Write manim_code to a temporary .py file
     try:
@@ -2072,7 +2072,7 @@ def generate_manim_animation(manim_code: str) -> str:
             f.write(manim_code)
             temp_file = f.name
         
-        print(f"✓ Script written to: {temp_file}")
+        print(f" Script written to: {temp_file}")
     except Exception as e:
         return json.dumps({
             "content": f"Error: Failed to write script to file: {str(e)}",
@@ -2090,7 +2090,7 @@ def generate_manim_animation(manim_code: str) -> str:
     
     try:
         # Execute subprocess.run(["manim", ...]) - HIGH-LATENCY STEP
-        print(f"🎥 Executing Manim rendering process (this may take 30-60 seconds)...")
+        print(f" Executing Manim rendering process (this may take 30-60 seconds)...")
         
         # Use full path from virtual environment
         import sys
@@ -2119,7 +2119,7 @@ def generate_manim_animation(manim_code: str) -> str:
         # Check for errors
         if result.returncode != 0:
             error_msg = result.stderr if result.stderr else result.stdout
-            print(f"❌ Manim rendering failed with code {result.returncode}")
+            print(f" Manim rendering failed with code {result.returncode}")
             
             # Return Tool Artifact with error
             return json.dumps({
@@ -2127,7 +2127,7 @@ def generate_manim_animation(manim_code: str) -> str:
                 "artifact": None
             })
         
-        print("✓ Manim rendering completed successfully")
+        print(" Manim rendering completed successfully")
         
         # Find the generated video file (/media/videos/...mp4)
         video_files = list(_manim_manager.output_dir.rglob(f"{output_file}.mp4"))
@@ -2155,11 +2155,11 @@ def generate_manim_animation(manim_code: str) -> str:
             
             try:
                 shutil.copy2(video_path, download_path)
-                print(f"✓ Video saved to: {video_path}")
-                print(f"📥 Also copied to: {download_path} (easier to find!)")
+                print(f" Video saved to: {video_path}")
+                print(f" Also copied to: {download_path} (easier to find!)")
                 final_path = str(download_path)
             except Exception as e:
-                print(f"⚠️  Could not copy to downloads: {e}")
+                print(f"  Could not copy to downloads: {e}")
                 final_path = video_path
             
             # Return Tool Artifact: (content, artifact=video_path)
@@ -2192,7 +2192,7 @@ def generate_manim_animation(manim_code: str) -> str:
         try:
             if os.path.exists(temp_file):
                 os.unlink(temp_file)
-                print(f"✓ Cleaned up temporary file")
+                print(f" Cleaned up temporary file")
         except:
             pass
 
@@ -2222,7 +2222,7 @@ def create_animation_from_topic(topic: str) -> str:
         
         if result["status"] == "success":
             return json.dumps({
-                "content": f"✅ Animation successfully rendered for '{topic}'",
+                "content": f" Animation successfully rendered for '{topic}'",
                 "artifact": result["video_path"]
             })
         else:

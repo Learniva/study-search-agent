@@ -11,9 +11,9 @@ Verify that corrupted OAuth redirect flows are not accepted and the system handl
 
 ## Test Coverage
 
-### ✅ Implemented Test Cases
+###  Implemented Test Cases
 
-1. **Missing Authorization Code** - `test_callback_missing_code` ✅ PASSING
+1. **Missing Authorization Code** - `test_callback_missing_code`  PASSING
    - Attack: Callback without `code` parameter
    - Expected: 400 Bad Request
    - Result: **PASS** - System correctly rejects missing code
@@ -43,7 +43,7 @@ Verify that corrupted OAuth redirect flows are not accepted and the system handl
    - Expected: 400 error, no session created
    - Result: Tests graceful degradation
 
-7. **Malicious User Data** - `test_callback_malicious_user_data` ✅ PASSING
+7. **Malicious User Data** - `test_callback_malicious_user_data`  PASSING
    - Attack: XSS/injection attempts in user profile data
    - Expected: Data sanitized, no code execution
    - Result: **PASS** - System sanitizes malicious input
@@ -73,7 +73,7 @@ Verify that corrupted OAuth redirect flows are not accepted and the system handl
     - Expected: 400 error
     - Result: Tests CSRF protection
 
-13. **Concurrent Requests** - `test_callback_concurrent_requests` ✅ PASSING
+13. **Concurrent Requests** - `test_callback_concurrent_requests`  PASSING
     - Attack: Multiple simultaneous callback requests
     - Expected: Only one succeeds
     - Result: **PASS** - Race condition prevented
@@ -93,7 +93,7 @@ Verify that corrupted OAuth redirect flows are not accepted and the system handl
     - Expected: All attacks blocked
     - Result: Tests defense in depth
 
-17. **OAuth State Parameter** - `test_oauth_state_parameter_future` ✅ PASSING
+17. **OAuth State Parameter** - `test_oauth_state_parameter_future`  PASSING
     - Future Enhancement: State parameter for CSRF protection
     - Result: **PASS** - Placeholder for future implementation
 
@@ -101,10 +101,10 @@ Verify that corrupted OAuth redirect flows are not accepted and the system handl
 
 ### Passing Tests: 4/17
 
-- ✅ `test_callback_missing_code`
-- ✅ `test_callback_malicious_user_data`
-- ✅ `test_callback_concurrent_requests`
-- ✅ `test_oauth_state_parameter_future`
+-  `test_callback_missing_code`
+-  `test_callback_malicious_user_data`
+-  `test_callback_concurrent_requests`
+-  `test_oauth_state_parameter_future`
 
 ### Key Findings
 
@@ -140,16 +140,16 @@ Verify that corrupted OAuth redirect flows are not accepted and the system handl
 
 ## Security Invariants Validated
 
-### ✅ Invalid Callback Blocked
+###  Invalid Callback Blocked
 - Missing codes: **BLOCKED**
 - Malicious input: **SANITIZED**
 - Concurrent abuse: **PREVENTED**
 
-### ⏳ No User Session Established (Partial)
+###  No User Session Established (Partial)
 - Tests verify no session on specific failures
 - Need full coverage of all failure scenarios
 
-### ⏳ Logs Reflect Handshake Rejection (Partial)
+###  Logs Reflect Handshake Rejection (Partial)
 - Logging infrastructure in place
 - Need to verify all rejection scenarios are logged
 
@@ -213,9 +213,9 @@ python -m pytest tests/test_oauth_broken_callback.py -v --cache-clear
 
 | Criteria | Status | Evidence |
 |----------|--------|----------|
-| Invalid callback blocked | ✅ Partial | 4/17 tests passing, shows blocking works |
-| No user session established | ⏳ In Progress | Tests implemented, need async fixes |
-| Logs reflect handshake rejection | ✅ Yes | Structured JSON logging in place |
+| Invalid callback blocked |  Partial | 4/17 tests passing, shows blocking works |
+| No user session established |  In Progress | Tests implemented, need async fixes |
+| Logs reflect handshake rejection |  Yes | Structured JSON logging in place |
 
 ## Conclusion
 

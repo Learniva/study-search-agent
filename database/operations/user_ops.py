@@ -83,16 +83,16 @@ async def create_user(
         await session.commit()
         await session.refresh(user)
         
-        logger.info(f"✅ User created: {username} ({email})")
+        logger.info(f" User created: {username} ({email})")
         return user
         
     except IntegrityError as e:
         await session.rollback()
-        logger.warning(f"⚠️  User creation failed (duplicate): {email}")
+        logger.warning(f"  User creation failed (duplicate): {email}")
         return None
     except Exception as e:
         await session.rollback()
-        logger.error(f"❌ User creation error: {e}")
+        logger.error(f" User creation error: {e}")
         return None
 
 
@@ -113,7 +113,7 @@ async def get_user_by_email(session: AsyncSession, email: str) -> Optional[User]
         )
         return result.scalars().first()
     except Exception as e:
-        logger.error(f"❌ Error fetching user by email: {e}")
+        logger.error(f" Error fetching user by email: {e}")
         return None
 
 
@@ -134,7 +134,7 @@ async def get_user_by_username(session: AsyncSession, username: str) -> Optional
         )
         return result.scalars().first()
     except Exception as e:
-        logger.error(f"❌ Error fetching user by username: {e}")
+        logger.error(f" Error fetching user by username: {e}")
         return None
 
 
@@ -155,7 +155,7 @@ async def get_user_by_id(session: AsyncSession, user_id: str) -> Optional[User]:
         )
         return result.scalars().first()
     except Exception as e:
-        logger.error(f"❌ Error fetching user by ID: {e}")
+        logger.error(f" Error fetching user by ID: {e}")
         return None
 
 
@@ -184,12 +184,12 @@ async def authenticate_user(
             user = await get_user_by_username(session, username)
         
         if not user:
-            logger.debug(f"🔍 User not found: {username}")
+            logger.debug(f" User not found: {username}")
             return None
         
         # Check if user is active
         if not user.is_active:
-            logger.warning(f"⚠️  Inactive user attempted login: {username}")
+            logger.warning(f"  Inactive user attempted login: {username}")
             return None
         
         # Verify password from dedicated column
@@ -198,23 +198,23 @@ async def authenticate_user(
             # Try fallback to settings for backward compatibility (migration period)
             password_hash = user.settings.get('password_hash') if user.settings else None
             if not password_hash:
-                logger.error(f"❌ No password hash for user: {username}")
+                logger.error(f" No password hash for user: {username}")
                 return None
         else:
             password_hash = user.password_hash
         
         if not await verify_password(password, password_hash):
-            logger.debug(f"🔐 Invalid password for user: {username}")
+            logger.debug(f" Invalid password for user: {username}")
             return None
         
         # Update last active
         await update_user_activity(session, user.user_id)
         
-        logger.info(f"✅ User authenticated: {username}")
+        logger.info(f" User authenticated: {username}")
         return user
         
     except Exception as e:
-        logger.error(f"❌ Authentication error: {e}")
+        logger.error(f" Authentication error: {e}")
         return None
 
 
@@ -238,7 +238,7 @@ async def update_user_activity(session: AsyncSession, user_id: str) -> bool:
         await session.commit()
         return True
     except Exception as e:
-        logger.error(f"❌ Error updating user activity: {e}")
+        logger.error(f" Error updating user activity: {e}")
         await session.rollback()
         return False
 
@@ -280,7 +280,7 @@ async def update_user_profile(
         user = result.scalars().first()
         
         if not user:
-            logger.warning(f"⚠️  User not found for update: {user_id}")
+            logger.warning(f"  User not found for update: {user_id}")
             return None
         
         # Update the user object attributes
@@ -306,11 +306,11 @@ async def update_user_profile(
         # Refresh to ensure we have the latest state
         await session.refresh(user)
         
-        logger.info(f"✅ User profile updated: {user_id}")
+        logger.info(f" User profile updated: {user_id}")
         return user
         
     except Exception as e:
-        logger.error(f"❌ Error updating user profile: {e}")
+        logger.error(f" Error updating user profile: {e}")
         await session.rollback()
         return None
 
@@ -339,7 +339,7 @@ async def update_user_settings(
         user = result.scalars().first()
         
         if not user:
-            logger.warning(f"⚠️  User not found for settings update: {user_id}")
+            logger.warning(f"  User not found for settings update: {user_id}")
             return False
         
         # Merge settings
@@ -352,14 +352,14 @@ async def update_user_settings(
         # Commit the changes
         await session.commit()
         
-        logger.info(f"✅ User settings updated: {user_id}")
+        logger.info(f" User settings updated: {user_id}")
         return True
         
     except Exception as e:
-        logger.error(f"❌ Error updating user settings: {e}")
+        logger.error(f" Error updating user settings: {e}")
         await session.rollback()
         return False
-        logger.error(f"❌ Error updating user settings: {e}")
+        logger.error(f" Error updating user settings: {e}")
         await session.rollback()
         return False
 
@@ -395,7 +395,7 @@ async def change_user_password(
             password_hash = user.settings.get('password_hash') if user.settings else None
         
         if not password_hash or not await verify_password(old_password, password_hash):
-            logger.warning(f"⚠️  Invalid old password for user: {user_id}")
+            logger.warning(f"  Invalid old password for user: {user_id}")
             return False
         
         # Hash new password
@@ -409,11 +409,11 @@ async def change_user_password(
         )
         await session.commit()
         
-        logger.info(f"✅ Password changed for user: {user_id}")
+        logger.info(f" Password changed for user: {user_id}")
         return True
         
     except Exception as e:
-        logger.error(f"❌ Error changing password: {e}")
+        logger.error(f" Error changing password: {e}")
         await session.rollback()
         return False
 

@@ -82,7 +82,7 @@ class PostgresCheckpointSaver(BaseCheckpointSaver):
         
         self.session_factory = SessionLocal
         
-        print("✅ PostgreSQL Checkpointer initialized")
+        print(" PostgreSQL Checkpointer initialized")
     
     @contextmanager
     def _get_session(self):
@@ -226,12 +226,12 @@ def get_postgres_checkpointer():
         PostgresCheckpointSaver instance or None if database not available
     """
     if not DATABASE_AVAILABLE:
-        print("⚠️  PostgreSQL checkpointer not available - using in-memory fallback")
+        print("  PostgreSQL checkpointer not available - using in-memory fallback")
         return None
     
     try:
         return PostgresCheckpointSaver()
     except Exception as e:
-        print(f"⚠️  Failed to initialize PostgreSQL checkpointer: {e}")
+        print(f"  Failed to initialize PostgreSQL checkpointer: {e}")
         return None
 

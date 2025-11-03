@@ -62,7 +62,7 @@ class SecretKeyValidator:
         
         # In production, be extra strict
         if is_production and len(errors) > 0:
-            errors.insert(0, "⚠️  PRODUCTION MODE: Cannot start with weak SECRET_KEY!")
+            errors.insert(0, "  PRODUCTION MODE: Cannot start with weak SECRET_KEY!")
         
         return (len(errors) == 0, errors)
     
@@ -83,11 +83,11 @@ class SecretKeyValidator:
         if not is_valid:
             error_msg = "\n".join([
                 "="*70,
-                "❌ SECURITY VALIDATION FAILED",
+                " SECURITY VALIDATION FAILED",
                 "="*70,
                 *errors,
                 "",
-                "💡 To fix:",
+                " To fix:",
                 "1. Generate a strong random key:",
                 "   python -c 'import secrets; print(secrets.token_urlsafe(32))'",
                 "",

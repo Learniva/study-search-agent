@@ -77,7 +77,7 @@ class DistributedStateManager:
                 encoding="utf-8",
                 decode_responses=True,
             )
-            logger.info(f"✅ Distributed state initialized for instance {self.instance_id}")
+            logger.info(f" Distributed state initialized for instance {self.instance_id}")
         except ImportError:
             logger.warning("Redis library not available - distributed state disabled")
         except Exception as e:

@@ -100,7 +100,7 @@ def initialize_llm(
     except Exception as e:
         # If default model fails, try fallback
         if model == DEFAULT_MODEL and "not found" in str(e).lower():
-            print(f"⚠️  {DEFAULT_MODEL} unavailable, falling back to {FALLBACK_MODEL}")
+            print(f"  {DEFAULT_MODEL} unavailable, falling back to {FALLBACK_MODEL}")
             config["model"] = FALLBACK_MODEL
             return ChatGoogleGenerativeAI(**config)
         raise

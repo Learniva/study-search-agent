@@ -101,9 +101,9 @@ class BruteforceTestEvidence:
             "",
             "RESULTS SUMMARY:",
             f"  Total Attempts: {len(self.attempts)}",
-            f"  Lockout Triggered: {'✓ YES' if self.lockout_triggered else '✗ NO'}",
+            f"  Lockout Triggered: {' YES' if self.lockout_triggered else ' NO'}",
             f"  Lockout Timestamp: {self.lockout_timestamp.isoformat() if self.lockout_timestamp else 'N/A'}",
-            f"  Cooldown Verified: {'✓ YES' if self.cooldown_verified else '✗ NO'}",
+            f"  Cooldown Verified: {' YES' if self.cooldown_verified else ' NO'}",
             "",
             "DETAILED ATTEMPT LOG:",
             "-" * 80,
@@ -116,9 +116,9 @@ class BruteforceTestEvidence:
         
         for attempt in self.attempts:
             status_symbol = {
-                200: "✓",
-                401: "✗",
-                423: "🔒"
+                200: "",
+                401: "",
+                423: ""
             }.get(attempt['status_code'], "?")
             
             report_lines.append(
@@ -147,7 +147,7 @@ class BruteforceTestEvidence:
         # 1. Lockout triggered after threshold failures
         lockout_at_threshold = self.lockout_triggered and locked_count > 0
         criteria_results.append(
-            f"  [{'✓' if lockout_at_threshold else '✗'}] Lockout triggered after threshold failures"
+            f"  [{'' if lockout_at_threshold else ''}] Lockout triggered after threshold failures"
         )
         
         # 2. Subsequent attempts produce correct error/status
@@ -156,18 +156,18 @@ class BruteforceTestEvidence:
             for a in self.attempts[5:] if a['status_code'] != 200
         ) if len(self.attempts) > 5 else False
         criteria_results.append(
-            f"  [{'✓' if correct_status else '✗'}] Subsequent attempts produce HTTP 423 (Locked)"
+            f"  [{'' if correct_status else ''}] Subsequent attempts produce HTTP 423 (Locked)"
         )
         
         # 3. Cooldown period enforced
         criteria_results.append(
-            f"  [{'✓' if self.cooldown_verified else '✗'}] Cooldown period fully enforced"
+            f"  [{'' if self.cooldown_verified else ''}] Cooldown period fully enforced"
         )
         
         # 4. Logs show lockout event
         has_logs = len(self.logs) > 0
         criteria_results.append(
-            f"  [{'✓' if has_logs else '✗'}] Logs show lockout event"
+            f"  [{'' if has_logs else ''}] Logs show lockout event"
         )
         
         report_lines.extend(criteria_results)
@@ -215,7 +215,7 @@ class BruteforceTestEvidence:
         report_lines.extend([
             "=" * 80,
             "INVARIANT VERIFICATION:",
-            f"  {'✓ PASS' if self.lockout_triggered and self.cooldown_verified else '✗ FAIL'}: "
+            f"  {' PASS' if self.lockout_triggered and self.cooldown_verified else ' FAIL'}: "
             "Users CANNOT brute-force credentials without lockout",
             "=" * 80,
             ""
@@ -372,7 +372,7 @@ class TestBruteforceLoginLockout:
         assert 'detail' in locked_attempt['response'], "Lockout response missing detail"
         assert 'message' in locked_attempt['response']['detail'], "Lockout response missing message"
         
-        print("\n✓ All acceptance criteria verified!")
+        print("\n All acceptance criteria verified!")
     
     @pytest.mark.asyncio
     async def test_progressive_lockout_levels(self, lockout_manager):
@@ -401,7 +401,7 @@ class TestBruteforceLoginLockout:
         status1 = await lockout_manager.check_lockout_status(user1, ip1)
         assert status1.is_locked, "Level 1 lockout should be triggered at 5 attempts"
         assert status1.attempts_count == 5, f"Expected 5 attempts, got {status1.attempts_count}"
-        print(f"  ✓ Lockout triggered at 5 attempts (Level 1 threshold)")
+        print(f"   Lockout triggered at 5 attempts (Level 1 threshold)")
         
         # Test Level 2 threshold (10 attempts)
         user2 = "level2_test@example.com"
@@ -413,7 +413,7 @@ class TestBruteforceLoginLockout:
         status2 = await lockout_manager.check_lockout_status(user2, ip2)
         assert status2.is_locked, "Level 2 lockout should be triggered at 10 attempts"
         assert status2.attempts_count == 10, f"Expected 10 attempts, got {status2.attempts_count}"
-        print(f"  ✓ Lockout triggered at 10 attempts (Level 2 threshold)")
+        print(f"   Lockout triggered at 10 attempts (Level 2 threshold)")
         
         # Test Level 3 threshold (15 attempts)
         user3 = "level3_test@example.com"
@@ -425,7 +425,7 @@ class TestBruteforceLoginLockout:
         status3 = await lockout_manager.check_lockout_status(user3, ip3)
         assert status3.is_locked, "Level 3 lockout should be triggered at 15 attempts"
         assert status3.attempts_count == 15, f"Expected 15 attempts, got {status3.attempts_count}"
-        print(f"  ✓ Lockout triggered at 15 attempts (Level 3 threshold)")
+        print(f"   Lockout triggered at 15 attempts (Level 3 threshold)")
         
         # Test Level 4 threshold (20+ attempts)
         user4 = "level4_test@example.com"
@@ -437,9 +437,9 @@ class TestBruteforceLoginLockout:
         status4 = await lockout_manager.check_lockout_status(user4, ip4)
         assert status4.is_locked, "Level 4 lockout should be triggered at 20+ attempts"
         assert status4.attempts_count == 20, f"Expected 20 attempts, got {status4.attempts_count}"
-        print(f"  ✓ Lockout triggered at 20 attempts (Level 4 threshold)")
+        print(f"   Lockout triggered at 20 attempts (Level 4 threshold)")
         
-        print(f"\n✓ All lockout thresholds verified!")
+        print(f"\n All lockout thresholds verified!")
     
     @pytest.mark.asyncio
     async def test_lockout_duration_verified(self, lockout_manager):
@@ -468,11 +468,11 @@ class TestBruteforceLoginLockout:
         assert 4.9 <= lockout_duration <= 5.1, \
             f"Expected ~5 minutes lockout, got {lockout_duration:.2f} minutes"
         
-        print(f"  Lockout duration: {lockout_duration:.2f} minutes ✓")
+        print(f"  Lockout duration: {lockout_duration:.2f} minutes ")
         print(f"  Lockout until: {status.lockout_until.isoformat()}")
         print(f"  Can retry at: {status.can_retry_at.isoformat()}")
         
-        print("\n✓ Lockout duration correctly calculated")
+        print("\n Lockout duration correctly calculated")
     
     @pytest.mark.asyncio
     async def test_ip_based_lockout(self, lockout_manager):
@@ -494,14 +494,14 @@ class TestBruteforceLoginLockout:
         # Verify IP1 is locked
         status1 = await lockout_manager.check_lockout_status(user_id, ip1)
         assert status1.is_locked, f"IP {ip1} should be locked"
-        print(f"  IP {ip1}: LOCKED ✓")
+        print(f"  IP {ip1}: LOCKED ")
         
         # Verify IP2 is NOT locked
         status2 = await lockout_manager.check_lockout_status(user_id, ip2)
         assert not status2.is_locked, f"IP {ip2} should NOT be locked"
-        print(f"  IP {ip2}: NOT LOCKED ✓")
+        print(f"  IP {ip2}: NOT LOCKED ")
         
-        print("\n✓ IP-based lockout isolation verified")
+        print("\n IP-based lockout isolation verified")
 
 
 if __name__ == "__main__":

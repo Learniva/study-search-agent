@@ -38,7 +38,7 @@ async def get_redis_pool() -> ConnectionPool:
                 socket_keepalive=True,
             )
         except Exception as e:
-            logger.error(f"❌ Failed to create Redis connection pool: {e}")
+            logger.error(f" Failed to create Redis connection pool: {e}")
             raise
     return _redis_pool
 
@@ -65,11 +65,11 @@ class RedisTokenCache:
             cached_data = await self._redis.get(f"token:{token}")
             if cached_data:
                 self._hits += 1
-                logger.debug(f"⚡ Redis cache HIT for token: {token[:10]}...")
+                logger.debug(f" Redis cache HIT for token: {token[:10]}...")
                 return json.loads(cached_data)
             else:
                 self._misses += 1
-                logger.debug(f"📦 Redis cache MISS for token: {token[:10]}...")
+                logger.debug(f" Redis cache MISS for token: {token[:10]}...")
                 return None
         except Exception as e:
             # Catch all exceptions to prevent breaking the auth flow
@@ -85,7 +85,7 @@ class RedisTokenCache:
                 self._ttl_seconds,
                 json.dumps(user_data)
             )
-            logger.debug(f"✅ Cached token in Redis: {token[:10]}...")
+            logger.debug(f" Cached token in Redis: {token[:10]}...")
         except Exception as e:
             # Catch all exceptions to prevent breaking the auth flow
             logger.debug(f"Redis SET error: {e}")
@@ -95,14 +95,14 @@ class RedisTokenCache:
         try:
             await self._redis.delete(f"token:{token}")
         except Exception as e:
-            logger.error(f"❌ Redis DELETE error: {e}")
+            logger.error(f" Redis DELETE error: {e}")
 
     async def clear(self):
         """Clear all cached tokens from Redis (use with caution)."""
         try:
             await self._redis.flushdb()
         except RedisError as e:
-            logger.error(f"❌ Redis FLUSHDB error: {e}")
+            logger.error(f" Redis FLUSHDB error: {e}")
 
     async def get_stats(self) -> Dict[str, Any]:
         """Get cache statistics."""
@@ -213,9 +213,9 @@ async def get_token_cache():
                 await redis_cache._redis.ping()
                 
                 _token_cache = redis_cache
-                logger.info("✅ Using Redis for token cache.")
+                logger.info(" Using Redis for token cache.")
             except Exception as e:
-                logger.warning(f"⚠️ Redis connection failed: {e}. Falling back to in-memory cache.")
+                logger.warning(f" Redis connection failed: {e}. Falling back to in-memory cache.")
                 _redis_failed = True
                 _token_cache = InMemoryTokenCache(max_size=settings.cache_max_size, ttl_seconds=settings.cache_ttl)
         else:
@@ -233,5 +233,5 @@ async def reset_token_cache():
     global _token_cache, _redis_failed
     _token_cache = None
     _redis_failed = False
-    logger.info("🔄 Token cache reset.")
+    logger.info(" Token cache reset.")
 

@@ -62,12 +62,12 @@ async def create_reset_token(
         await session.commit()
         await session.refresh(reset_token)
         
-        logger.info(f"✅ Password reset token created for: {email}")
+        logger.info(f" Password reset token created for: {email}")
         return reset_token
         
     except Exception as e:
         await session.rollback()
-        logger.error(f"❌ Error creating reset token for {email}: {e}")
+        logger.error(f" Error creating reset token for {email}: {e}")
         return None
 
 
@@ -104,14 +104,14 @@ async def get_valid_reset_token(
         reset_token = result.scalars().first()
         
         if reset_token:
-            logger.debug(f"✅ Valid reset token found for: {email}")
+            logger.debug(f" Valid reset token found for: {email}")
         else:
-            logger.debug(f"⚠️  No valid reset token found for: {email}")
+            logger.debug(f"  No valid reset token found for: {email}")
         
         return reset_token
         
     except Exception as e:
-        logger.error(f"❌ Error fetching reset token: {e}")
+        logger.error(f" Error fetching reset token: {e}")
         return None
 
 
@@ -136,19 +136,19 @@ async def mark_token_as_used(
         reset_token = result.scalars().first()
         
         if not reset_token:
-            logger.warning(f"⚠️  Reset token not found: {token_id}")
+            logger.warning(f"  Reset token not found: {token_id}")
             return False
         
         reset_token.is_used = True
         reset_token.used_at = datetime.now(timezone.utc)
         
         await session.commit()
-        logger.info(f"✅ Reset token marked as used: {token_id}")
+        logger.info(f" Reset token marked as used: {token_id}")
         return True
         
     except Exception as e:
         await session.rollback()
-        logger.error(f"❌ Error marking token as used: {e}")
+        logger.error(f" Error marking token as used: {e}")
         return False
 
 
@@ -181,12 +181,12 @@ async def delete_expired_tokens(session: AsyncSession) -> int:
             await session.delete(token)
         
         await session.commit()
-        logger.info(f"✅ Deleted {count} expired/used reset tokens")
+        logger.info(f" Deleted {count} expired/used reset tokens")
         return count
         
     except Exception as e:
         await session.rollback()
-        logger.error(f"❌ Error deleting expired tokens: {e}")
+        logger.error(f" Error deleting expired tokens: {e}")
         return 0
 
 

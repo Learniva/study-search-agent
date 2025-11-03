@@ -33,7 +33,7 @@ Complete QA report including:
 
 ## Test Results
 
-**Status**: ✅ 4/6 tests passing (2 have async cleanup issues, not security-related)
+**Status**:  4/6 tests passing (2 have async cleanup issues, not security-related)
 
 ```bash
 # Run all tests
@@ -50,7 +50,7 @@ python -m pytest tests/test_oauth_restart_handshake.py::TestOAuthRestartHandshak
 
 ## Key Findings
 
-### 🔴 Critical Security Gap Identified
+###  Critical Security Gap Identified
 
 **OAuth State Parameter Not Implemented**
 
@@ -59,19 +59,19 @@ The current OAuth implementation does not use a state parameter, which means:
 - Vulnerable to CSRF attacks on OAuth callback
 - No way to validate handshake continuity
 
-### Current Protection Level: ⚠️ PARTIAL
+### Current Protection Level:  PARTIAL
 
 **What Works:**
-- ✅ Token exchange failures handled gracefully
-- ✅ No ghost sessions created on failure
-- ✅ Security events properly logged
-- ✅ Errors redirect to frontend error page
+-  Token exchange failures handled gracefully
+-  No ghost sessions created on failure
+-  Security events properly logged
+-  Errors redirect to frontend error page
 
 **What's Missing:**
-- ❌ OAuth state parameter not generated
-- ❌ No persistent state storage (Redis)
-- ❌ Cannot detect restart during handshake
-- ❌ No CSRF protection on callback
+-  OAuth state parameter not generated
+-  No persistent state storage (Redis)
+-  Cannot detect restart during handshake
+-  No CSRF protection on callback
 
 ## Recommendations
 
@@ -103,17 +103,17 @@ Once state parameter is implemented, update tests to verify:
 
 | Criteria | Status | Notes |
 |----------|--------|-------|
-| Resume attempt denied | ⚠️ Partial | Works for token failures, not restart detection |
-| No ghost session | ✅ Pass | Verified via database checks |
-| Logs show invalidated state | ✅ Pass | OAuth errors properly logged |
+| Resume attempt denied |  Partial | Works for token failures, not restart detection |
+| No ghost session |  Pass | Verified via database checks |
+| Logs show invalidated state |  Pass | OAuth errors properly logged |
 
 ## Next Steps
 
-1. ✅ Test suite created and documented
-2. ⏳ Implement OAuth state parameter (see recommendations)
-3. ⏳ Add Redis state storage
-4. ⏳ Update tests to verify state validation
-5. ⏳ Deploy to production
+1.  Test suite created and documented
+2.  Implement OAuth state parameter (see recommendations)
+3.  Add Redis state storage
+4.  Update tests to verify state validation
+5.  Deploy to production
 
 ## Related Issues
 

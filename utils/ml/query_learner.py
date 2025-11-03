@@ -105,7 +105,7 @@ class QueryLearner:
         # Load existing patterns
         self._load_patterns()
         
-        print(f"🧠 Query Learner initialized (history: {len(self.query_history)} queries)")
+        print(f" Query Learner initialized (history: {len(self.query_history)} queries)")
     
     def learn_from_query(
         self,
@@ -167,7 +167,7 @@ class QueryLearner:
         # Periodic save
         if len(self.query_history) % 100 == 0:
             self._save_patterns()
-            print(f"💾 Saved query patterns ({len(self.query_history)} total)")
+            print(f" Saved query patterns ({len(self.query_history)} total)")
     
     def predict_best_tool(
         self,
@@ -242,7 +242,7 @@ class QueryLearner:
         result = (best_tool[0], best_tool[1])
         self.pattern_cache[query_hash] = (result, datetime.now())
         
-        print(f"🎯 Predicted tool for '{query[:50]}...': {best_tool[0]} "
+        print(f" Predicted tool for '{query[:50]}...': {best_tool[0]} "
               f"(confidence: {best_tool[1]:.2f})")
         
         return result
@@ -265,7 +265,7 @@ class QueryLearner:
         
         if success:
             self.fallback_success[key] += 1
-            print(f"✅ Learned: {fallback_tool} is good fallback for {primary_tool}")
+            print(f" Learned: {fallback_tool} is good fallback for {primary_tool}")
         else:
             self.fallback_failure[key] += 1
     
@@ -305,7 +305,7 @@ class QueryLearner:
         best_fallback = max(fallback_scores.items(), key=lambda x: x[1])
         
         if best_fallback[1] > 0.5:  # Only suggest if > 50% success rate
-            print(f"💡 Suggesting fallback: {best_fallback[0]} "
+            print(f" Suggesting fallback: {best_fallback[0]} "
                   f"(success rate: {best_fallback[1]:.1%})")
             return best_fallback[0]
         
@@ -483,7 +483,7 @@ class QueryLearner:
                 json.dump(data, f, indent=2)
             
         except Exception as e:
-            print(f"⚠️  Failed to save query patterns: {e}")
+            print(f"  Failed to save query patterns: {e}")
     
     def _load_patterns(self):
         """Load query patterns from disk."""
@@ -516,10 +516,10 @@ class QueryLearner:
                 primary, fallback = key_str.split(',')
                 self.fallback_failure[(primary, fallback)] = count
             
-            print(f"📂 Loaded {len(self.query_history)} query patterns from disk")
+            print(f" Loaded {len(self.query_history)} query patterns from disk")
             
         except Exception as e:
-            print(f"⚠️  Failed to load query patterns: {e}")
+            print(f"  Failed to load query patterns: {e}")
     
     def get_stats(self) -> Dict[str, Any]:
         """
@@ -568,13 +568,13 @@ class QueryLearner:
     def print_statistics(self):
         """Print learning statistics."""
         print("\n" + "=" * 70)
-        print("🧠 QUERY LEARNER STATISTICS")
+        print(" QUERY LEARNER STATISTICS")
         print("=" * 70)
-        print(f"\n📊 Total Queries Learned: {len(self.query_history)}")
-        print(f"🔧 Tools Tracked: {len(set(r.tool_used for r in self.query_history))}")
-        print(f"📁 Query Types: {len(self.tool_performance)}")
+        print(f"\n Total Queries Learned: {len(self.query_history)}")
+        print(f" Tools Tracked: {len(set(r.tool_used for r in self.query_history))}")
+        print(f" Query Types: {len(self.tool_performance)}")
         
-        print("\n🎯 Tool Performance (Overall):")
+        print("\n Tool Performance (Overall):")
         overall_stats = self.get_tool_performance_stats()
         for tool, stats in sorted(overall_stats.items(), key=lambda x: x[1]['total_uses'], reverse=True):
             print(f"  • {tool}:")
@@ -582,7 +582,7 @@ class QueryLearner:
                   f"Success Rate: {stats['success_rate']}, "
                   f"Avg Time: {stats['avg_response_time']}")
         
-        print("\n💡 Top Fallback Patterns:")
+        print("\n Top Fallback Patterns:")
         top_fallbacks = sorted(
             self.fallback_success.items(),
             key=lambda x: x[1],
@@ -638,5 +638,5 @@ def save_query_learner():
     """Save query learner patterns to disk."""
     learner = get_query_learner()
     learner._save_patterns()
-    print(f"💾 Query learner patterns saved successfully")
+    print(f" Query learner patterns saved successfully")
 

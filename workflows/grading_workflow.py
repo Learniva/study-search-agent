@@ -162,7 +162,7 @@ class AdaptiveGradingWorkflow:
         professor_id = state["professor_id"]
         assignment_type = state["assignment_type"]
         
-        print("\n📝 Grading submission...")
+        print("\n Grading submission...")
         
         start_time = time.time()
         
@@ -187,7 +187,7 @@ class AdaptiveGradingWorkflow:
             
             processing_time = (time.time() - start_time) * 1000
             
-            print(f"   ✅ Initial grade: {ai_grade.get('total_score', 0)}/{ai_grade.get('max_score', 100)}")
+            print(f"    Initial grade: {ai_grade.get('total_score', 0)}/{ai_grade.get('max_score', 100)}")
             print(f"   Confidence: {ai_grade.get('confidence', 0):.2f}")
             
             return {
@@ -202,7 +202,7 @@ class AdaptiveGradingWorkflow:
             }
             
         except Exception as e:
-            print(f"   ❌ Grading error: {e}")
+            print(f"    Grading error: {e}")
             return {
                 **state,
                 "ai_grade": None,
@@ -225,10 +225,10 @@ class AdaptiveGradingWorkflow:
         assignment_type = state["assignment_type"]
         ai_scores = state["ai_scores"]
         
-        print("\n🔍 Checking past professor overrides (L3 Learning Store)...")
+        print("\n Checking past professor overrides (L3 Learning Store)...")
         
         if not DATABASE_AVAILABLE:
-            print("   ⚠️  Database not available - skipping override check")
+            print("     Database not available - skipping override check")
             return {
                 **state,
                 "past_overrides_found": False,
@@ -251,7 +251,7 @@ class AdaptiveGradingWorkflow:
                 ).limit(20).all()
                 
                 if not exceptions:
-                    print("   ℹ️  No past overrides found for this professor/assignment type")
+                    print("   ℹ  No past overrides found for this professor/assignment type")
                     return {
                         **state,
                         "past_overrides_found": False,
@@ -260,7 +260,7 @@ class AdaptiveGradingWorkflow:
                         "reconciliation_needed": False
                     }
                 
-                print(f"   📊 Found {len(exceptions)} past corrections")
+                print(f"    Found {len(exceptions)} past corrections")
                 
                 # Analyze patterns in corrections
                 override_patterns = []
@@ -298,11 +298,11 @@ class AdaptiveGradingWorkflow:
                 reconciliation_needed = len(systematic_bias) > 0
                 
                 if reconciliation_needed:
-                    print(f"   ⚠️  Systematic bias detected in criteria: {list(systematic_bias.keys())}")
+                    print(f"     Systematic bias detected in criteria: {list(systematic_bias.keys())}")
                     for criterion, bias in systematic_bias.items():
                         print(f"      • {criterion}: {bias:+.1f} points (avg adjustment)")
                 else:
-                    print("   ✅ No significant systematic bias detected")
+                    print("    No significant systematic bias detected")
                 
                 return {
                     **state,
@@ -316,7 +316,7 @@ class AdaptiveGradingWorkflow:
                 db.close()
                 
         except Exception as e:
-            print(f"   ❌ Error checking overrides: {e}")
+            print(f"    Error checking overrides: {e}")
             return {
                 **state,
                 "past_overrides_found": False,
@@ -339,7 +339,7 @@ class AdaptiveGradingWorkflow:
         submission = state["submission"]
         rubric = state["rubric"]
         
-        print("\n🔄 Reconciling grade based on professor patterns...")
+        print("\n Reconciling grade based on professor patterns...")
         
         # Build few-shot examples from override patterns
         few_shot_examples = "\n\n".join([
@@ -387,7 +387,7 @@ ADJUSTED_FEEDBACK: Updated feedback incorporating the reconciliation"""
             # Parse reconciled grade
             reconciled_grade = self._parse_reconciliation_response(response.content)
             
-            print(f"   ✅ Reconciled grade: {reconciled_grade.get('total_score', 0)}/{reconciled_grade.get('max_score', 100)}")
+            print(f"    Reconciled grade: {reconciled_grade.get('total_score', 0)}/{reconciled_grade.get('max_score', 100)}")
             print(f"   Adjustments: {reconciled_grade.get('adjustments', {})}")
             
             return {
@@ -399,7 +399,7 @@ ADJUSTED_FEEDBACK: Updated feedback incorporating the reconciliation"""
             }
             
         except Exception as e:
-            print(f"   ❌ Reconciliation error: {e}")
+            print(f"    Reconciliation error: {e}")
             # Fall back to original grade
             return {
                 **state,
@@ -413,7 +413,7 @@ ADJUSTED_FEEDBACK: Updated feedback incorporating the reconciliation"""
         """
         Accept the original AI grade (no reconciliation needed).
         """
-        print("\n✅ Accepting original AI grade (no systematic bias detected)")
+        print("\n Accepting original AI grade (no systematic bias detected)")
         
         return {
             **state,
@@ -434,10 +434,10 @@ ADJUSTED_FEEDBACK: Updated feedback incorporating the reconciliation"""
         professor_id = state["professor_id"]
         final_grade = state.get("reconciled_grade") or state["ai_grade"]
         
-        print("\n👤 Personalizing feedback based on student history...")
+        print("\n Personalizing feedback based on student history...")
         
         if not student_id or not DATABASE_AVAILABLE:
-            print("   ℹ️  Student history not available")
+            print("   ℹ  Student history not available")
             return {
                 **state,
                 "student_history": None,
@@ -465,7 +465,7 @@ ADJUSTED_FEEDBACK: Updated feedback incorporating the reconciliation"""
                 ).limit(5).all()
                 
                 if not student_exceptions:
-                    print("   ℹ️  No past corrections for this student")
+                    print("   ℹ  No past corrections for this student")
                     return {
                         **state,
                         "student_history": None,
@@ -486,7 +486,7 @@ ADJUSTED_FEEDBACK: Updated feedback incorporating the reconciliation"""
                     if exc.error_description:
                         common_errors.append(exc.error_description)
                 
-                print(f"   📊 Found {len(common_errors)} past issues for this student")
+                print(f"    Found {len(common_errors)} past issues for this student")
                 
                 # Generate personalized feedback
                 personalization_prompt = f"""Personalize this feedback for a student based on their history.
@@ -509,7 +509,7 @@ Keep the same overall assessment, just personalize the delivery."""
                 response = self.llm.invoke([HumanMessage(content=personalization_prompt)])
                 personalized_feedback = response.content.strip()
                 
-                print("   ✅ Feedback personalized")
+                print("    Feedback personalized")
                 
                 return {
                     **state,
@@ -529,7 +529,7 @@ Keep the same overall assessment, just personalize the delivery."""
                 db.close()
                 
         except Exception as e:
-            print(f"   ❌ Personalization error: {e}")
+            print(f"    Personalization error: {e}")
             return {
                 **state,
                 "student_history": None,
@@ -587,7 +587,7 @@ Keep the same overall assessment, just personalize the delivery."""
                 db.close()
                 
         except Exception as e:
-            print(f"   ⚠️  Error loading past gradings: {e}")
+            print(f"     Error loading past gradings: {e}")
             return []
     
     def _build_grading_prompt(
@@ -807,7 +807,7 @@ FEEDBACK: Detailed feedback here...
             result = self.app.invoke(initial_state)
             return result
         except Exception as e:
-            print(f"\n❌ Grading workflow error: {e}")
+            print(f"\n Grading workflow error: {e}")
             return {
                 **initial_state,
                 "final_feedback": f"Error in grading workflow: {str(e)}"

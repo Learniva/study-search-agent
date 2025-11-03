@@ -172,16 +172,16 @@ def build_grading_workflow(llm, tool_map: dict) -> StateGraph:
         
         grading_confidence = state.get("grading_confidence")
         if grading_confidence is not None:
-            emoji = "✅" if grading_confidence > 0.8 else "⚠️" if grading_confidence > 0.6 else "❌"
+            emoji = "" if grading_confidence > 0.8 else "" if grading_confidence > 0.6 else ""
             footer += f"\n{emoji} AI Confidence: {grading_confidence:.0%}"
         
         consistency_score = state.get("consistency_score")
         if consistency_score and consistency_score < 1.0:
-            footer += f"\n📊 Consistency: {consistency_score:.0%}"
+            footer += f"\n Consistency: {consistency_score:.0%}"
         
         detected_issues = state.get("detected_issues", [])
         if detected_issues:
-            footer += "\n\n⚠️ Detected Issues:"
+            footer += "\n\n Detected Issues:"
             for issue in detected_issues:
                 footer += f"\n   • {issue}"
         
@@ -189,15 +189,15 @@ def build_grading_workflow(llm, tool_map: dict) -> StateGraph:
         if is_complex:
             grading_plan = state.get("grading_plan", [])
             if grading_plan:
-                footer += f"\n\n🔄 Multi-Step Workflow ({len(grading_plan)} steps)"
+                footer += f"\n\n Multi-Step Workflow ({len(grading_plan)} steps)"
         
-        footer += "\n\n⚠️  IMPORTANT:"
+        footer += "\n\n  IMPORTANT:"
         footer += "\n   • AI-generated evaluation"
         footer += "\n   • Review and adjust as needed"
         footer += "\n   • Professional judgment required"
         
         if state.get("needs_human_review"):
-            footer += "\n   • ⚠️  FLAGGED FOR EXTRA REVIEW"
+            footer += "\n   •   FLAGGED FOR EXTRA REVIEW"
         
         footer += f"\n{'─' * 60}"
         

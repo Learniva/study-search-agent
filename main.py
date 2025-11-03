@@ -36,12 +36,12 @@ def get_user_role(args):
     # Method 1: Using Flag (Recommended)
     if args.role:
         role = args.role.lower()
-        print(f"🎓 Role set via flag: {role.upper()}")
+        print(f" Role set via flag: {role.upper()}")
         return role
     
     # Method 2: Using Prompt
     print("\n" + "="*70)
-    print("  🎓 Multi-Agent Study & Grading System")
+    print("   Multi-Agent Study & Grading System")
     print("="*70)
     print("\nPlease select your role:")
     print("  1. Student   - Access study features (research, Q&A, animations)")
@@ -67,10 +67,10 @@ def get_user_role(args):
         
         if choice in role_map:
             role = role_map[choice]
-            print(f"\n✅ Role selected: {role.upper()}")
+            print(f"\n Role selected: {role.upper()}")
             return role
         else:
-            print("❌ Invalid choice. Please enter 1-4 or a valid role name.")
+            print(" Invalid choice. Please enter 1-4 or a valid role name.")
 
 
 def main():
@@ -116,16 +116,16 @@ Examples:
     # Get LLM provider from environment
     llm_provider = os.getenv("LLM_PROVIDER", "gemini")
     
-    print(f"\n🚀 Initializing Multi-Agent System with {llm_provider.upper()}...")
-    print(f"👤 Your Role: {user_role.upper()}\n")
+    print(f"\n Initializing Multi-Agent System with {llm_provider.upper()}...")
+    print(f" Your Role: {user_role.upper()}\n")
     
     # Note: Document indexing moved to API for better control
     # Use POST /documents/upload endpoint to index documents
     documents_dir = os.getenv("DOCUMENTS_DIR", "documents")
     if os.path.exists(documents_dir) and os.listdir(documents_dir):
-        print(f"📚 Documents directory found: {documents_dir}")
-        print("💡 To index documents, use: POST /documents/upload endpoint")
-        print("💡 Or run: python -c \"from database.operations.document_loader import initialize_document_store; initialize_document_store('documents')\"\n")
+        print(f" Documents directory found: {documents_dir}")
+        print(" To index documents, use: POST /documents/upload endpoint")
+        print(" Or run: python -c \"from database.operations.document_loader import initialize_document_store; initialize_document_store('documents')\"\n")
     
     try:
         # Initialize supervisor agent
@@ -137,11 +137,11 @@ Examples:
                 from utils.classroom.google_classroom_service import get_classroom_service
                 classroom_service = get_classroom_service()
                 if classroom_service.is_available():
-                    print("✅ Google Classroom integration ready")
+                    print(" Google Classroom integration ready")
                 else:
-                    print("⚠️  Google Classroom integration not available")
+                    print("  Google Classroom integration not available")
             except Exception as e:
-                print(f"⚠️  Google Classroom initialization failed: {e}")
+                print(f"  Google Classroom initialization failed: {e}")
         
         # Get user ID (for database tracking)
         user_id = args.user_id or user_role + "_cli_user"
@@ -159,7 +159,7 @@ Examples:
             )
             
             print("=" * 70)
-            print(f"\n✅ Agent Used: {result.get('agent_used', 'N/A')}")
+            print(f"\n Agent Used: {result.get('agent_used', 'N/A')}")
             print(f"\n{result['answer']}\n")
         else:
             # Start interactive chat mode
@@ -170,16 +170,16 @@ Examples:
             # Show capabilities for this role
             capabilities = supervisor.get_capabilities(user_role)
             
-            print("\n📚 Your Available Features:")
+            print("\n Your Available Features:")
             for feature in capabilities["study_features"]:
                 print(f"   {feature}")
             
             if capabilities["grading_features"]:
-                print("\n📝 Your Grading Features:")
+                print("\n Your Grading Features:")
                 for feature in capabilities["grading_features"]:
                     print(f"   {feature}")
             
-            print("\n💡 Special Commands:")
+            print("\n Special Commands:")
             print("   'arch' - Show system architecture")
             print("   'caps' - Show your capabilities")
             print("   'help' - Show help message")
@@ -193,7 +193,7 @@ Examples:
                     question = input(f"\n[{user_role.upper()}] Your request: ").strip()
                     
                     if question.lower() in ['quit', 'exit', 'q']:
-                        print("\n👋 Goodbye! Happy learning and teaching!")
+                        print("\n Goodbye! Happy learning and teaching!")
                         break
                     
                     if question.lower() == 'arch':
@@ -202,12 +202,12 @@ Examples:
                     
                     if question.lower() == 'caps':
                         caps = supervisor.get_capabilities(user_role)
-                        print(f"\n📋 Capabilities for {user_role.upper()}:")
-                        print("\n📚 Study Features:")
+                        print(f"\n Capabilities for {user_role.upper()}:")
+                        print("\n Study Features:")
                         for f in caps["study_features"]:
                             print(f"  {f}")
                         if caps["grading_features"]:
-                            print("\n📝 Grading Features:")
+                            print("\n Grading Features:")
                             for f in caps["grading_features"]:
                                 print(f"  {f}")
                         continue
@@ -222,9 +222,9 @@ Examples:
                         print("  • System automatically routes to the right agent")
                         print("  • Students: Get study help")
                         print("  • Teachers: Get study help + grading assistance")
-                        print("\n📝 For Multi-Line Code:")
+                        print("\n For Multi-Line Code:")
                         print("  1. Type 'code' or '>>>' to enter code mode")
-                        print("     (⚠️  Type ONLY 'code', not '> code')")
+                        print("     (  Type ONLY 'code', not '> code')")
                         print("  2. Paste your code (multiple lines)")
                         print("  3. Type 'END' on a new line when done")
                         print("  4. System will ask what to do (Grade/Review/Explain)")
@@ -245,7 +245,7 @@ Examples:
                     
                     # Check for multi-line code mode
                     if question.lower() in ['code', '>>>']:
-                        print("\n📝 Multi-line code mode activated!")
+                        print("\n Multi-line code mode activated!")
                         print("   • Paste your code (multiple lines)")
                         print("   • Type 'END' on a new line when finished")
                         print("   • Or press Ctrl+D (Unix/Mac) or Ctrl+Z (Windows)")
@@ -263,7 +263,7 @@ Examples:
                             pass
                         
                         if not code_lines:
-                            print("❌ No code entered.")
+                            print(" No code entered.")
                             continue
                         
                         # Join lines and ask for context
@@ -275,7 +275,7 @@ Examples:
                         
                         # Wrap code in markdown blocks for better parsing
                         question = f"{action} code:\n\n```python\n{code_content}\n```"
-                        print(f"\n✅ Processing {len(code_lines)} lines of code...")
+                        print(f"\n Processing {len(code_lines)} lines of code...")
                     
                     # Process request through supervisor
                     print("\n" + "="*70)
@@ -290,19 +290,19 @@ Examples:
                     
                     if result["success"]:
                         if result.get("agent_used"):
-                            print(f"\n✅ Processed by: {result['agent_used']}")
+                            print(f"\n Processed by: {result['agent_used']}")
                         print(f"\n{result['answer']}\n")
                     else:
-                        print(f"\n❌ Error: {result['answer']}\n")
+                        print(f"\n Error: {result['answer']}\n")
                     
                 except KeyboardInterrupt:
-                    print("\n\n👋 Goodbye! Happy learning and teaching!")
+                    print("\n\n Goodbye! Happy learning and teaching!")
                     break
                 except Exception as e:
-                    print(f"\n❌ Error: {str(e)}\n")
+                    print(f"\n Error: {str(e)}\n")
             
     except Exception as e:
-        print(f"❌ Failed to initialize system: {str(e)}")
+        print(f" Failed to initialize system: {str(e)}")
         print("\nPlease ensure you have:")
         print("1. Created a .env file with your API keys (see env_example.txt)")
         print("2. Installed required packages: pip install -r requirements.txt")

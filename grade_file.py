@@ -30,18 +30,18 @@ def list_available_files():
     test_dir = Path("test_submissions")
     
     if not test_dir.exists():
-        print("❌ test_submissions/ directory not found")
+        print(" test_submissions/ directory not found")
         return
     
     files = sorted(test_dir.glob("*"))
     files = [f for f in files if f.is_file() and f.name != "README.md"]
     
     if not files:
-        print("📁 No files found in test_submissions/")
+        print(" No files found in test_submissions/")
         return
     
     print("\n" + "="*80)
-    print("📁 AVAILABLE FILES IN test_submissions/")
+    print(" AVAILABLE FILES IN test_submissions/")
     print("="*80)
     
     # Group by type
@@ -50,19 +50,19 @@ def list_available_files():
     other_files = [f for f in files if f not in python_files and f not in text_files]
     
     if python_files:
-        print("\n💻 Python Code:")
+        print("\n Python Code:")
         for f in python_files:
             size = f.stat().st_size
             print(f"   • {f.name} ({size} bytes)")
     
     if text_files:
-        print("\n📝 Text Submissions:")
+        print("\n Text Submissions:")
         for f in text_files:
             size = f.stat().st_size
             print(f"   • {f.name} ({size} bytes)")
     
     if other_files:
-        print("\n📄 Other Files:")
+        print("\n Other Files:")
         for f in other_files:
             size = f.stat().st_size
             print(f"   • {f.name} ({size} bytes)")
@@ -80,8 +80,8 @@ def grade_file(filename, student_name=None, student_id=None, professor_id="teach
     
     # Check if file exists
     if not filepath.exists():
-        print(f"❌ File not found: {filepath}")
-        print("\n💡 Available files:")
+        print(f" File not found: {filepath}")
+        print("\n Available files:")
         list_available_files()
         return False
     
@@ -90,7 +90,7 @@ def grade_file(filename, student_name=None, student_id=None, professor_id="teach
         with open(filepath, 'r', encoding='utf-8') as f:
             content = f.read()
     except Exception as e:
-        print(f"❌ Error reading file: {e}")
+        print(f" Error reading file: {e}")
         return False
     
     # Determine submission type
@@ -110,7 +110,7 @@ def grade_file(filename, student_name=None, student_id=None, professor_id="teach
     
     # Display info
     print("\n" + "="*80)
-    print("📝 GRADING SUBMISSION")
+    print(" GRADING SUBMISSION")
     print("="*80)
     print(f"File: {filename}")
     print(f"Size: {len(content)} characters")
@@ -120,7 +120,7 @@ def grade_file(filename, student_name=None, student_id=None, professor_id="teach
     if student_id:
         print(f"Student ID: {student_id}")
     print("="*80)
-    print("\n🔄 Processing with AI Grading Agent...\n")
+    print("\n Processing with AI Grading Agent...\n")
     
     # Initialize supervisor and grade
     try:
@@ -140,7 +140,7 @@ def grade_file(filename, student_name=None, student_id=None, professor_id="teach
         elif result.get("final_answer"):
             print(result["final_answer"])
         else:
-            print("❌ No grading result returned")
+            print(" No grading result returned")
             print(f"Debug - Result keys: {list(result.keys())}")
             if result.get("error"):
                 print(f"Error: {result['error']}")
@@ -149,7 +149,7 @@ def grade_file(filename, student_name=None, student_id=None, professor_id="teach
         return True
         
     except Exception as e:
-        print(f"❌ Error during grading: {e}")
+        print(f" Error during grading: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -214,7 +214,7 @@ Available Flags:
             professor_id = sys.argv[i + 1]
             i += 2
         else:
-            print(f"⚠️  Unknown flag: {sys.argv[i]}")
+            print(f"  Unknown flag: {sys.argv[i]}")
             i += 1
     
     # Grade the file

@@ -185,7 +185,7 @@ Respond with: STUDY or GRADE"""
     
     def access_denied(self, state: SupervisorState) -> SupervisorState:
         """Return access denied message."""
-        error_message = f"""🚫 Access Denied
+        error_message = f""" Access Denied
 
 You are logged in as: {state['user_role'].upper()}
 
@@ -195,10 +195,10 @@ Grading features are only available to:
 - Administrators
 
 Students have access to:
-📚 Study & Search features
-🔍 Web Search
-🧮 Python REPL
-🎬 Animations
+ Study & Search features
+ Web Search
+ Python REPL
+ Animations
 
 To access grading tools, use: python main.py --role professor"""
         
@@ -337,7 +337,7 @@ To access grading tools, use: python main.py --role professor"""
                 "routing_time": routing_time
             }
         
-        # Fall back to LLM (⚡ NOW ASYNC - doesn't block event loop)
+        # Fall back to LLM ( NOW ASYNC - doesn't block event loop)
         routing_prompt = """Analyze this request and determine intent:
 
 Intents:

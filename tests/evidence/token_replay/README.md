@@ -8,7 +8,7 @@ This document provides evidence that the system successfully prevents token repl
 
 ## Attack Scenarios Tested
 
-### 1. Token Replay After JWT Expiry ✅
+### 1. Token Replay After JWT Expiry 
 **Attack Vector**: Attacker captures a valid JWT token and attempts to reuse it after the expiration timestamp.
 
 **Test**: `test_expired_token_rejected`
@@ -25,7 +25,7 @@ Current Time: 2025-10-29T05:00:00+00:00
 Rejection: Token expiry validation in JWT handler
 ```
 
-### 2. Short-Lived Token Expiry ✅
+### 2. Short-Lived Token Expiry 
 **Attack Vector**: Token with very short expiry (1 second) is captured and reused after expiration.
 
 **Test**: `test_expired_token_with_short_expiry`
@@ -36,7 +36,7 @@ Rejection: Token expiry validation in JWT handler
 - **Result**: Second request rejected (401/429/404)
 - **Invariant Maintained**: Time-based expiry enforced
 
-### 3. Token Replay After Logout/Invalidation ✅
+### 3. Token Replay After Logout/Invalidation 
 **Attack Vector**: User logs out (invalidating session), attacker replays previously captured token.
 
 **Test**: `test_token_replay_after_logout`
@@ -50,7 +50,7 @@ Rejection: Token expiry validation in JWT handler
 2. Database token status check (is_active = False after logout)
 3. Cache invalidation on logout
 
-### 4. Token Replay After Logout All Devices ✅
+### 4. Token Replay After Logout All Devices 
 **Attack Vector**: User has multiple active sessions, logs out from all devices, attacker replays any captured token.
 
 **Test**: `test_token_replay_after_logout_all_devices`
@@ -59,7 +59,7 @@ Rejection: Token expiry validation in JWT handler
 - **Result**: Both tokens rejected (401/429/404)
 - **Invariant Maintained**: All sessions properly invalidated
 
-### 5. Token Signature Manipulation ✅
+### 5. Token Signature Manipulation 
 **Attack Vector**: Attacker modifies token payload or signature.
 
 **Test**: `test_modified_token_rejected`
@@ -68,7 +68,7 @@ Rejection: Token expiry validation in JWT handler
 - **Result**: Rejected (401/429/404) - signature verification failed
 - **Invariant Maintained**: Token tampering detected
 
-### 6. Token with Extended Expiry (Wrong Key) ✅
+### 6. Token with Extended Expiry (Wrong Key) 
 **Attack Vector**: Attacker attempts to extend token expiry by re-signing with guessed key.
 
 **Test**: `test_token_with_extended_expiry_rejected`
@@ -77,7 +77,7 @@ Rejection: Token expiry validation in JWT handler
 - **Result**: Signature verification failed
 - **Invariant Maintained**: Only tokens signed with correct secret key accepted
 
-### 7. Cache Bypass Attempts ✅
+### 7. Cache Bypass Attempts 
 **Attack Vector**: Attacker attempts to use cached token data to bypass database validation.
 
 **Tests**:
@@ -86,7 +86,7 @@ Rejection: Token expiry validation in JWT handler
 - **Result**: Cache validates expiry, invalidation properly handled
 - **Invariant Maintained**: Cache cannot bypass security validation
 
-### 8. Database Token Validation ✅
+### 8. Database Token Validation 
 **Tests**:
 - `test_is_expired_method`: Token.is_expired() correctly identifies expired tokens
 - `test_is_valid_method_checks_expiry_and_active`: Token.is_valid() checks both expiry and active status
@@ -123,24 +123,24 @@ Rejection: Token expiry validation in JWT handler
    - Validates tenant ID
    - Structured logging for audit
 
-## Acceptance Criteria - PASS ✅
+## Acceptance Criteria - PASS 
 
-### ✅ Replay Attempt Denied
+###  Replay Attempt Denied
 - All expired tokens rejected with 401 Unauthorized
 - All invalidated tokens rejected
 - No successful replays observed
 
-### ✅ 401/Invalid Token Surface Observed
+###  401/Invalid Token Surface Observed
 - Consistent 401 responses for authentication failures
 - Rate limiting (429) provides additional protection
 - Error messages appropriate for security (minimal information leak)
 
-### ✅ Token Cannot Bypass Gateway Cache
+###  Token Cannot Bypass Gateway Cache
 - Cache validates token expiry before serving
 - Cache cleared on token invalidation
 - No cache-based bypass vulnerabilities
 
-### ✅ Logs Confirm Expiry/Rejection
+###  Logs Confirm Expiry/Rejection
 - Structured JSON logging for all auth events
 - Failed authentication attempts logged
 - Token expiry reasons captured
@@ -179,11 +179,11 @@ Rejection: Token expiry validation in JWT handler
 **Status**: Security invariants maintained
 
 **Key Tests Passing**:
-- Token expiry validation ✅
-- Token invalidation after logout ✅  
-- Signature manipulation detection ✅
-- Cache security ✅
-- Database validation logic ✅
+- Token expiry validation 
+- Token invalidation after logout   
+- Signature manipulation detection 
+- Cache security 
+- Database validation logic 
 
 ## Security Recommendations
 

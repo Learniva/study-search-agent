@@ -79,7 +79,7 @@ def create_refresh_token(
     
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     
-    logger.debug(f"🔑 Created refresh token for user {user_id}, chain {rotation_chain_id[:8]}...")
+    logger.debug(f" Created refresh token for user {user_id}, chain {rotation_chain_id[:8]}...")
     return encoded_jwt
 
 
@@ -107,7 +107,7 @@ def verify_refresh_token(token: str) -> Dict[str, Any]:
         # Verify token type
         token_type = payload.get("type")
         if token_type != "refresh":
-            logger.warning(f"⚠️ Wrong token type: {token_type}, expected 'refresh'")
+            logger.warning(f" Wrong token type: {token_type}, expected 'refresh'")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid token type"
@@ -119,17 +119,17 @@ def verify_refresh_token(token: str) -> Dict[str, Any]:
         rotation_chain_id = payload.get("rotation_chain_id")
         
         if not all([user_id, token_id, rotation_chain_id]):
-            logger.warning("⚠️ Refresh token missing required fields")
+            logger.warning(" Refresh token missing required fields")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid token payload"
             )
         
-        logger.debug(f"✅ Verified refresh token for user {user_id}")
+        logger.debug(f" Verified refresh token for user {user_id}")
         return payload
         
     except JWTError as e:
-        logger.warning(f"⚠️ JWT verification failed: {e}")
+        logger.warning(f" JWT verification failed: {e}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Could not validate refresh token: {str(e)}"

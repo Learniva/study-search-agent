@@ -97,21 +97,21 @@ def init_db():
     Enables pgvector extension for Agentic RAG (Phase 1.1).
     This should be called once at application startup.
     """
-    print("🗄️  Initializing PostgreSQL database...")
+    print("  Initializing PostgreSQL database...")
     
     try:
         # Test connection
         with engine.connect() as conn:
-            print(f"✅ Connected to database: {DATABASE_URL.split('@')[1] if '@' in DATABASE_URL else 'local'}")
+            print(f" Connected to database: {DATABASE_URL.split('@')[1] if '@' in DATABASE_URL else 'local'}")
             
             # Enable pgvector extension (Phase 1.1: Agentic RAG)
             try:
                 from sqlalchemy import text
                 conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
                 conn.commit()
-                print("✅ pgvector extension enabled (L2 Vector Store ready)")
+                print(" pgvector extension enabled (L2 Vector Store ready)")
             except Exception as e:
-                print(f"⚠️  pgvector extension not available: {e}")
+                print(f"  pgvector extension not available: {e}")
                 print("   Vector similarity search will be limited.")
                 print("   To enable pgvector:")
                 print("   1. Install: sudo apt-get install postgresql-<version>-pgvector")
@@ -119,15 +119,15 @@ def init_db():
         
         # Create all tables
         Base.metadata.create_all(bind=engine)
-        print("✅ Database tables created/verified")
+        print(" Database tables created/verified")
         print("   • L2 Vector Store (document_vectors)")
         print("   • L3 Learning Store (grade_exceptions)")
         print("   • RAG Query Logs (rag_query_logs)")
         
         return True
     except Exception as e:
-        print(f"❌ Database initialization failed: {e}")
-        print("\n⚠️  Database features will be disabled.")
+        print(f" Database initialization failed: {e}")
+        print("\n  Database features will be disabled.")
         print("   To enable database features:")
         print("   1. Install PostgreSQL")
         print("   2. Set DATABASE_URL in .env")
@@ -142,15 +142,15 @@ def reset_db():
     WARNING: This will delete all data!
     Use only for development/testing.
     """
-    print("⚠️  WARNING: This will delete all database data!")
+    print("  WARNING: This will delete all database data!")
     
     # Drop all tables
     Base.metadata.drop_all(bind=engine)
-    print("🗑️  All tables dropped")
+    print("  All tables dropped")
     
     # Recreate tables
     Base.metadata.create_all(bind=engine)
-    print("✅ Tables recreated")
+    print(" Tables recreated")
 
 
 def check_db_connection() -> bool:
@@ -164,7 +164,7 @@ def check_db_connection() -> bool:
         with engine.connect() as conn:
             return True
     except Exception as e:
-        print(f"❌ Database connection failed: {e}")
+        print(f" Database connection failed: {e}")
         return False
 
 

@@ -232,7 +232,7 @@ class TestPayloadMutation:
         
         # Verify payload was mutated
         tampered_payload = decode_jwt_without_verification(tampered_token)
-        print(f"✓ Tampered user_id: {tampered_payload['user_id']}")
+        print(f" Tampered user_id: {tampered_payload['user_id']}")
         assert tampered_payload['user_id'] == "attacker@example.com"
         
         # Attempt to use tampered token
@@ -249,16 +249,16 @@ class TestPayloadMutation:
         assert response.status_code in [401, 404], \
             f"Expected 401 or 404, got {response.status_code}: {response.text}"
         
-        print(f"✓ Mutation rejected with status: {response.status_code}")
+        print(f" Mutation rejected with status: {response.status_code}")
         if response.status_code == 401:
-            print(f"✓ Response: {response.json()}")
+            print(f" Response: {response.json()}")
         
         # Verify error message indicates signature failure
         detail = response.json().get("detail", "")
         assert "credentials" in detail.lower() or "unauthorized" in detail.lower(), \
             "Error should indicate authentication failure"
         
-        print("✓ Signature validation failed (as expected)")
+        print(" Signature validation failed (as expected)")
         print("="*80)
     
     def test_role_escalation_mutation_rejected(self, client, valid_token, caplog):
@@ -281,7 +281,7 @@ class TestPayloadMutation:
         
         # Verify payload was mutated
         tampered_payload = decode_jwt_without_verification(tampered_token)
-        print(f"✓ Tampered role: {tampered_payload['role']}")
+        print(f" Tampered role: {tampered_payload['role']}")
         assert tampered_payload['role'] == "admin"
         
         # Attempt to use tampered token
@@ -297,10 +297,10 @@ class TestPayloadMutation:
         assert response.status_code in [401, 404], \
             f"Expected 401 or 404, got {response.status_code}: {response.text}"
         
-        print(f"✓ Role escalation rejected with status: {response.status_code}")
+        print(f" Role escalation rejected with status: {response.status_code}")
         if response.status_code == 401:
-            print(f"✓ Response: {response.json()}")
-        print("✓ Signature validation prevented privilege escalation")
+            print(f" Response: {response.json()}")
+        print(" Signature validation prevented privilege escalation")
         print("="*80)
     
     def test_email_mutation_rejected(self, client, valid_token, caplog):
@@ -323,7 +323,7 @@ class TestPayloadMutation:
         
         # Verify payload was mutated
         tampered_payload = decode_jwt_without_verification(tampered_token)
-        print(f"✓ Tampered email: {tampered_payload['email']}")
+        print(f" Tampered email: {tampered_payload['email']}")
         assert tampered_payload['email'] == "hacker@evil.com"
         
         # Attempt to use tampered token
@@ -339,8 +339,8 @@ class TestPayloadMutation:
         assert response.status_code in [401, 404], \
             f"Expected 401 or 404, got {response.status_code}: {response.text}"
         
-        print(f"✓ Email mutation rejected with status: {response.status_code}")
-        print("✓ Signature validation failed (as expected)")
+        print(f" Email mutation rejected with status: {response.status_code}")
+        print(" Signature validation failed (as expected)")
         print("="*80)
     
     def test_multiple_claims_mutation_rejected(self, client, valid_token, caplog):
@@ -368,9 +368,9 @@ class TestPayloadMutation:
         
         # Verify payload was mutated
         tampered_payload = decode_jwt_without_verification(tampered_token)
-        print(f"✓ Tampered user_id: {tampered_payload['user_id']}")
-        print(f"✓ Tampered role: {tampered_payload['role']}")
-        print(f"✓ Tampered email: {tampered_payload['email']}")
+        print(f" Tampered user_id: {tampered_payload['user_id']}")
+        print(f" Tampered role: {tampered_payload['role']}")
+        print(f" Tampered email: {tampered_payload['email']}")
         
         # Attempt to use tampered token
         response = client.get(
@@ -385,8 +385,8 @@ class TestPayloadMutation:
         assert response.status_code in [401, 404], \
             f"Expected 401 or 404, got {response.status_code}: {response.text}"
         
-        print(f"✓ Multiple mutations rejected with status: {response.status_code}")
-        print("✓ Signature validation prevented all tampering")
+        print(f" Multiple mutations rejected with status: {response.status_code}")
+        print(" Signature validation prevented all tampering")
         print("="*80)
 
 
@@ -415,7 +415,7 @@ class TestSignatureTampering:
         # Create token with wrong signature
         tampered_token = create_wrong_signature_token(valid_token)
         
-        print("✓ Created token with invalid signature")
+        print(" Created token with invalid signature")
         
         # Attempt to use tampered token
         response = client.get(
@@ -430,9 +430,9 @@ class TestSignatureTampering:
         assert response.status_code in [401, 404], \
             f"Expected 401 or 404, got {response.status_code}: {response.text}"
         
-        print(f"✓ Invalid signature rejected with status: {response.status_code}")
+        print(f" Invalid signature rejected with status: {response.status_code}")
         if response.status_code == 401:
-            print(f"✓ Response: {response.json()}")
+            print(f" Response: {response.json()}")
         print("="*80)
     
     def test_signature_from_different_token_rejected(self, client, valid_token_payload, caplog):
@@ -464,7 +464,7 @@ class TestSignatureTampering:
         parts_b = token_b.split('.')
         hybrid_token = f"{parts_a[0]}.{parts_a[1]}.{parts_b[2]}"
         
-        print("✓ Created hybrid token with mismatched signature")
+        print(" Created hybrid token with mismatched signature")
         
         # Attempt to use hybrid token
         response = client.get(
@@ -479,7 +479,7 @@ class TestSignatureTampering:
         assert response.status_code in [401, 404], \
             f"Expected 401 or 404, got {response.status_code}: {response.text}"
         
-        print(f"✓ Signature mismatch rejected with status: {response.status_code}")
+        print(f" Signature mismatch rejected with status: {response.status_code}")
         print("="*80)
 
 
@@ -513,7 +513,7 @@ class TestAlgorithmAttacks:
         # Create token with 'none' algorithm
         none_token = create_none_algorithm_token(payload)
         
-        print("✓ Created token with alg='none' (no signature)")
+        print(" Created token with alg='none' (no signature)")
         
         # Attempt to use 'none' algorithm token
         response = client.get(
@@ -528,9 +528,9 @@ class TestAlgorithmAttacks:
         assert response.status_code in [401, 404], \
             f"Expected 401 or 404, got {response.status_code}: {response.text}"
         
-        print(f"✓ 'None' algorithm rejected with status: {response.status_code}")
+        print(f" 'None' algorithm rejected with status: {response.status_code}")
         if response.status_code == 401:
-            print(f"✓ Response: {response.json()}")
+            print(f" Response: {response.json()}")
         print("="*80)
     
     def test_wrong_algorithm_rejected(self, client, valid_token_payload, caplog):
@@ -555,7 +555,7 @@ class TestAlgorithmAttacks:
                 algorithm="HS512"  # Wrong algorithm
             )
             
-            print("✓ Created token with HS512 (expected HS256)")
+            print(" Created token with HS512 (expected HS256)")
             
             # Attempt to use token with wrong algorithm
             response = client.get(
@@ -570,10 +570,10 @@ class TestAlgorithmAttacks:
             assert response.status_code in [401, 404], \
                 f"Expected 401 or 404, got {response.status_code}: {response.text}"
             
-            print(f"✓ Wrong algorithm rejected with status: {response.status_code}")
+            print(f" Wrong algorithm rejected with status: {response.status_code}")
             print("="*80)
         except Exception as e:
-            print(f"✓ Token creation with wrong algorithm failed (also acceptable): {e}")
+            print(f" Token creation with wrong algorithm failed (also acceptable): {e}")
             print("="*80)
 
 
@@ -626,8 +626,8 @@ class TestValidationOrder:
         
         # Verify database was NOT accessed
         # (signature validation should fail before database lookup)
-        print(f"✓ Database lookup called: {mock_get_user.called}")
-        print(f"✓ Request rejected at cryptographic layer")
+        print(f" Database lookup called: {mock_get_user.called}")
+        print(f" Request rejected at cryptographic layer")
         print("="*80)
     
     def test_signature_validation_logs_failure(self, client, valid_token, caplog):
@@ -660,12 +660,12 @@ class TestValidationOrder:
         assert response.status_code in [401, 404], \
             f"Expected 401 or 404, got {response.status_code}: {response.text}"
         
-        print(f"✓ Tampering rejected with status: {response.status_code}")
-        print(f"✓ Captured {len(caplog.records)} log entries")
+        print(f" Tampering rejected with status: {response.status_code}")
+        print(f" Captured {len(caplog.records)} log entries")
         
         # Check for relevant log entries
         log_messages = [record.message for record in caplog.records]
-        print(f"✓ Log sample: {log_messages[:3] if log_messages else 'No logs'}")
+        print(f" Log sample: {log_messages[:3] if log_messages else 'No logs'}")
         print("="*80)
 
 
@@ -693,14 +693,14 @@ class TestJWTVerificationFunction:
         with pytest.raises(Exception) as exc_info:
             verify_access_token(tampered_token)
         
-        print(f"✓ Verification raised exception: {type(exc_info.value).__name__}")
-        print(f"✓ Error message: {str(exc_info.value)}")
+        print(f" Verification raised exception: {type(exc_info.value).__name__}")
+        print(f" Error message: {str(exc_info.value)}")
         
         # Verify it's an authentication error
         assert "401" in str(exc_info.value) or "credentials" in str(exc_info.value).lower(), \
             "Should raise authentication error"
         
-        print("✓ Cryptographic verification correctly rejected tampered token")
+        print(" Cryptographic verification correctly rejected tampered token")
         print("="*80)
     
     def test_verify_function_rejects_wrong_signature(self, valid_token):
@@ -718,10 +718,10 @@ class TestJWTVerificationFunction:
         with pytest.raises(Exception) as exc_info:
             verify_access_token(tampered_token)
         
-        print(f"✓ Verification raised exception: {type(exc_info.value).__name__}")
-        print(f"✓ Error message: {str(exc_info.value)}")
+        print(f" Verification raised exception: {type(exc_info.value).__name__}")
+        print(f" Error message: {str(exc_info.value)}")
         
-        print("✓ Cryptographic verification correctly rejected invalid signature")
+        print(" Cryptographic verification correctly rejected invalid signature")
         print("="*80)
     
     def test_verify_function_accepts_valid_token(self, valid_token):
@@ -737,13 +737,13 @@ class TestJWTVerificationFunction:
         # Verify valid token
         try:
             payload = verify_access_token(valid_token)
-            print(f"✓ Valid token accepted")
-            print(f"✓ Payload user_id: {payload.get('user_id')}")
-            print(f"✓ Payload role: {payload.get('role')}")
+            print(f" Valid token accepted")
+            print(f" Payload user_id: {payload.get('user_id')}")
+            print(f" Payload role: {payload.get('role')}")
             assert payload is not None, "Should return payload"
-            print("✓ Cryptographic verification working correctly")
+            print(" Cryptographic verification working correctly")
         except Exception as e:
-            print(f"✗ Valid token rejected (unexpected): {e}")
+            print(f" Valid token rejected (unexpected): {e}")
             raise
         
         print("="*80)
@@ -798,11 +798,11 @@ def test_summary():
     print("\n" + "="*80)
     print("JWT TAMPERING PROTECTION SUMMARY")
     print("="*80)
-    print("✓ Payload mutations detected and rejected")
-    print("✓ Invalid signatures rejected at cryptographic layer")
-    print("✓ Algorithm confusion attacks prevented")
-    print("✓ Validation occurs before downstream components")
-    print("✓ All tampering attempts logged")
+    print(" Payload mutations detected and rejected")
+    print(" Invalid signatures rejected at cryptographic layer")
+    print(" Algorithm confusion attacks prevented")
+    print(" Validation occurs before downstream components")
+    print(" All tampering attempts logged")
     print("="*80)
     print("\nSecurity Invariants Verified:")
     print("1. Invalid signature → 401 Unauthorized")

@@ -29,7 +29,7 @@ def pattern_based_route(question: str, patterns: Dict[str, List[str]]) -> Option
     for tool, pattern_list in patterns.items():
         for pattern in pattern_list:
             if re.search(pattern, q):
-                print(f"⚡ Pattern-based routing: {tool} (no LLM call)")
+                print(f" Pattern-based routing: {tool} (no LLM call)")
                 return tool
     
     # No pattern matched - fall back to LLM
@@ -260,7 +260,7 @@ def fast_intent_classification(question: str) -> Optional[str]:
     result = pattern_based_route(question, SUPERVISOR_INTENT_PATTERNS)
     
     if result:
-        print(f"⚡ Pattern-based intent: {result} (no LLM call)")
+        print(f" Pattern-based intent: {result} (no LLM call)")
     
     return result
 

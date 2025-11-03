@@ -20,11 +20,11 @@ class StudyAgentRouter:
         
         # Try pattern-based routing first (fast, no LLM call)
         quick_route = fast_study_route(question)
-        print(f"🔍 [ROUTING DEBUG] Initial route for '{question[:60]}...': {quick_route}")
+        print(f" [ROUTING DEBUG] Initial route for '{question[:60]}...': {quick_route}")
         
         # If Document_QA was suggested, verify documents exist first
         if quick_route == "Document_QA":
-            print("📚 [ROUTING DEBUG] Document_QA selected - checking database...")
+            print(" [ROUTING DEBUG] Document_QA selected - checking database...")
             
             # Check if user explicitly references uploaded document
             question_lower = question.lower()
@@ -41,7 +41,7 @@ class StudyAgentRouter:
                 with get_db() as db:
                     count_result = db.execute(text("SELECT COUNT(*) as count FROM document_vectors"))
                     total_docs = count_result.fetchone().count
-                    print(f"📊 [ROUTING DEBUG] Found {total_docs} document vectors in DB")
+                    print(f" [ROUTING DEBUG] Found {total_docs} document vectors in DB")
                     
                     if total_docs == 0:
                         # Check if documents exist on disk but not yet indexed
@@ -52,20 +52,20 @@ class StudyAgentRouter:
                                            if f.endswith(('.pdf', '.docx', '.txt', '.md'))]
                         
                         if files_on_disk:
-                            print(f"⚠️  Found {len(files_on_disk)} file(s) on disk but not indexed yet")
-                            print(f"📄 Files: {', '.join(files_on_disk)}")
+                            print(f"  Found {len(files_on_disk)} file(s) on disk but not indexed yet")
+                            print(f" Files: {', '.join(files_on_disk)}")
                             # Don't change route - let Document_QA handle the "indexing in progress" message
                         elif explicit_doc_reference:
-                            print("⚠️  User explicitly referenced a document but none found")
+                            print("  User explicitly referenced a document but none found")
                             # Don't change route - let Document_QA explain that no document was found
                         else:
-                            print("⚠️  No documents in vector store and no explicit document reference")
+                            print("  No documents in vector store and no explicit document reference")
                             # Only in this case, route to Web Search
                             quick_route = "Web_Search"
                     else:
-                        print(f"✅ [ROUTING DEBUG] Documents available - proceeding with Document_QA")
+                        print(f" [ROUTING DEBUG] Documents available - proceeding with Document_QA")
             except Exception as e:
-                print(f"⚠️  Database check error: {e} - continuing with Document_QA route (will fallback if needed)")
+                print(f"  Database check error: {e} - continuing with Document_QA route (will fallback if needed)")
                 # Continue with original route - fallback mechanism will handle it
         
         if quick_route:

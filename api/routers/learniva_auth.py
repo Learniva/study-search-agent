@@ -129,10 +129,10 @@ async def create_token_for_user(
     )
     
     if not token_obj:
-        logger.error(f"❌ Failed to create token for user: {user_id}")
+        logger.error(f" Failed to create token for user: {user_id}")
         raise HTTPException(status_code=500, detail="Failed to create authentication token")
     
-    logger.info(f"🔑 Token created for user: {user_id} (expires in {settings.token_expire_hours}h)")
+    logger.info(f" Token created for user: {user_id} (expires in {settings.token_expire_hours}h)")
     return token_obj.token
 
 
@@ -149,16 +149,16 @@ async def verify_token_data(session: AsyncSession, token_value: str) -> Optional
     """
     token = await get_token(session, token_value)
     if not token:
-        logger.debug(f"🔍 Token not found or expired: {token_value[:20]}...")
+        logger.debug(f" Token not found or expired: {token_value[:20]}...")
         return None
     
     # Get user data
     user = await get_user_by_id(session, token.user_id)
     if not user:
-        logger.warning(f"⚠️ Token valid but user not found: {token.user_id}")
+        logger.warning(f" Token valid but user not found: {token.user_id}")
         return None
     
-    logger.debug(f"✅ Token verified for user: {user.username}")
+    logger.debug(f" Token verified for user: {user.username}")
     return user
 
 
@@ -211,7 +211,7 @@ async def get_current_user(
     from utils.auth.token_cache import get_token_cache
     
     if not authorization:
-        logger.debug("🔒 Auth: No Authorization header provided")
+        logger.debug(" Auth: No Authorization header provided")
         raise HTTPException(
             status_code=401,
             detail={"error": "unauthorized", "message": "Authorization header required"}
@@ -224,37 +224,37 @@ async def get_current_user(
             scheme, token = parts
             # Accept both "Token" (Django REST Framework) and "Bearer" (OAuth2) formats
             if scheme.lower() not in ["token", "bearer"]:
-                logger.debug(f"🔒 Auth: Invalid scheme '{scheme}'")
+                logger.debug(f" Auth: Invalid scheme '{scheme}'")
                 raise ValueError("Invalid scheme")
         else:
             # If no scheme, treat entire string as token
             token = authorization
     except (ValueError, AttributeError) as e:
-        logger.debug(f"🔒 Auth: Error parsing header: {e}")
+        logger.debug(f" Auth: Error parsing header: {e}")
         raise HTTPException(
             status_code=401,
             detail={"error": "unauthorized", "message": "Invalid authorization header format"}
         )
     
-    # ⚡ OPTIMIZATION: Check token cache first
+    #  OPTIMIZATION: Check token cache first
     token_cache = await get_token_cache()
     cached_user = await token_cache.get(token)
     if cached_user:
-        logger.debug(f"⚡ Auth cache HIT: {cached_user.get('username')} (<1ms)")
+        logger.debug(f" Auth cache HIT: {cached_user.get('username')} (<1ms)")
         return cached_user
     
     # Cache miss - verify token from database
-    logger.debug(f"📦 Auth cache MISS: Verifying token from database...")
+    logger.debug(f" Auth cache MISS: Verifying token from database...")
     user = await verify_token_data(session, token)
     if not user:
-        logger.debug(f"🔒 Auth: Token verification failed - invalid or expired")
+        logger.debug(f" Auth: Token verification failed - invalid or expired")
         raise HTTPException(
             status_code=401,
             detail={"error": "unauthorized", "message": "Invalid or expired token"}
         )
     
     if not user.is_active:
-        logger.warning(f"🔒 Auth: Inactive user attempted access: {user.username}")
+        logger.warning(f" Auth: Inactive user attempted access: {user.username}")
         raise HTTPException(
             status_code=401,
             detail={"error": "unauthorized", "message": "User account is inactive"}
@@ -262,9 +262,9 @@ async def get_current_user(
     
     user_dict = user_to_dict(user)
     
-    # ⚡ Cache the user data for future requests
+    #  Cache the user data for future requests
     await token_cache.set(token, user_dict)
-    logger.debug(f"✅ Auth: Cached user data for: {user.username}")
+    logger.debug(f" Auth: Cached user data for: {user.username}")
     
     return user_dict
 
@@ -293,13 +293,13 @@ async def login(
     - Short-lived access tokens (15 minutes)
     - CSRF token for state-changing operations
     """
-    logger.info(f"🔐 Login attempt: {request.username}")
+    logger.info(f" Login attempt: {request.username}")
     
     # Authenticate user
     user = await authenticate_user(session, request.username, request.password)
     
     if not user:
-        logger.warning(f"❌ Login failed: {request.username}")
+        logger.warning(f" Login failed: {request.username}")
         raise HTTPException(
             status_code=401,
             detail={"error": "invalid_credentials", "message": "Invalid username or password"}
@@ -318,7 +318,7 @@ async def login(
         csrf_token=csrf_token
     )
     
-    logger.info(f"✅ Login successful: {user.username} (cookie-based auth)")
+    logger.info(f" Login successful: {user.username} (cookie-based auth)")
     
     # Return token in response body for backward compatibility
     # This can be removed once all clients migrate to cookie-based auth
@@ -348,7 +348,7 @@ async def logout(
     
     # Clear authentication cookies
     clear_auth_cookies(response)
-    logger.info("🍪 Authentication cookies cleared")
+    logger.info(" Authentication cookies cleared")
     
     if authorization:
         # Extract token
@@ -356,13 +356,13 @@ async def logout(
             parts = authorization.split(maxsplit=1)
             token_value = parts[1] if len(parts) == 2 else authorization
             
-            # ⚡ Clear from cache first (instant)
+            #  Clear from cache first (instant)
             token_cache = get_token_cache()
             token_cache.invalidate(token_value)
             
             # Then delete from database (persistent)
             await delete_token(session, token_value)
-            logger.info(f"👋 Logout: Token invalidated from cache and database")
+            logger.info(f" Logout: Token invalidated from cache and database")
         except Exception as e:
             logger.debug(f"Logout with invalid token (expected): {e}")
     
@@ -398,7 +398,7 @@ async def register(
     - SameSite=strict prevents CSRF attacks
     - CSRF token for state-changing operations
     """
-    logger.info(f"📝 Registration attempt: {request.username} ({request.email})")
+    logger.info(f" Registration attempt: {request.username} ({request.email})")
     
     # Validate passwords match
     if request.password != request.password2:
@@ -451,7 +451,7 @@ async def register(
     )
     
     if not user:
-        logger.warning(f"❌ Registration failed: {request.username} (duplicate)")
+        logger.warning(f" Registration failed: {request.username} (duplicate)")
         raise HTTPException(
             status_code=400,
             detail={"error": "duplicate_user", "message": "Username or email already exists"}
@@ -470,23 +470,23 @@ async def register(
         csrf_token=csrf_token
     )
     
-    logger.info(f"✅ Registration successful: {user.username} (cookie-based auth)")
+    logger.info(f" Registration successful: {user.username} (cookie-based auth)")
     
     # Send welcome email to new user
     try:
-        logger.info(f"📧 Sending welcome email to {user.email}")
+        logger.info(f" Sending welcome email to {user.email}")
         email_sent = email_service.send_welcome_email(
             to_email=user.email,
             username=user.username,
             first_name=user.first_name
         )
         if email_sent:
-            logger.info(f"✅ Welcome email sent successfully to {user.email}")
+            logger.info(f" Welcome email sent successfully to {user.email}")
         else:
-            logger.warning(f"⚠️ Failed to send welcome email to {user.email}")
+            logger.warning(f" Failed to send welcome email to {user.email}")
     except Exception as e:
         # Don't fail registration if email fails
-        logger.error(f"❌ Error sending welcome email: {e}")
+        logger.error(f" Error sending welcome email: {e}")
     
     # Return token in response body for backward compatibility
     # This can be removed once all clients migrate to cookie-based auth
@@ -592,7 +592,7 @@ async def request_password_reset(
     Sends an email with a password reset link containing a secure token.
     Always returns success to prevent email enumeration attacks.
     """
-    logger.info(f"🔄 Password reset requested for: {request.email}")
+    logger.info(f" Password reset requested for: {request.email}")
     
     # Check if user exists
     user = await get_user_by_email(session, request.email)
@@ -614,13 +614,13 @@ async def request_password_reset(
             )
             
             if email_sent:
-                logger.info(f"✅ Password reset email sent to: {request.email}")
+                logger.info(f" Password reset email sent to: {request.email}")
             else:
-                logger.error(f"❌ Failed to send password reset email to: {request.email}")
+                logger.error(f" Failed to send password reset email to: {request.email}")
         else:
-            logger.error(f"❌ Failed to create reset token for: {request.email}")
+            logger.error(f" Failed to create reset token for: {request.email}")
     else:
-        logger.warning(f"⚠️  Password reset requested for non-existent email: {request.email}")
+        logger.warning(f"  Password reset requested for non-existent email: {request.email}")
     
     # Always return same message (security: prevent email enumeration)
     return {
@@ -639,7 +639,7 @@ async def confirm_password_reset(
     
     Validates the reset token, updates the password, and marks token as used.
     """
-    logger.info(f"🔐 Password reset confirmation for: {request.email}")
+    logger.info(f" Password reset confirmation for: {request.email}")
     
     # Verify passwords match
     if request.new_password != request.confirm_password:
@@ -678,7 +678,7 @@ async def confirm_password_reset(
     reset_token = await get_valid_reset_token(session, request.token, request.email)
     
     if not reset_token:
-        logger.warning(f"⚠️  Invalid or expired reset token for: {request.email}")
+        logger.warning(f"  Invalid or expired reset token for: {request.email}")
         raise HTTPException(
             status_code=400,
             detail={
@@ -723,10 +723,10 @@ async def confirm_password_reset(
         
         await session.commit()
         
-        logger.info(f"✅ Password reset successful for: {request.email}")
+        logger.info(f" Password reset successful for: {request.email}")
     except Exception as e:
         await session.rollback()
-        logger.error(f"❌ Password reset failed for {request.email}: {e}")
+        logger.error(f" Password reset failed for {request.email}: {e}")
         raise HTTPException(
             status_code=500,
             detail={"error": "reset_failed", "message": "Failed to reset password. Please try again."}

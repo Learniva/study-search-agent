@@ -17,23 +17,23 @@ PHASE 1: INITIAL ATTACK (Attempts 1-5)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   t+0ms     ┌──────────────┐
-  Attempt 1 │ POST /login  │ → HTTP 401 ✗  "invalid_credentials"
+  Attempt 1 │ POST /login  │ → HTTP 401   "invalid_credentials"
             └──────────────┘   (Failed attempts: 1)
 
   t+11ms    ┌──────────────┐
-  Attempt 2 │ POST /login  │ → HTTP 401 ✗  "invalid_credentials"
+  Attempt 2 │ POST /login  │ → HTTP 401   "invalid_credentials"
             └──────────────┘   (Failed attempts: 2)
 
   t+22ms    ┌──────────────┐
-  Attempt 3 │ POST /login  │ → HTTP 401 ✗  "invalid_credentials"
+  Attempt 3 │ POST /login  │ → HTTP 401   "invalid_credentials"
             └──────────────┘   (Failed attempts: 3)
 
   t+33ms    ┌──────────────┐
-  Attempt 4 │ POST /login  │ → HTTP 401 ✗  "invalid_credentials"
+  Attempt 4 │ POST /login  │ → HTTP 401   "invalid_credentials"
             └──────────────┘   (Failed attempts: 4)
 
-  t+44ms    ┌──────────────┐                ⚠️  THRESHOLD REACHED!
-  Attempt 5 │ POST /login  │ → HTTP 423 🔒  "account_locked"
+  t+44ms    ┌──────────────┐                  THRESHOLD REACHED!
+  Attempt 5 │ POST /login  │ → HTTP 423   "account_locked"
             └──────────────┘   (Failed attempts: 5)
                                
                                [LOCKOUT TRIGGERED]
@@ -45,23 +45,23 @@ PHASE 2: LOCKOUT VERIFICATION (Attempts 6-10)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   t+55ms    ┌──────────────┐
-  Attempt 6 │ POST /login  │ → HTTP 423 🔒  "account_locked" ✓
+  Attempt 6 │ POST /login  │ → HTTP 423   "account_locked" 
             └──────────────┘   
 
   t+66ms    ┌──────────────┐
-  Attempt 7 │ POST /login  │ → HTTP 423 🔒  "account_locked" ✓
+  Attempt 7 │ POST /login  │ → HTTP 423   "account_locked" 
             └──────────────┘   
 
   t+77ms    ┌──────────────┐
-  Attempt 8 │ POST /login  │ → HTTP 423 🔒  "account_locked" ✓
+  Attempt 8 │ POST /login  │ → HTTP 423   "account_locked" 
             └──────────────┘   
 
   t+88ms    ┌──────────────┐
-  Attempt 9 │ POST /login  │ → HTTP 423 🔒  "account_locked" ✓
+  Attempt 9 │ POST /login  │ → HTTP 423   "account_locked" 
             └──────────────┘   
 
   t+99ms    ┌──────────────┐
-  Attempt 10│ POST /login  │ → HTTP 423 🔒  "account_locked" ✓
+  Attempt 10│ POST /login  │ → HTTP 423   "account_locked" 
             └──────────────┘   
 
 End: 2025-10-28T18:30:55.404894+00:00
@@ -77,11 +77,11 @@ RESULTS SUMMARY
 │  Locked (423):           6  (during lockout)                │
 │  Successful (200):       0  (attack blocked)                │
 │                                                             │
-│  Lockout Triggered:     ✓ YES (at attempt #5)              │
-│  Cooldown Verified:     ✓ YES (100% blocked)               │
-│  Logs Generated:        ✓ YES (2 events)                   │
+│  Lockout Triggered:      YES (at attempt #5)              │
+│  Cooldown Verified:      YES (100% blocked)               │
+│  Logs Generated:         YES (2 events)                   │
 │                                                             │
-│  Status: ✅ ALL ACCEPTANCE CRITERIA MET                    │
+│  Status:  ALL ACCEPTANCE CRITERIA MET                    │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -93,16 +93,16 @@ RESULTS SUMMARY
 └─────────────────────────────────────────────────────────────────────┘
 
 Level 1  │ 5 attempts   →  5 minutes  │ ████████░░░░░░░░░░░░░░ 
-         │                             │ ✓ TESTED & VERIFIED
+         │                             │  TESTED & VERIFIED
 
 Level 2  │ 10 attempts  → 10 minutes  │ ████████████████░░░░░░ 
-         │                             │ ✓ TESTED & VERIFIED
+         │                             │  TESTED & VERIFIED
 
 Level 3  │ 15 attempts  → 30 minutes  │ ████████████████████████████████
-         │                             │ ✓ TESTED & VERIFIED
+         │                             │  TESTED & VERIFIED
 
 Level 4  │ 20+ attempts → 60 minutes  │ ████████████████████████████████████████████████
-         │                             │ ✓ TESTED & VERIFIED
+         │                             │  TESTED & VERIFIED
 ```
 
 ## IP-Based Lockout Isolation
@@ -121,10 +121,10 @@ IP: 192.168.1.201                      IP: 192.168.1.202
 └──────────────────┘                   └──────────────────┘
          │                                      │
          ▼                                      ▼
-    🔒 LOCKED                              ✓ NOT LOCKED
+     LOCKED                               NOT LOCKED
     (5 min cooldown)                      (no restrictions)
 
-Result: ✓ Independent lockout states maintained per IP
+Result:  Independent lockout states maintained per IP
 ```
 
 ## Response Flow
@@ -199,31 +199,31 @@ Test 1: test_bruteforce_attack_triggers_lockout
 ├─ Execute:  10 rapid failed login attempts
 ├─ Verify:   Lockout at attempt #5
 ├─ Assert:   HTTP 423 for attempts 6-10
-└─ Result:   ✅ PASSED (99.7ms)
+└─ Result:    PASSED (99.7ms)
 
 Test 2: test_progressive_lockout_levels
 ├─ Setup:    4 different user/IP combinations
 ├─ Execute:  Test each lockout level threshold
 ├─ Verify:   Level 1 (5), Level 2 (10), Level 3 (15), Level 4 (20)
 ├─ Assert:   Correct lockout activation
-└─ Result:   ✅ PASSED
+└─ Result:    PASSED
 
 Test 3: test_lockout_duration_verified
 ├─ Setup:    Create lockout manager
 ├─ Execute:  Trigger Level 1 lockout
 ├─ Verify:   Duration calculation (5 minutes ±0.1)
 ├─ Assert:   Lockout_until timestamp correct
-└─ Result:   ✅ PASSED
+└─ Result:    PASSED
 
 Test 4: test_ip_based_lockout
 ├─ Setup:    Same user, 2 different IPs
 ├─ Execute:  Lock IP1, test IP2
 ├─ Verify:   Independent lockout states
 ├─ Assert:   IP1 locked, IP2 not locked
-└─ Result:   ✅ PASSED
+└─ Result:    PASSED
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-OVERALL: ✅ 4/4 TESTS PASSED (3.88s total)
+OVERALL:  4/4 TESTS PASSED (3.88s total)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -237,26 +237,26 @@ OVERALL: ✅ 4/4 TESTS PASSED (3.88s total)
 Attack Vector: Credential Brute-Force
   │
   ├─ Attempt rapid password guessing
-  │  └─ Result: ✅ BLOCKED after 5 attempts
+  │  └─ Result:  BLOCKED after 5 attempts
   │
   ├─ Attempt dictionary attack
-  │  └─ Result: ✅ BLOCKED after 5 attempts
+  │  └─ Result:  BLOCKED after 5 attempts
   │
   ├─ Attempt credential stuffing
-  │  └─ Result: ✅ BLOCKED after 5 attempts
+  │  └─ Result:  BLOCKED after 5 attempts
   │
   └─ Attempt distributed attack (multiple IPs)
-     └─ Result: ✅ BLOCKED independently per IP
+     └─ Result:  BLOCKED independently per IP
 
 Protection Mechanisms:
-  ✓ Threshold detection (5 attempts)
-  ✓ Immediate lockout activation
-  ✓ Progressive penalty escalation
-  ✓ Cooldown period enforcement
-  ✓ IP-based isolation
-  ✓ Comprehensive logging
+   Threshold detection (5 attempts)
+   Immediate lockout activation
+   Progressive penalty escalation
+   Cooldown period enforcement
+   IP-based isolation
+   Comprehensive logging
 
-VERDICT: ✅ INVARIANT HOLDS - System is secure against brute-force
+VERDICT:  INVARIANT HOLDS - System is secure against brute-force
 ```
 
 ---

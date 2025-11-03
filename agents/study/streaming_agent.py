@@ -120,7 +120,7 @@ class StreamingStudyAgent(BaseAgent):
             Response chunks as they become available
         """
         try:
-            logger.info(f"🎯 Streaming study query: {question[:100]}...")
+            logger.info(f" Streaming study query: {question[:100]}...")
             
             # Create streaming state
             state = StreamingState({
@@ -138,22 +138,22 @@ class StreamingStudyAgent(BaseAgent):
             # Determine which tool to use
             if "document" in question_lower or "uploaded" in question_lower or "notes" in question_lower:
                 tool_method = self.nodes._execute_document_qa
-                logger.info("📚 Routing to Document Q&A")
+                logger.info(" Routing to Document Q&A")
             
             elif "code" in question_lower or "calculate" in question_lower or "compute" in question_lower or "python" in question_lower:
                 tool_method = self.nodes._execute_python_repl
-                logger.info("🐍 Routing to Python REPL")
+                logger.info(" Routing to Python REPL")
             
             elif any(keyword in question_lower for keyword in ["animate ", "create animation", "generate animation", "show animation", "create video", "generate video", "make video"]):
                 tool_method = self.nodes._execute_manim_animation
-                logger.info("🎬 Routing to Manim Animation (with concurrent support)")
+                logger.info(" Routing to Manim Animation (with concurrent support)")
             
             else:
                 tool_method = self.nodes._execute_web_search
-                logger.info("🌐 Routing to Web Search")
+                logger.info(" Routing to Web Search")
             
             # Execute tool with streaming
-            logger.info("⚙️ Executing tool...")
+            logger.info(" Executing tool...")
             result_state = await tool_method(state)
             
             # Stream the results
@@ -168,11 +168,11 @@ class StreamingStudyAgent(BaseAgent):
                         message = chunk.get("message", "")
                         
                         if indicator == "processing":
-                            yield f"⚙️ {message}\n"
+                            yield f" {message}\n"
                         elif indicator == "complete":
-                            yield f"✅ {message}\n"
+                            yield f" {message}\n"
                         elif indicator == "error":
-                            yield f"❌ {message}\n"
+                            yield f" {message}\n"
                         else:
                             yield f"{message}\n"
                     
@@ -199,7 +199,7 @@ class StreamingStudyAgent(BaseAgent):
                 if not any(final_answer in str(c) for c in result_state._streamed_chunks):
                     yield f"\n\n{final_answer}\n"
             
-            logger.info("✅ Streaming study query complete")
+            logger.info(" Streaming study query complete")
             yield "[DONE]"
             
         except Exception as e:

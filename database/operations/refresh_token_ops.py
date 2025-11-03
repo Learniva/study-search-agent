@@ -66,16 +66,16 @@ async def create_refresh_token(
         await session.commit()
         await session.refresh(refresh_token)
         
-        logger.info(f"✅ Refresh token created for user {user_id}, chain {rotation_chain_id[:8]}...")
+        logger.info(f" Refresh token created for user {user_id}, chain {rotation_chain_id[:8]}...")
         return refresh_token
         
     except IntegrityError as e:
         await session.rollback()
-        logger.error(f"❌ Refresh token creation failed (integrity error): {e}")
+        logger.error(f" Refresh token creation failed (integrity error): {e}")
         return None
     except Exception as e:
         await session.rollback()
-        logger.error(f"❌ Refresh token creation error: {e}")
+        logger.error(f" Refresh token creation error: {e}")
         return None
 
 
@@ -99,7 +99,7 @@ async def get_refresh_token(
         )
         return result.scalars().first()
     except Exception as e:
-        logger.error(f"❌ Error fetching refresh token: {e}")
+        logger.error(f" Error fetching refresh token: {e}")
         return None
 
 
@@ -123,7 +123,7 @@ async def get_refresh_token_by_id(
         )
         return result.scalars().first()
     except Exception as e:
-        logger.error(f"❌ Error fetching refresh token by ID: {e}")
+        logger.error(f" Error fetching refresh token by ID: {e}")
         return None
 
 
@@ -148,11 +148,11 @@ async def mark_token_used(
             .values(used_at=datetime.now(timezone.utc))
         )
         await session.commit()
-        logger.debug(f"✅ Marked token {token_id[:8]}... as used")
+        logger.debug(f" Marked token {token_id[:8]}... as used")
         return True
     except Exception as e:
         await session.rollback()
-        logger.error(f"❌ Error marking token as used: {e}")
+        logger.error(f" Error marking token as used: {e}")
         return False
 
 
@@ -183,11 +183,11 @@ async def revoke_token(
             )
         )
         await session.commit()
-        logger.info(f"✅ Revoked token {token_id[:8]}... (reason: {reason})")
+        logger.info(f" Revoked token {token_id[:8]}... (reason: {reason})")
         return True
     except Exception as e:
         await session.rollback()
-        logger.error(f"❌ Error revoking token: {e}")
+        logger.error(f" Error revoking token: {e}")
         return False
 
 
@@ -228,11 +228,11 @@ async def revoke_token_chain(
         await session.commit()
         
         count = result.rowcount
-        logger.warning(f"⚠️ Revoked entire token chain {rotation_chain_id[:8]}... ({count} tokens) - reason: {reason}")
+        logger.warning(f" Revoked entire token chain {rotation_chain_id[:8]}... ({count} tokens) - reason: {reason}")
         return count
     except Exception as e:
         await session.rollback()
-        logger.error(f"❌ Error revoking token chain: {e}")
+        logger.error(f" Error revoking token chain: {e}")
         return 0
 
 
@@ -270,11 +270,11 @@ async def revoke_user_tokens(
         await session.commit()
         
         count = result.rowcount
-        logger.info(f"✅ Revoked {count} refresh tokens for user {user_id} (reason: {reason})")
+        logger.info(f" Revoked {count} refresh tokens for user {user_id} (reason: {reason})")
         return count
     except Exception as e:
         await session.rollback()
-        logger.error(f"❌ Error revoking user tokens: {e}")
+        logger.error(f" Error revoking user tokens: {e}")
         return 0
 
 
@@ -314,19 +314,19 @@ async def rotate_refresh_token(
         
         # Check if already revoked
         if old_token.is_revoked:
-            logger.warning(f"⚠️ Attempted to use revoked token {old_token.token_id[:8]}...")
+            logger.warning(f" Attempted to use revoked token {old_token.token_id[:8]}...")
             return None, "refresh_token_revoked"
         
         # Check if expired
         if old_token.is_expired():
-            logger.warning(f"⚠️ Attempted to use expired token {old_token.token_id[:8]}...")
+            logger.warning(f" Attempted to use expired token {old_token.token_id[:8]}...")
             await revoke_token(session, old_token.token_id, "expired")
             return None, "refresh_token_expired"
         
         # CRITICAL SECURITY CHECK: Detect token reuse
         if old_token.is_reused():
             logger.error(
-                f"🚨 SECURITY ALERT: Token reuse detected! "
+                f" SECURITY ALERT: Token reuse detected! "
                 f"Token {old_token.token_id[:8]}... chain {old_token.rotation_chain_id[:8]}... "
                 f"Revoking entire chain."
             )
@@ -355,14 +355,14 @@ async def rotate_refresh_token(
         await mark_token_used(session, old_token.token_id)
         
         logger.info(
-            f"✅ Token rotated successfully for user {old_token.user_id}, "
+            f" Token rotated successfully for user {old_token.user_id}, "
             f"chain {old_token.rotation_chain_id[:8]}..."
         )
         
         return new_token, None
         
     except Exception as e:
-        logger.error(f"❌ Error rotating refresh token: {e}")
+        logger.error(f" Error rotating refresh token: {e}")
         return None, "internal_error"
 
 
@@ -394,7 +394,7 @@ async def get_user_active_tokens(
         )
         return list(result.scalars().all())
     except Exception as e:
-        logger.error(f"❌ Error fetching user active tokens: {e}")
+        logger.error(f" Error fetching user active tokens: {e}")
         return []
 
 
@@ -430,9 +430,9 @@ async def cleanup_expired_tokens(
         await session.commit()
         
         count = result.rowcount
-        logger.info(f"🧹 Cleaned up {count} expired/old refresh tokens")
+        logger.info(f" Cleaned up {count} expired/old refresh tokens")
         return count
     except Exception as e:
         await session.rollback()
-        logger.error(f"❌ Error cleaning up expired tokens: {e}")
+        logger.error(f" Error cleaning up expired tokens: {e}")
         return 0

@@ -1,4 +1,4 @@
-# ✅ Security QA Complete: Bruteforce Login → Lockout Invariant
+#  Security QA Complete: Bruteforce Login → Lockout Invariant
 
 ## Summary
 All acceptance criteria have been **VERIFIED** and **PASSED**. The account lockout mechanism effectively prevents brute-force attacks.
@@ -7,30 +7,30 @@ All acceptance criteria have been **VERIFIED** and **PASSED**. The account locko
 
 ## Acceptance Criteria Results
 
-### ✅ 1. Lockout triggered after threshold failures
+###  1. Lockout triggered after threshold failures
 **Status:** PASS
 
 - Lockout activates at exactly **5 failed attempts**
 - Progressive levels: 5 → 10 → 15 → 20 attempts
 - Response time: < 0.1ms average
 
-### ✅ 2. Subsequent attempts produce correct error/status
+###  2. Subsequent attempts produce correct error/status
 **Status:** PASS
 
 - Returns **HTTP 423 (Locked)** during cooldown
 - Error message: `"Account locked due to 5 failed attempts. Please try again in X minutes."`
 - 100% success rate in blocking attempts during lockout
 
-### ✅ 3. Cooldown period fully enforced
+###  3. Cooldown period fully enforced
 **Status:** PASS
 
 Progressive lockout durations verified:
-- **Level 1:** 5 attempts → 5 minutes ✓
-- **Level 2:** 10 attempts → 10 minutes ✓
-- **Level 3:** 15 attempts → 30 minutes ✓
-- **Level 4:** 20+ attempts → 60 minutes ✓
+- **Level 1:** 5 attempts → 5 minutes 
+- **Level 2:** 10 attempts → 10 minutes 
+- **Level 3:** 15 attempts → 30 minutes 
+- **Level 4:** 20+ attempts → 60 minutes 
 
-### ✅ 4. Logs show lockout event
+###  4. Logs show lockout event
 **Status:** PASS
 
 ```
@@ -48,9 +48,9 @@ Total Attempts: 10
 ├─ Unauthorized (401): 4 attempts (before lockout)
 └─ Locked (423): 6 attempts (during lockout)
 
-Lockout Triggered: ✓ YES
+Lockout Triggered:  YES
 Timestamp: 2025-10-28T18:27:27.692215+00:00
-Cooldown Verified: ✓ YES
+Cooldown Verified:  YES
 ```
 
 ### Sample Request/Response
@@ -81,11 +81,11 @@ HTTP 423 Locked
 
 ## Additional Testing
 
-### IP-Based Isolation ✓
+### IP-Based Isolation 
 - IP `192.168.1.201` locked after 5 attempts: **LOCKED**
 - IP `192.168.1.202` with 0 attempts: **NOT LOCKED**
 
-### Performance ✓
+### Performance 
 - Average response time (unauthorized): 0.06ms
 - Average response time (locked): 0.03ms
 - Total test execution: 93.4ms
@@ -94,7 +94,7 @@ HTTP 423 Locked
 
 ## Invariant Verification
 
-> ✅ **PASS:** A user CANNOT brute-force credentials without lockout kicking in.
+>  **PASS:** A user CANNOT brute-force credentials without lockout kicking in.
 
 The system successfully:
 1. Detects failed login patterns
@@ -120,10 +120,10 @@ python -m pytest tests/test_bruteforce_lockout_qa.py -v
 **Output:**
 ```
 4 passed, 12 warnings in 3.88s
-✅ test_bruteforce_attack_triggers_lockout
-✅ test_progressive_lockout_levels
-✅ test_lockout_duration_verified
-✅ test_ip_based_lockout
+ test_bruteforce_attack_triggers_lockout
+ test_progressive_lockout_levels
+ test_lockout_duration_verified
+ test_ip_based_lockout
 ```
 
 ---
@@ -144,13 +144,13 @@ LOCKOUT_DURATIONS_MINUTES = [5, 10, 30, 60]
 
 ## Recommendations
 
-### ✅ Current Implementation
+###  Current Implementation
 - Progressive lockout mechanism
 - IP-based tracking
 - Structured security logging
 - Clear user feedback
 
-### 🔄 Future Enhancements (Optional)
+###  Future Enhancements (Optional)
 - Redis-based persistence for distributed systems
 - Email notifications on lockout events
 - CAPTCHA integration after 2-3 attempts
@@ -158,6 +158,6 @@ LOCKOUT_DURATIONS_MINUTES = [5, 10, 30, 60]
 
 ---
 
-**Status:** ✅ **APPROVED FOR PRODUCTION**  
+**Status:**  **APPROVED FOR PRODUCTION**  
 **QA Date:** October 28, 2025  
 **Tested By:** GitHub Copilot

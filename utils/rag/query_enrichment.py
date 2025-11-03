@@ -142,11 +142,11 @@ def format_realtime_warning(actual_time_str: str) -> str:
     Returns:
         Formatted warning message
     """
-    warning = "\n\n⚠️ **IMPORTANT DATA QUALITY WARNING:**\n"
+    warning = "\n\n **IMPORTANT DATA QUALITY WARNING:**\n"
     warning += "Web search may return STALE/CACHED data for real-time queries!\n\n"
     warning += f"**Your actual system time:** {actual_time_str}\n\n"
-    warning += "❗ The information above from web search may be OUTDATED.\n"
-    warning += "💡 For accurate real-time data (time, weather, stocks), use:\n"
+    warning += " The information above from web search may be OUTDATED.\n"
+    warning += " For accurate real-time data (time, weather, stocks), use:\n"
     warning += "   - Dedicated time/weather APIs\n"
     warning += "   - Python datetime commands\n"
     warning += "   - System commands (`date`, `curl wttr.in`, etc.)"

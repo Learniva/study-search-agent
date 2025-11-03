@@ -142,7 +142,7 @@ try:
     ML_FEATURES_AVAILABLE = True
 except ImportError as e:
     ML_FEATURES_AVAILABLE = False
-    print(f"⚠️  ML features not available: {e}")
+    print(f"  ML features not available: {e}")
 
 # =============================================================================
 # API SUPPORT (Optional)
@@ -165,7 +165,7 @@ try:
     API_FEATURES_AVAILABLE = True
 except ImportError as e:
     API_FEATURES_AVAILABLE = False
-    print(f"⚠️  API features not available: {e}")
+    print(f"  API features not available: {e}")
 
 # =============================================================================
 # EXPORTS

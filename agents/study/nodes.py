@@ -48,7 +48,7 @@ class StudyAgentNodes:
         ]) and len(question) < 50
         
         if is_web_search:
-            print("✅ User chose: Search the web")
+            print(" User chose: Search the web")
             return {
                 **state,
                 "user_choice_web_search": True,
@@ -56,7 +56,7 @@ class StudyAgentNodes:
                 "tool_used": "Web_Search"
             }
         elif is_upload:
-            print("✅ User chose: Upload document")
+            print(" User chose: Upload document")
             return {
                 **state,
                 "user_choice_upload": True,
@@ -267,17 +267,17 @@ Your synthesized answer:"""
     
     def _execute_document_qa(self, state: StudyAgentState) -> StudyAgentState:
         """Execute Document QA tool."""
-        print(f"📚 [TOOL EXECUTION] Executing Document_QA for: '{state['question'][:60]}...'")
+        print(f" [TOOL EXECUTION] Executing Document_QA for: '{state['question'][:60]}...'")
         tool = self.tool_map.get("Document_QA")
         if not tool:
-            print("❌ [TOOL EXECUTION] Document_QA tool not found in tool_map!")
+            print(" [TOOL EXECUTION] Document_QA tool not found in tool_map!")
             return {
                 **state,
                 "tool_result": "Document QA not available",
                 "tried_document_qa": True,
                 "document_qa_failed": True
             }
-        print(f"✅ [TOOL EXECUTION] Document_QA tool found, calling it now...")
+        print(f" [TOOL EXECUTION] Document_QA tool found, calling it now...")
         
         # IMPORTANT: Check if documents exist on disk but not in vector store yet
         # This prevents silent fallback to web search when indexing is in progress
@@ -300,15 +300,15 @@ Your synthesized answer:"""
                     
                     if files_on_disk:
                         # Files exist but not indexed yet
-                        print(f"⚠️  [INDEXING IN PROGRESS] Found {len(files_on_disk)} file(s) on disk but not indexed yet")
+                        print(f"  [INDEXING IN PROGRESS] Found {len(files_on_disk)} file(s) on disk but not indexed yet")
                         files_list = '\n'.join([f"  • {f}" for f in files_on_disk])
                         return {
                             **state,
-                            "tool_result": f"📄 **Document Indexing in Progress**\n\n"
+                            "tool_result": f" **Document Indexing in Progress**\n\n"
                                          f"I found the following document(s) that you've uploaded:\n\n{files_list}\n\n"
-                                         f"⏳ **Please wait a moment** - these documents are currently being processed and indexed. "
+                                         f" **Please wait a moment** - these documents are currently being processed and indexed. "
                                          f"This usually takes 10-30 seconds depending on the document size.\n\n"
-                                         f"💡 **What's happening:** Your document is being:\n"
+                                         f" **What's happening:** Your document is being:\n"
                                          f"  1. Extracted (reading the PDF/document content)\n"
                                          f"  2. Chunked (breaking into searchable sections)\n"
                                          f"  3. Embedded (converting to semantic vectors)\n"
@@ -320,7 +320,7 @@ Your synthesized answer:"""
                             "awaiting_user_choice": False  # Don't ask for web search - they should wait
                         }
         except Exception as e:
-            print(f"⚠️  Pre-check error: {e}")
+            print(f"  Pre-check error: {e}")
         
         try:
             # Build conversation history for context-aware document queries
@@ -338,7 +338,7 @@ Your synthesized answer:"""
                 
                 # Reverse to chronological order
                 conversation_history = " ".join(reversed(user_messages))
-                print(f"📝 [DOC QA CONTEXT] Conversation history: {conversation_history[:150]}...")
+                print(f" [DOC QA CONTEXT] Conversation history: {conversation_history[:150]}...")
             
             # Determine chunk limit based on query type
             question_lower = state["question"].lower()
@@ -349,10 +349,10 @@ Your synthesized answer:"""
                 'all about', 'overview', 'entire', 'whole', 'complete'
             ]):
                 chunk_limit = 60  # Retrieve up to 60 chunks for comprehensive chapter coverage
-                print(f"📚 [COMPREHENSIVE RETRIEVAL] Chapter/overview request detected - retrieving {chunk_limit} chunks")
+                print(f" [COMPREHENSIVE RETRIEVAL] Chapter/overview request detected - retrieving {chunk_limit} chunks")
             else:
                 chunk_limit = 15  # Standard retrieval for specific questions
-                print(f"📄 [STANDARD RETRIEVAL] Specific question - retrieving {chunk_limit} chunks")
+                print(f" [STANDARD RETRIEVAL] Specific question - retrieving {chunk_limit} chunks")
             
             # Retrieve relevant document chunks with context awareness and appropriate limit
             raw_results = tool.func(
@@ -360,20 +360,20 @@ Your synthesized answer:"""
                 limit=chunk_limit,
                 conversation_history=conversation_history
             )
-            print(f"📄 [TOOL EXECUTION] Document_QA returned {len(raw_results)} chars")
-            print(f"📄 [TOOL EXECUTION] First 200 chars: {raw_results[:200]}")
+            print(f" [TOOL EXECUTION] Document_QA returned {len(raw_results)} chars")
+            print(f" [TOOL EXECUTION] First 200 chars: {raw_results[:200]}")
             
             # Check if retrieval failed
             failed = any(p in raw_results.lower() for p in [
-                "no relevant content", "no documents found", "not found", "❌",
+                "no relevant content", "no documents found", "not found", "",
                 "no documents", "please upload", "vector store"
             ])
-            print(f"🔍 [TOOL EXECUTION] Failure check result: {failed}")
+            print(f" [TOOL EXECUTION] Failure check result: {failed}")
             
             if failed:
                 # Check if this is a "no documents available" situation
                 if "no documents found" in raw_results.lower() or "please upload" in raw_results.lower():
-                    print("💡 No documents available - informing user")
+                    print(" No documents available - informing user")
                     
                     # Check if user explicitly referenced a document they thought they uploaded
                     question_lower = state['question'].lower()
@@ -385,11 +385,11 @@ Your synthesized answer:"""
                     if explicit_doc_reference:
                         # User thinks they uploaded a document but we can't find it
                         clarification_message = (
-                            "📚 **No Document Found**\n\n"
+                            " **No Document Found**\n\n"
                             "I couldn't find the document you're referring to. This could mean:\n\n"
-                            "1. ⏳ The document is still being processed and indexed (wait 10-30 seconds)\n"
-                            "2. 📤 The upload may have failed - please try uploading again\n"
-                            "3. 🗂️ The document might not have been uploaded yet\n\n"
+                            "1.  The document is still being processed and indexed (wait 10-30 seconds)\n"
+                            "2.  The upload may have failed - please try uploading again\n"
+                            "3.  The document might not have been uploaded yet\n\n"
                             "**What would you like to do?**\n"
                             "• If you just uploaded it, please wait a moment and try again\n"
                             "• If you haven't uploaded it yet, please upload your document first\n"
@@ -401,10 +401,10 @@ Your synthesized answer:"""
                     else:
                         # No explicit document reference - offer web search
                         clarification_message = (
-                            "📚 **No documents found in your library.**\n\n"
+                            " **No documents found in your library.**\n\n"
                             "Would you like me to:\n"
-                            "1. 🌐 **Search the web** for this information\n"
-                            "2. ⏸️  **Wait** while you upload a document first\n\n"
+                            "1.  **Search the web** for this information\n"
+                            "2.   **Wait** while you upload a document first\n\n"
                             "Please reply with **'search web'** or **'upload document'** (or just **'1'** or **'2'**):"
                         )
                     
@@ -457,16 +457,16 @@ MANDATORY STRUCTURE - Follow this EXACT order:
 
 # [Chapter/Topic Title]
 
-## 📋 BRIEF SUMMARY
+##  BRIEF SUMMARY
 [MUST BE FIRST - 2-3 sentences explaining what this chapter/document is about overall]
 
-## 🎯 KEY TOPICS AND CONCEPTS
+##  KEY TOPICS AND CONCEPTS
 [List the main topics covered, using bullet points with **bold** formatting]
 • **Topic 1**: Brief description (p. XX)
 • **Topic 2**: Brief description (p. XX)
 • **Topic 3**: Brief description (p. XX)
 
-## 💻 CODE & ALGORITHMS
+##  CODE & ALGORITHMS
 [ONLY include if code or algorithms are present in the content]
 ### Algorithm/Code Name (p. XX)
 • **Purpose**: What it does
@@ -478,7 +478,7 @@ MANDATORY STRUCTURE - Follow this EXACT order:
   code here
   ```
 
-## 📚 DETAILED CONTENT
+##  DETAILED CONTENT
 
 ### Section 1: [Name] (p. XX)
 [Detailed explanation with **bold key concepts**]
@@ -493,7 +493,7 @@ MANDATORY STRUCTURE - Follow this EXACT order:
 ### Section 2: [Name] (p. XX)
 [Continue with clear subsections...]
 
-## 🔧 CONCEPTS AND USE CASES
+##  CONCEPTS AND USE CASES
 
 ### Concept: [Name]
 • **What it is**: Definition/explanation (p. XX)
@@ -503,13 +503,13 @@ MANDATORY STRUCTURE - Follow this EXACT order:
   - Use case 2 (p. XX)
 • **Real-world Applications**: [If mentioned]
 
-## 💡 KEY TAKEAWAYS
+##  KEY TAKEAWAYS
 [3-5 bullet points summarizing the most important lessons]
 • Key takeaway 1
 • Key takeaway 2
 • Key takeaway 3
 
-## 📖 PAGE REFERENCES
+##  PAGE REFERENCES
 [List all page numbers covered: pp. XX-XX]
 
 ---
@@ -586,7 +586,7 @@ Instructions:
 Answer:"""
             
             response = self.llm.invoke([HumanMessage(content=synthesis_prompt)])
-            print(f"🤖 [LLM SYNTHESIS] LLM response ({len(response.content)} chars):")
+            print(f" [LLM SYNTHESIS] LLM response ({len(response.content)} chars):")
             print(f"   First 300 chars: {response.content[:300]}...")
             
             # Check if LLM indicated content was insufficient/irrelevant
@@ -597,7 +597,7 @@ Answer:"""
                 "provided content does not", "cannot answer",
                 "not available about", "nothing about"
             ])
-            print(f"🔍 [LLM SYNTHESIS] Insufficient content check: {insufficient}")
+            print(f" [LLM SYNTHESIS] Insufficient content check: {insufficient}")
             
             # Also check for negative statements at the start of response
             if response_lower.strip().startswith(("based on the retrieved content, there is no", 
@@ -605,13 +605,13 @@ Answer:"""
                 insufficient = True
             
             if insufficient:
-                print("⚠️  Retrieved content not relevant - asking user for next action")
+                print("  Retrieved content not relevant - asking user for next action")
                 # Ask user what they want to do instead of auto-searching
                 clarification_message = (
                     "I couldn't find relevant information about this topic in your uploaded documents.\n\n"
                     "Would you like me to:\n"
-                    "1. 🌐 Search the web for this information\n"
-                    "2. ⏸️  Wait while you upload a document with this information\n\n"
+                    "1.  Search the web for this information\n"
+                    "2.   Wait while you upload a document with this information\n\n"
                     "Please reply with 'search web' or 'upload document' (or just '1' or '2'):"
                 )
                 return {
@@ -793,9 +793,9 @@ Answer:"""
             question_lower = search_query.lower()
             
             print(f"\n{'='*70}")
-            print(f"🔍 INTELLIGENT WEB SEARCH")
+            print(f" INTELLIGENT WEB SEARCH")
             print(f"{'='*70}")
-            print(f"📝 Original question: '{search_query}'")
+            print(f" Original question: '{search_query}'")
             
             # Advanced context detection (include 'its' and other possessives)
             has_pronoun = any(f' {word} ' in f' {question_lower} ' for word in 
@@ -811,23 +811,23 @@ Answer:"""
             # Check if this is a short follow-up question (likely needs context)
             is_short_followup = len(search_query.split()) <= 6 and (has_pronoun or has_contextual_query)
             
-            print(f"🎯 Context needed: {has_pronoun or has_contextual_query or is_short_followup}")
+            print(f" Context needed: {has_pronoun or has_contextual_query or is_short_followup}")
             
             if (has_pronoun or has_contextual_query or is_short_followup) and messages:
                 # Extract main topic using advanced strategies
                 extracted_topic = self._extract_main_topic_from_conversation(messages)
                 
                 if extracted_topic:
-                    print(f"💡 Extracted topic: '{extracted_topic}'")
+                    print(f" Extracted topic: '{extracted_topic}'")
                     
                     # Intelligently reformulate the query
                     search_query = self._reformulate_query_intelligently(search_query, extracted_topic)
                     
-                    print(f"✨ Reformulated query: '{search_query}'")
+                    print(f" Reformulated query: '{search_query}'")
                 else:
-                    print(f"⚠️  Could not extract topic from conversation")
+                    print(f"  Could not extract topic from conversation")
             else:
-                print(f"✅ Direct question - no reformulation needed")
+                print(f" Direct question - no reformulation needed")
             
             print(f"{'='*70}\n")
             
@@ -835,7 +835,7 @@ Answer:"""
             
             # Debug: Print raw search results to verify URLs are present
             print(f"\n{'='*70}")
-            print(f"📋 RAW SEARCH RESULTS (for debugging URL extraction):")
+            print(f" RAW SEARCH RESULTS (for debugging URL extraction):")
             print(f"{'='*70}")
             print(raw_results[:1000] if len(raw_results) > 1000 else raw_results)
             print(f"{'='*70}\n")
@@ -996,7 +996,7 @@ Answer:"""
             if not topic:
                 topic = question
             
-            print(f"🎬 Generating animation for topic: {topic}")
+            print(f" Generating animation for topic: {topic}")
             result = tool.func(topic)
             
             # Parse JSON result from tool
@@ -1007,7 +1007,7 @@ Answer:"""
                 artifact = result_data.get("artifact")
                 
                 if artifact:
-                    return {**state, "tool_result": f"{content}\n\n📹 Video saved to: {artifact}"}
+                    return {**state, "tool_result": f"{content}\n\n Video saved to: {artifact}"}
                 else:
                     return {**state, "tool_result": content}
             except json.JSONDecodeError:

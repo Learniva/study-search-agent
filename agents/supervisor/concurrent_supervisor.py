@@ -81,9 +81,9 @@ class ConcurrentSupervisorMixin:
         
         if concurrent_question and active_tasks:
             # This is a concurrent query - handle it while main task runs
-            logger.info(f"🔀 Handling concurrent query while {len(active_tasks)} task(s) run")
+            logger.info(f" Handling concurrent query while {len(active_tasks)} task(s) run")
             
-            yield "🔀 **Handling your concurrent question...**\n\n"
+            yield " **Handling your concurrent question...**\n\n"
             
             # Route concurrent query to study agent
             async for chunk in self.streaming_study_agent.aquery_stream(
@@ -100,7 +100,7 @@ class ConcurrentSupervisorMixin:
                 
                 if task_status:
                     if task_status["status"] == "completed":
-                        yield f"\n\n✅ **Background task completed:** {task_status['task_type'].replace('_', ' ').title()}\n"
+                        yield f"\n\n **Background task completed:** {task_status['task_type'].replace('_', ' ').title()}\n"
                         
                         # Get the result
                         task = self.task_manager.completed_tasks.get(task_id)
@@ -109,7 +109,7 @@ class ConcurrentSupervisorMixin:
                     
                     elif task_status["status"] == "running":
                         progress = int(task_status["progress"] * 100)
-                        yield f"\n\n🎬 **Background task still running:** {progress}% complete\n"
+                        yield f"\n\n **Background task still running:** {progress}% complete\n"
             
             yield "[DONE]"
             return
@@ -127,10 +127,10 @@ class ConcurrentSupervisorMixin:
             
             if is_long_running and self._concurrent_mode_enabled:
                 # Long-running task detected - enable concurrent execution
-                logger.info(f"🔄 Long-running {task_type.value} detected, enabling concurrent mode")
+                logger.info(f" Long-running {task_type.value} detected, enabling concurrent mode")
                 
-                yield f"🎬 **Detected long-running task:** {task_type.value.replace('_', ' ').title()}\n\n"
-                yield "⏱️ This will take approximately 30-60 seconds. I'll start working on it in the background.\n\n"
+                yield f" **Detected long-running task:** {task_type.value.replace('_', ' ').title()}\n\n"
+                yield " This will take approximately 30-60 seconds. I'll start working on it in the background.\n\n"
             
             # Route to appropriate agent with streaming
             from .state import SupervisorState
@@ -172,7 +172,7 @@ class ConcurrentSupervisorMixin:
             
             # Check access
             if state["access_denied"]:
-                yield "⛔ Access Denied. Your role does not have permission to use this feature."
+                yield " Access Denied. Your role does not have permission to use this feature."
                 yield "[DONE]"
                 return
             
@@ -205,7 +205,7 @@ class ConcurrentSupervisorMixin:
             # Check for background tasks and prompt for concurrent query
             active_tasks = self.task_manager.get_active_tasks(thread_id=thread_id)
             if active_tasks and is_long_running:
-                yield "\n\n💡 **While I work on that, what else can I help you with?**\n\n"
+                yield "\n\n **While I work on that, what else can I help you with?**\n\n"
                 yield "You can ask me another question, and I'll handle it while the animation generates.\n\n"
                 yield "Or just say 'wait' to see the result when it's ready.\n\n"
             

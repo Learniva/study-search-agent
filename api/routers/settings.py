@@ -644,7 +644,7 @@ async def delete_account(
         # Commit all deletions
         await session.commit()
         
-        logger.info(f"✅ Account deleted: {user_id}, Items: {deleted_items}")
+        logger.info(f" Account deleted: {user_id}, Items: {deleted_items}")
         
         return {
             "message": "Account deleted successfully. All your data has been permanently removed.",
@@ -653,7 +653,7 @@ async def delete_account(
         
     except Exception as e:
         await session.rollback()
-        logger.error(f"❌ Account deletion failed for {user_id}: {e}")
+        logger.error(f" Account deletion failed for {user_id}: {e}")
         raise HTTPException(
             status_code=500,
             detail=f"Account deletion failed. Please contact support. Error: {str(e)}"

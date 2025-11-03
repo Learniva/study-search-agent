@@ -496,27 +496,27 @@ results = await asyncio.gather(
 
 ## Key Autonomous Capabilities
 
-### ✅ Intelligent Routing
+###  Intelligent Routing
 - **Pattern matching** → 80% of requests skip LLM
 - **Historical learning** → Similar queries auto-routed
 - **Confidence-based** → Falls back when uncertain
 
-### ✅ Self-Reflection
+###  Self-Reflection
 - **Quality assessment** → Post-execution analysis
 - **Autonomous retry** → Improve without human input
 - **Flag for review** → Know when to ask for help
 
-### ✅ Adaptive Execution
+###  Adaptive Execution
 - **Complexity detection** → Simple vs. multi-step
 - **Dynamic planning** → Generate execution plans
 - **Tool fallback** → Automatic retry chains
 
-### ✅ Quality Assurance
+###  Quality Assurance
 - **Consistency checking** → Rubric alignment
 - **Bias detection** → Fairness scanning
 - **Confidence scoring** → Know quality level
 
-### ✅ Context Optimization
+###  Context Optimization
 - **Smart pruning** → Reduce token usage
 - **Historical context** → Learn from past
 - **Similarity matching** → Fast retrieval

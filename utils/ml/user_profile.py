@@ -120,7 +120,7 @@ class UserProfileManager:
         self.learning_rate = 0.1  # For exponential moving average
         self.decay_factor = 0.95  # For topic relevance decay
         
-        print(f"📊 User Profile Manager initialized (backend: {storage_backend})")
+        print(f" User Profile Manager initialized (backend: {storage_backend})")
     
     def get_or_create_profile(self, user_id: str, role: str = "student") -> UserProfile:
         """
@@ -143,9 +143,9 @@ class UserProfileManager:
         if profile is None:
             # Create new profile
             profile = UserProfile(user_id=user_id, role=role)
-            print(f"✨ Created new profile for user: {user_id} (role: {role})")
+            print(f" Created new profile for user: {user_id} (role: {role})")
         else:
-            print(f"📂 Loaded existing profile for user: {user_id}")
+            print(f" Loaded existing profile for user: {user_id}")
         
         # Cache it
         self.profiles[user_id] = profile
@@ -229,12 +229,12 @@ class UserProfileManager:
             if any(phrase in user_followup.lower() for phrase in 
                    ["more detail", "explain further", "elaborate", "tell me more"]):
                 profile.preferred_explanation_depth = "detailed"
-                print(f"📝 Learned: User {user_id} prefers detailed explanations")
+                print(f" Learned: User {user_id} prefers detailed explanations")
             
             elif any(phrase in user_followup.lower() for phrase in
                      ["too long", "summarize", "shorter", "brief", "tldr"]):
                 profile.preferred_explanation_depth = "brief"
-                print(f"📝 Learned: User {user_id} prefers brief explanations")
+                print(f" Learned: User {user_id} prefers brief explanations")
         
         # Extract and update subject areas
         extracted_topics = self._extract_topics(query)
@@ -247,7 +247,7 @@ class UserProfileManager:
         # Save profile
         self._save_profile(profile)
         
-        print(f"📈 Updated profile for {user_id}: "
+        print(f" Updated profile for {user_id}: "
               f"satisfaction={profile.satisfaction_score:.2f}, "
               f"interactions={profile.interactions_count}")
     
@@ -406,7 +406,7 @@ class UserProfileManager:
                 data = json.load(f)
             return UserProfile.from_dict(data)
         except Exception as e:
-            print(f"⚠️  Failed to load profile: {e}")
+            print(f"  Failed to load profile: {e}")
             return None
     
     def _save_profile_to_file(self, profile: UserProfile):
@@ -418,12 +418,12 @@ class UserProfileManager:
             with open(filepath, 'w') as f:
                 json.dump(profile.to_dict(), f, indent=2)
         except Exception as e:
-            print(f"⚠️  Failed to save profile: {e}")
+            print(f"  Failed to save profile: {e}")
     
     def _load_profile_from_database(self, user_id: str) -> Optional[UserProfile]:
         """Load profile from PostgreSQL database."""
         if not DATABASE_AVAILABLE or UserLearningProfile is None:
-            print("⚠️  Database not available, falling back to file storage")
+            print("  Database not available, falling back to file storage")
             return None
         
         try:
@@ -466,13 +466,13 @@ class UserProfileManager:
                 return profile
                 
         except Exception as e:
-            print(f"⚠️  Failed to load profile from database: {e}")
+            print(f"  Failed to load profile from database: {e}")
             return None
     
     def _save_profile_to_database(self, profile: UserProfile):
         """Save profile to PostgreSQL database."""
         if not DATABASE_AVAILABLE or UserLearningProfile is None:
-            print("⚠️  Database not available, profile saved to file only")
+            print("  Database not available, profile saved to file only")
             return
         
         try:
@@ -535,7 +535,7 @@ class UserProfileManager:
                 db.commit()
                 
         except Exception as e:
-            print(f"⚠️  Failed to save profile to database: {e}")
+            print(f"  Failed to save profile to database: {e}")
 
 
 # Global profile manager instance
@@ -608,23 +608,23 @@ def print_user_profile(user_id: str):
     summary = manager.get_profile_summary(user_id)
     
     print("\n" + "=" * 70)
-    print(f"📊 USER PROFILE: {summary['user_id']}")
+    print(f" USER PROFILE: {summary['user_id']}")
     print("=" * 70)
-    print(f"\n🎓 Role: {summary['role']}")
-    print(f"💬 Interactions: {summary['interactions']}")
-    print(f"😊 Satisfaction: {summary['satisfaction']}")
-    print(f"👍 Positive: {summary['positive_feedback']}")
-    print(f"👎 Negative: {summary['negative_feedback']}")
-    print(f"\n📝 Preferences:")
+    print(f"\n Role: {summary['role']}")
+    print(f" Interactions: {summary['interactions']}")
+    print(f" Satisfaction: {summary['satisfaction']}")
+    print(f" Positive: {summary['positive_feedback']}")
+    print(f" Negative: {summary['negative_feedback']}")
+    print(f"\n Preferences:")
     print(f"  • Explanation Depth: {summary['preferred_depth']}")
-    print(f"\n🔧 Top Tools:")
+    print(f"\n Top Tools:")
     for tool in summary['top_tools']:
         print(f"  • {tool}")
-    print(f"\n📚 Subject Areas:")
+    print(f"\n Subject Areas:")
     for subject in summary['top_subjects']:
         print(f"  • {subject}")
-    print(f"\n⏰ Created: {summary['created']}")
-    print(f"🔄 Last Updated: {summary['last_updated']}")
+    print(f"\n Created: {summary['created']}")
+    print(f" Last Updated: {summary['last_updated']}")
     print("=" * 70 + "\n")
 
 
